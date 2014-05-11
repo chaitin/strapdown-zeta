@@ -21,6 +21,7 @@
     }
   }
 
+
   //////////////////////////////////////////////////////////////////////
   //
   // Get user elements we need
@@ -111,9 +112,122 @@
   // Markdown!
   //
 
+  var m;
+  var u = /(\$\$?|\\(?:begin|end)\{[a-z]*\*?\}|\\[\\{}$]|[{}]|(?:\n\s*)+|@@@@\d+@@@@)/i, r;
+  r = 3 === "aba".split(/(b)/).length ? function(a, f) {
+      return a.split(f)
+  } : function(a, f) {
+      var b = [], c;
+      if (!f.global) {
+          c = f.toString();
+          var d = "";
+          c = c.replace(/^\/(.*)\/([im]*)$/, function(a, c, b) {
+              d = b;
+              return c
+          });
+          f = RegExp(c, d + "g")
+      }
+      for (var e = f.lastIndex = 0; c = f.exec(a); )
+          b.push(a.substring(e, c.index)), b.push.apply(b, c.slice(1)), e = c.index + c[0].length;
+      b.push(a.substring(e));
+      return b
+  };
+
+  function isMSIE() {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf('MSIE ');
+    var trident = ua.indexOf('Trident/');
+
+    if (msie > 0) {
+        // IE 10 or older => return version number
+      return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+    }
+
+    if (trident > 0) {
+        // IE 11 (or newer) => return version number
+        var rv = ua.indexOf('rv:');
+      return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+    }
+
+    // other browser
+    return false;
+  }
+
+  function b(a, f, b) {
+    var c = k.slice(a, f + 1).join("").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    for (isMSIE() && (c = c.replace(/(%[^\n]*)\n/g, "$1<br/>\n")); f > a; )
+        k[f] = "", f--;
+    k[a] = "@@@@" + m.length + "@@@@";
+    b && (c = b(c));
+    m.push(c);
+    i = o = l = null
+  }
+
+  function p(a) {
+      i = o = l = null;
+      m = [];
+      var f;
+      /`/.test(a) ? (a = a.replace(/~/g, "~T").replace(/(^|[^\\])(`+)([^\n]*?[^`\n])\2(?!`)/gm, function(a) {
+          return a.replace(/\$/g, "~D")
+      }), f = function(a) {
+          return a.replace(/~([TD])/g, 
+          function(a, c) {
+              return {T: "~",D: "$"}[c]
+          })
+      }) : f = function(a) {
+          return a
+      };
+      k = r(a.replace(/\r\n?/g, "\n"), u);
+      for (var a = 1, d = k.length; a < d; a += 2) {
+          var c = k[a];
+          "@" === c.charAt(0) ? (k[a] = "@@@@" + m.length + "@@@@", m.push(c)) : i ? c === o ? n ? l = a : b(i, a, f) : c.match(/\n.*\n/) ? (l && (a = l, b(i, a, f)), i = o = l = null, n = 0) : "{" === c ? n++ : "}" === c && n && n-- : c === '$' || "$$" === c ? (i = a, o = c, n = 0) : "begin" === c.substr(1, 5) && (i = a, o = "\\end" + c.substr(6), n = 0)
+      }
+      l && b(i, l, f);
+      ret = f(k.join(""));
+      return ret;
+  }
+  function d(a) {
+      a = a.replace(/@@@@(\d+)@@@@/g, function(a, b) {
+          return m[b]
+      });
+      m = null;
+      return a
+  }
+
   // Generate Markdown
-  var html = marked(markdown);
-  document.getElementById('content').innerHTML = html;
+  var markdown_without_mathjax = p(markdown);
+  var html = marked(markdown_without_mathjax);
+  var html_with_mathjax = d(html);
+  document.getElementById('content').innerHTML = html_with_mathjax;
+
+  if (html_with_mathjax != html) {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML";
+
+    var callback = function () {
+      // config options
+      // http://docs.mathjax.org/en/latest/options/tex2jax.html#configure-tex2jax
+      MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ['$','$']],
+            displayMath:[ ['$$', '$$']],
+            processEscapes: true,
+            balanceBraces: true,
+        },
+        messageStyle: "none"
+      });
+    }
+
+    script.onload = callback;
+    // for IE 6, IE 7
+    script.onreadystatechange = function () {
+      if (this.readyState == 'complete') {
+        callback();
+      }
+    }
+    document.getElementsByTagName("head")[0].appendChild(script);
+  }
 
   // Prettify
   var codeEls = document.getElementsByTagName('code');
@@ -135,3 +249,5 @@
   document.body.style.display = '';
 
 })(window, document);
+
+// vim: ai:ts=2:sts=2:sw=2:
