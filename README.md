@@ -1,18 +1,20 @@
-# Strapdown.js
+
+# Strapdown.js with MathJax support
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required. 
 
+And what's more, I added [MathJax](http://www.mathjax.org/) support.
+
 For more, please see:
 
++ http://strapdown.ztx.io
 + http://strapdownjs.com
 
-## Contributor guide
-
-You will need Node.js (>0.6.x) and CoffeeScript to generate the bundles. To bundle/compile the assets, issue in the project directory:
+## Build
 
 ```
 $ npm install
-$ coffee bundle <version_number>
+$ grunt
 ```
 
-Bug fixes should go in the latest version - no need to bump it. New features or anything that changes the old behavior should go into a bumped version.
+The generated file would be `build/strapdown.min.js` and `build/strapdown.min.css`

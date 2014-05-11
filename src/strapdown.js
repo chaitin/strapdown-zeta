@@ -74,7 +74,7 @@
   document.head.appendChild(linkEl);
 
   var linkEl = document.createElement('link');
-  linkEl.href = originBase + '/strapdown.css';
+  linkEl.href = originBase + '/strapdown.min.css';
   linkEl.rel = 'stylesheet';
   document.head.appendChild(linkEl);
 
