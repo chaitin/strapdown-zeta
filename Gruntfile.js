@@ -38,6 +38,13 @@ module.exports = function(grunt) {
         src: ['vendor/marked.min.js', 'vendor/prettify.min.js', 'build/strapdown-src.min.js'],
         dest: 'build/strapdown.min.js'
       }
+    },
+    cssmin: {
+      minify: {
+        src: ['src/strapdown.css'],
+        dest: 'build/strapdown.min.css',
+        ext: '.min.css'
+      }
     }
   });
 
@@ -45,16 +52,18 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
 
   // Default task(s).
-  grunt.registerTask('default', ['build-js']);
+  grunt.registerTask('default', ['build']);
   grunt.registerTask('clean', function () {
     grunt.file['delete']('build');
   });
-  grunt.registerTask('build-js', function () {
+  grunt.registerTask('build', function () {
     // grunt.task.run('jshint');    // too many errors, sadly
     grunt.task.run('uglify');
     grunt.task.run('concat');
+    grunt.task.run('cssmin');
   })
 };
 
