@@ -8,6 +8,7 @@ And what's more, I added [MathJax](http://www.mathjax.org/) support.
 For more, please see:
 
 + http://strapdown.ztx.io
++ [Strapdown MathJax Test Page](http://strapdown.ztx.io/test.html)
 + http://strapdownjs.com
 
 ## Build
