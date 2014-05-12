@@ -132,113 +132,167 @@
     return false;
   }
 
-  var m, i, o, l, k;
-  var split_re = 3 === "aba".split(/(b)/).length ? function(a, f) {
-    return a.split(f)
-  } : function(a, f) {
-    var b = [], c;
-    if (!f.global) {
-      c = f.toString();
-      var d = "";
-      c = c.replace(/^\/(.*)\/([im]*)$/, function(a, c, b) {
-        d = b;
-        return c
-      });
-      f = RegExp(c, d + "g")
-    }
-    for (var e = f.lastIndex = 0; c = f.exec(a); )
-      b.push(a.substring(e, c.index)), b.push.apply(b, c.slice(1)), e = c.index + c[0].length;
-    b.push(a.substring(e));
-    return b
-  };
+  // From math.stackexchange.com...
+  // borrowed from https://github.com/benweet/stackedit, thanks
+  // https://stackedit-beta.herokuapp.com/res/extensions/mathJax.js
 
-  function escape_range(a, f, post_processing) {
-    var c = k.slice(a, f + 1).join("").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    for (isMSIE() && (c = c.replace(/(%[^\n]*)\n/g, "$1<br/>\n")); f > a; )
-      k[f] = "", f--;
-    k[a] = "@@@@" + m.length + "@@@@";
-    post_processing && (c = post_processing(c));
-    m.push(c);
-    i = o = l = null
+  //
+  //  The math is in blocks i through j, so
+  //    collect it into one block and clear the others.
+  //  Replace &, <, and > by named entities.
+  //  For IE, put <br> at the ends of comments since IE removes \n.
+  //  Clear the current math positions and store the index of the
+  //    math, then push the math string onto the storage array.
+  //
+  var blocks, start, end, last, braces, math;
+
+  function processMath(i, j, unescape) {
+    var block = blocks.slice(i, j + 1).join("")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    for(isMSIE() && (block = block.replace(/(%[^\n]*)\n/g, "$1<br/>\n")); j > i;)
+      blocks[j] = "", j--;
+    blocks[i] = "@@@@" + math.length + "@@@@";
+    unescape && (block = unescape(block));
+    math.push(block);
+    start = end = last = null;
   }
 
-  function preprocess(raw_markdown) {
-    i = o = l = null;
-    m = [];
-    var f;
-    /`/.test(raw_markdown) ? (raw_markdown = raw_markdown.replace(/~/g, "~T").replace(/(^|[^\\])(`+)([^\n]*?[^`\n])\2(?!`)/gm, function(a) {
-      return a.replace(/\$/g, "~D")
-    }), f = function(a) {
-      return a.replace(/~([TD])/g, 
-      function(a, c) {
-        return {T: "~",D: "$"}[c]
-      })
-    }) : f = function(a) {
-      return a
-    };
-    k = split_re(raw_markdown.replace(/\r\n?/g, "\n"), /(\$\$?|\\(?:begin|end)\{[a-z]*\*?\}|\\[\\{}$]|[{}]|(?:\n\s*)+|@@@@\d+@@@@)/i);
-    for (var a = 1, d = k.length; a < d; a += 2) {
-      var c = k[a];
-      if ("@" === c.charAt(0)) {
-        k[a] = "@@@@" + m.length + "@@@@";
-        m.push(c);
-      } else {
-        if (i) {
-          if (c === o) {
-            if (n) {
-              l = a;
-            } else {
-              escape_range(i, a, f);
-            }
-          } else if (c.match(/\n/) && o == '$' ) {
-            i = o = l = null;
-            n = 0;
+  function removeMath(text) {
+    start = end = last = null;
+    math = [];
+    var unescape;
+    if(/`/.test(text)) {
+      text = text.replace(/~/g, "~T").replace(/(^|[^\\])(`+)([^\n]*?[^`\n])\2(?!`)/gm, function(text) {
+        return text.replace(/\$/g, "~D")
+      });
+      unescape = function(text) {
+        return text.replace(/~([TD])/g,
+          function(match, n) {
+            return {T: "~", D: "$"}[n]
+          })
+      };
+    } else {
+      unescape = function(text) {
+        return text
+      };
+    }
+    blocks = split(text.replace(/\r\n?/g, "\n"), splitDelimiter);
+    for(var i = 1, m = blocks.length; i < m; i += 2) {
+      var block = blocks[i];
+      if("@" === block.charAt(0)) {
+        //
+        //  Things that look like our math markers will get
+        //  stored and then retrieved along with the math.
+        //
+        blocks[i] = "@@@@" + math.length + "@@@@";
+        math.push(block)
+      } else if(start) {
+        // Ignore inline maths that are actually multiline (fixes #136)
+        if (end == '$' && block.match(/\n/)) {
+          if(last) {
+            i = last;
+            processMath(start, i, unescape);
+          }
+          start = end = last = null;
+          braces = 0;
+        }
+        //
+        //  If we are in math, look for the end delimiter,
+        //    but don't go past double line breaks, and
+        //    and balance braces within the math.
+        //
+        else if(block === end) {
+          if(braces) {
+            last = i
           } else {
-            if (c.match(/\n.*\n/)) {
-              if (l) {
-                a = l;
-                escape_range(i, a, f);
-              }
-              i = o = l = null;
-              n = 0;
-            } else {
-              if ("{" === c) {
-                n++;
-              } else if ("}" === c) {
-                n && n--;
-              }
-            }
+            processMath(start, i, unescape)
           }
         } else {
-          if (c === '$' || "$$" === c) {
-            i = a; 
-            o = c; 
-            n = 0;
-          } else if ("begin" === c.substr(1, 5)) {
-            i = a; 
-            o = "\\end" + c.substr(6); 
-            n = 0;
+          if(block.match(/\n.*\n/)) {
+            if(last) {
+              i = last;
+              processMath(start, i, unescape);
+            }
+            start = end = last = null;
+            braces = 0;
+          } else {
+            if("{" === block) {
+              braces++
+            } else {
+              "}" === block && braces && braces--
+            }
+          }
+        }
+      } else {
+        if(block === '$' || "$$" === block) {
+          start = i;
+          end = block;
+          braces = 0;
+        } else {
+          if("begin" === block.substr(1, 5)) {
+            start = i;
+            end = "\\end" + block.substr(6);
+            braces = 0;
           }
         }
       }
+
     }
-    l && escape_range(i, l, f);
-    ret = f(k.join(""));
-    return ret;
+    last && processMath(start, last, unescape);
+    return unescape(blocks.join(""))
   }
 
-  function postprocess(a) {
-    a = a.replace(/@@@@(\d+)@@@@/g, function(a, b) {
-      return m[b]
+  //
+  //  Put back the math strings that were saved,
+  //    and clear the math array (no need to keep it around).
+  //
+  function replaceMath(text) {
+    text = text.replace(/@@@@(\d+)@@@@/g, function(match, n) {
+      return math[n]
     });
-    m = null;
-    return a
+    math = null;
+    return text
+  }
+
+  //
+  //  The pattern for math delimiters and special symbols
+  //    needed for searching for math in the page.
+  //
+  var splitDelimiter = /(\$\$?|\\(?:begin|end)\{[a-z]*\*?\}|\\[\\{}$]|[{}]|(?:\n\s*)+|@@@@\d+@@@@)/i;
+  var split;
+
+  if(3 === "aba".split(/(b)/).length) {
+    split = function(text, delimiter) {
+      return text.split(delimiter)
+    };
+  } else {
+    split = function(text, delimiter) {
+      var b = [], c;
+      if(!delimiter.global) {
+        c = delimiter.toString();
+        var d = "";
+        c = c.replace(/^\/(.*)\/([im]*)$/, function(a, c, b) {
+          d = b;
+          return c
+        });
+        delimiter = RegExp(c, d + "g")
+      }
+      for(var e = delimiter.lastIndex = 0; c = delimiter.exec(text);) {
+        b.push(text.substring(e, c.index));
+        b.push.apply(b, c.slice(1));
+        e = c.index + c[0].length;
+      }
+      b.push(text.substring(e));
+      return b
+    };
   }
 
   // Generate Markdown
-  var markdown_without_mathjax = preprocess(markdown);
+  var markdown_without_mathjax = removeMath(markdown);
   var html = marked(markdown_without_mathjax);
-  var html_with_mathjax = postprocess(html);
+  var html_with_mathjax = replaceMath(html);
   document.getElementById('content').innerHTML = html_with_mathjax;
 
   if (html_with_mathjax != html) {
