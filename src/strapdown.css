@@ -36,6 +36,11 @@ img {
   width: auto;
 }
 
+/* fix issue: https://github.com/arturadib/strapdown/issues/25 */
+td[align=right] { text-align: right; }
+td[align=center] { text-align: center; }
+td[align=left] { text-align: left; }
+
 /*******************************************************************
 
 This chunk is for Google's Code Prettify:
