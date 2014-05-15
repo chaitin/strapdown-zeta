@@ -58,15 +58,17 @@ $$ \frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} =  1+\frac{e^
 
 # Test nginx config file
 
-    location ~ \.php$ {
-       try_files      $uri = /404.html;
-       fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
-       fastcgi_split_path_info ^(.+\.php)(/.+)$;
-       fastcgi_param  SCRIPT_FILENAME  $document_root/$fastcgi_script_name;
-       fastcgi_index index.php;
-       include fastcgi_params;
-       root /usr/share/nginx/html;
-    }
+``` plain
+location ~ \.php$ {
+   try_files      $uri = /404.html;
+   fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
+   fastcgi_split_path_info ^(.+\.php)(/.+)$;
+   fastcgi_param  SCRIPT_FILENAME  $document_root/$fastcgi_script_name;
+   fastcgi_index index.php;
+   include fastcgi_params;
+   root /usr/share/nginx/html;
+}
+```
 
 # 中文笔记测试
 
@@ -84,5 +86,40 @@ $$ \frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} =  1+\frac{e^
  - 无关联文件 文件名.{00021401-0000-0000-c000-000000000046}
  - BMP文件 文件名.{d3e34b21-9d75-101a-8c3d-00aa001a1652}
  - HTML文件 文件名.{25336920-03f9-11cf-8fd0-00aa00686f13}
+
+# code syntax highlight
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="keywords" content=""/>
+        <meta name="description" content=""/>
+        <link rel="shortcut icon" href="/static/img/favicon.ico"/>
+        <link rel="stylesheet" type="text/css" href=""/>
+        <title>title</title>
+    </head>
+
+    <body>
+        <script type="text/javascript" src=""></script>
+    </body>
+</html>
+```
+
+``` python
+@requires_authorization
+def somefunc(param1='', param2=0):
+    '''A docstring'''
+    if param1 > param2: # interesting
+        print 'Greater'
+    return (param2 - param1 + 1) or None
+class SomeClass:
+    pass
+    
+a = int(3)
+>>> message = '''interpreter
+... prompt'''
+```
 
 </xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
