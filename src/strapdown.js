@@ -331,7 +331,7 @@
       var codeEl = codeEls[i];
       var lang = codeEl.className;
       if (codeEl.parentNode.nodeName.toLowerCase() == 'pre') {
-        codeEl.parentNode.className = 'code-wrapper';
+        codeEl.parentNode.className = 'code-wrapper ' + lang;
       }
     }
     hljs.initHighlightingOnLoad();
@@ -342,7 +342,7 @@
       var codeEl = codeEls[i];
       var lang = codeEl.className;
       if (codeEl.parentNode.nodeName.toLowerCase() == 'pre') {
-        codeEl.parentNode.className = 'prettyprint ' + lang;
+        codeEl.parentNode.className = 'code-wrapper prettyprint ' + lang;
       }
     }
     prettyPrint();

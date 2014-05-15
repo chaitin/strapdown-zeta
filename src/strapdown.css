@@ -198,6 +198,8 @@ For highlight.js syntax highlighting
   color: #F92672;
 }
 
+.hljs-built_in,
+.hljs-typename,
 .hljs-function .hljs-keyword,
 .hljs-class .hljs-keyword:first-child,
 .hljs-constant,
@@ -220,7 +222,6 @@ For highlight.js syntax highlighting
 .hljs-subst,
 .haskell .hljs-type,
 .ruby .hljs-class .hljs-parent,
-.hljs-built_in,
 .sql .hljs-aggregate,
 .django .hljs-template_tag,
 .django .hljs-variable,
