@@ -326,6 +326,14 @@
   }
 
   if ('hljs' in window) {
+    var codeEls = document.getElementsByTagName('code');
+    for (var i=0, ii=codeEls.length; i<ii; i++) {
+      var codeEl = codeEls[i];
+      var lang = codeEl.className;
+      if (codeEl.parentNode.nodeName.toLowerCase() == 'pre') {
+        codeEl.parentNode.className = 'code-wrapper';
+      }
+    }
     hljs.initHighlightingOnLoad();
   } else if ('prettyPrint' in window) {
     // Prettify

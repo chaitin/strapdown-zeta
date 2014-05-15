@@ -56,37 +56,6 @@ $$ 1 \times 2 $$
 
 $$ \frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} =  1+\frac{e^{-2\pi}} {1+\frac{e^{-4\pi}} {1+\frac{e^{-6\pi}}  {1+\frac{e^{-8\pi}} {1+\ldots} } } } $$
 
-# Test nginx config file
-
-``` plain
-location ~ \.php$ {
-   try_files      $uri = /404.html;
-   fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
-   fastcgi_split_path_info ^(.+\.php)(/.+)$;
-   fastcgi_param  SCRIPT_FILENAME  $document_root/$fastcgi_script_name;
-   fastcgi_index index.php;
-   include fastcgi_params;
-   root /usr/share/nginx/html;
-}
-```
-
-# 中文笔记测试
-
-## Windows 上帝模式
-
-在桌面新建一个文件夹，命名为 GodMode.{ED7BA470-8E54-465E-825C-99712043E01C}, 双击该目录
-
-下面是更多例子
-
- - 回收站.{645ff040-5081-101b-9f08-00aa002f954e}
- - 拨号网络.{992CFFA0-F557-101A-88EC-00DD010CCC48}
- - 打印机.{2227a280-3aea-1069-a2de-08002b30309d}
- - 控制面板.{21ec2020-3aea-1069-a2dd-08002b30309d}
- - 网上邻居.{208D2C60-3AEA-1069-A2D7-08002B30309D}
- - 无关联文件 文件名.{00021401-0000-0000-c000-000000000046}
- - BMP文件 文件名.{d3e34b21-9d75-101a-8c3d-00aa001a1652}
- - HTML文件 文件名.{25336920-03f9-11cf-8fd0-00aa00686f13}
-
 # code syntax highlight
 
 ```html
@@ -121,5 +90,38 @@ a = int(3)
 >>> message = '''interpreter
 ... prompt'''
 ```
+
+for `python` use `type(name, bases, dict)` to construct dynamic class and subclass base classes
+
+# Test nginx config file
+
+```
+location ~ \.php$ {
+   try_files      $uri = /404.html;
+   fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
+   fastcgi_split_path_info ^(.+\.php)(/.+)$;
+   fastcgi_param  SCRIPT_FILENAME  $document_root/$fastcgi_script_name;
+   fastcgi_index index.php;
+   include fastcgi_params;
+   root /usr/share/nginx/html;
+}
+```
+
+# 中文笔记测试
+
+## Windows 上帝模式
+
+在桌面新建一个文件夹，命名为 GodMode.{ED7BA470-8E54-465E-825C-99712043E01C}, 双击该目录
+
+下面是更多例子
+
+ - 回收站.{645ff040-5081-101b-9f08-00aa002f954e}
+ - 拨号网络.{992CFFA0-F557-101A-88EC-00DD010CCC48}
+ - 打印机.{2227a280-3aea-1069-a2de-08002b30309d}
+ - 控制面板.{21ec2020-3aea-1069-a2dd-08002b30309d}
+ - 网上邻居.{208D2C60-3AEA-1069-A2D7-08002B30309D}
+ - 无关联文件 文件名.{00021401-0000-0000-c000-000000000046}
+ - BMP文件 文件名.{d3e34b21-9d75-101a-8c3d-00aa001a1652}
+ - HTML文件 文件名.{25336920-03f9-11cf-8fd0-00aa00686f13}
 
 </xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
