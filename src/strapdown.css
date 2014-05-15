@@ -120,7 +120,7 @@ For highlight.js syntax highlighting
 .hljs { 
     display: block;
     padding: .8em 1em; 
-    background-color: #23241f; 
+    background-color: #2c2c27; 
 }
 
 
@@ -129,6 +129,7 @@ For highlight.js syntax highlighting
 .css .hljs-rules,
 .css .hljs-value,
 .css .hljs-function
+.hljs-doctype,
 .hljs-preprocessor,
 .hljs-pragma {
   color: #f8f8f2;
@@ -151,9 +152,9 @@ For highlight.js syntax highlighting
   color: #ae81ff;
 }
 
-.hljs-tag .hljs-value,
 .hljs-code,
 .hljs-title,
+.hljs-tag .hljs-attribute,
 .java .hljs-annotation,
 .python .hljs-decorator,
 .css .hljs-class,
@@ -186,7 +187,6 @@ For highlight.js syntax highlighting
 .nginx .hljs-title,
 .tex .hljs-special,
 .hljs-header,
-.hljs-attribute,
 .hljs-symbol,
 .hljs-symbol .hljs-string,
 .hljs-tag .hljs-title,
@@ -205,13 +205,17 @@ For highlight.js syntax highlighting
   color: #66d9ef;
 }
 
+.hljs-params {
+  color: #e09800;
+}
+
 .hljs-variable,
-.hljs-params,
 .hljs-class .hljs-title {
   color: #f8f8f2;
 }
 
 .hljs-string,
+.hljs-tag .hljs-value,
 .css .hljs-id,
 .hljs-subst,
 .haskell .hljs-type,
@@ -242,7 +246,6 @@ For highlight.js syntax highlighting
 .hljs-javadoc,
 .hljs-template_comment,
 .hljs-pi,
-.hljs-doctype,
 .hljs-deletion,
 .hljs-shebang,
 .apache .hljs-sqbracket,
