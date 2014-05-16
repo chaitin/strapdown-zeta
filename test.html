@@ -58,6 +58,8 @@ $$ \frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} =  1+\frac{e^
 
 # code syntax highlight
 
+## html test
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -76,6 +78,8 @@ $$ \frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} =  1+\frac{e^
 </html>
 ```
 
+## python test
+
 ``` python
 @requires_authorization
 def somefunc(param1='', param2=0):
@@ -92,6 +96,33 @@ a = int(3)
 ```
 
 for `python` use `type(name, bases, dict)` to construct dynamic class and subclass base classes
+
+## bash test
+
+```bash
+#!/bin/sh
+
+dir=.
+mode="linear"       # linear or recursion
+[ ! -z "$1" ] && dir="$1"
+
+shift
+
+echo "playing dir $dir"
+
+while :; do
+    if [[ "x-l" == "x$1" ]]; then
+        mode="linear"
+    elif [[ "x-r" == "x$1" ]]; then
+        mode="recursion"
+    elif [[ -z "$1" ]]; then
+        break
+    fi
+done
+
+IFS=$'\n'
+
+```
 
 # Test nginx config file
 
