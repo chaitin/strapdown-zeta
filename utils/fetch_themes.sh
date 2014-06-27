@@ -1,8 +1,7 @@
 #!/bin/bash
 while read line; do
     curl $line/bootstrap.min.css > `basename $line`.min.css
-done <<< "http://bootswatch.com/default/
-http://bootswatch.com/amelia/
+done <<< "http://bootswatch.com/amelia/
 http://bootswatch.com/cerulean/
 http://bootswatch.com/cosmo/
 http://bootswatch.com/cyborg/
@@ -17,3 +16,5 @@ http://bootswatch.com/spacelab/
 http://bootswatch.com/superhero/
 http://bootswatch.com/united/
 http://bootswatch.com/yeti/"
+
+curl "http://bootswatch.com/bower_components/bootstrap/dist/css/bootstrap.css" > default.min.css
