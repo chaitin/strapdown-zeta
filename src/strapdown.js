@@ -64,7 +64,7 @@
   var originBase = origin.substr(0, origin.lastIndexOf('/'));
 
   // Get theme
-  var theme = markdownEl.getAttribute('theme') || 'bootstrap';
+  var theme = markdownEl.getAttribute('theme') || 'cerulean';
   theme = theme.toLowerCase();
 
   // Stylesheets
