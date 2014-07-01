@@ -298,7 +298,7 @@
   if (html_with_mathjax != html) {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML";
+    script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG";
 
     var callback = function () {
       // config options
