@@ -303,6 +303,7 @@
     var callback = function () {
       // config options
       // http://docs.mathjax.org/en/latest/options/tex2jax.html#configure-tex2jax
+      MathJax.Ajax.timeout = 60000;
       MathJax.Hub.Config({
         tex2jax: {
             inlineMath: [ ['$','$']],
@@ -310,7 +311,16 @@
             processEscapes: true,
             balanceBraces: true,
         },
-        messageStyle: "none"
+        messageStyle: "none",
+        SVG: {
+          styles: {
+            ".MathJax_SVG svg > g, .MathJax_SVG_Display svg > g": {
+              "fill": "#333333",
+              "stroke": "#333333"
+            }
+          },
+          scale: 100
+        }
       });
       MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     }
