@@ -315,8 +315,8 @@
         SVG: {
           styles: {
             ".MathJax_SVG svg > g, .MathJax_SVG_Display svg > g": {
-              "fill": "#333333",
-              "stroke": "#333333"
+              "fill": "#4d4d4c",
+              "stroke": "#4d4d4c"
             }
           },
           scale: 100
