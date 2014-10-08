@@ -36,7 +36,7 @@ module.exports = function(grunt) {
       },
       dist: {
         // use prettify js or highlight.js by uncomment the corresponding line
-        src: ['vendor/marked.min.js', 'vendor/highlight.pack.js', 'build/strapdown-src.min.js'],
+        src: ['vendor/marked.min.js', 'vendor/highlight.pack.js', 'vendor/jquery.min.js', 'vendor/bootstrap.min.js', 'vendor/cookie.js', 'build/strapdown-src.min.js'],
         // src: ['vendor/marked.min.js', 'vendor/prettify.min.js', 'build/strapdown-src.min.js'],
         dest: 'build/strapdown.min.js'
       }
