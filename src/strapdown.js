@@ -1,5 +1,13 @@
 ;(function(window, document) {
 
+var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
+
+store.get('theme', function (ok, val) {
+  var theme = null;
+  if (ok) {
+    theme = val;
+  }
+
   //////////////////////////////////////////////////////////////////////
   //
   // Shims for IE < 9
@@ -33,7 +41,7 @@
       navbarEl = document.getElementsByClassName('navbar')[0];
 
   if (!markdownEl) {
-    console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdownjs.com/ to learn more.');
+    console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdown.ztx.io/ to learn more.');
     return;
   }
 
@@ -64,7 +72,7 @@
   var originBase = origin.substr(0, origin.lastIndexOf('/'));
 
   // Get theme
-  var theme = docCookies.getItem('strapdown_theme') || markdownEl.getAttribute('theme') || 'cerulean';
+  theme = theme || markdownEl.getAttribute('theme') || 'cerulean';
   theme = theme.toLowerCase();
 
   // Stylesheets
@@ -107,22 +115,51 @@
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
     var headlineEl = document.getElementById('headline');
-    if (headlineEl)
+    if (headlineEl) {
       headlineEl.innerHTML = title;
-    var themeEl = $('#theme');
+    }
+    function addEvent(element, evnt, funct) {
+      if (element.attachEvent)
+       return element.attachEvent('on'+evnt, funct);
+      else
+       return element.addEventListener(evnt, funct, false);
+    }
+
+    var themeEl = document.getElementById('theme');
     if (themeEl) {
-      var themes = ['Amelia', 'Bootstrap', 'Cerulean', 'Cosmo', 'Cyborg', 'Flatly', 'Journal', 'Readable', 'Simplex', 'Slate', 'Spacelab', 'Spruce', 'Superhero', 'United'];
-      $.each(themes, function(idx, val) {
-        themeEl.append($('<li></li>').html($('<a></a>').attr('href', '#').text(val).on('click', function() {
-          docCookies.setItem('strapdown_theme', $( this ).text().toLowerCase(), Infinity);
+      var themes = ['Amelia', 'Bootstrap', 'Cerulean', 'Cosmo', 'Cyborg', 'Flatly', 'Journal', 'Readable', 'Simplex', 'Slate', 'Spacelab', 'Spruce', 'Superhero', 'United', 'Reset'];
+      themes.forEach(function(val) {
+        if (val == 'Reset') {
+          var dvd = document.createElement("li");
+          dvd.setAttribute("class", "divider");
+          themeEl.appendChild(dvd);
+        }
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.innerText = val;
+        a.setAttribute('href', '#');
+        li.appendChild(a);
+        addEvent(a, 'click', function () {
+          if (val == 'Reset') {
+            store.set('theme', '');
+          } else {
+            store.set('theme', val);
+          }
           location.reload();
-        })));
+        });
+        themeEl.appendChild(li);
       });
-      themeEl.append('<li class="divider"></li>');
-      themeEl.append($('<li></li>').html($('<a></a>').attr('href', '#').text('Reset').on('click', function() {
-          docCookies.removeItem('strapdown_theme');
-          location.reload();
-      })));
+    }
+    var dropdown = document.getElementsByClassName("dropdown")[0];
+    if (themeEl && dropdown) {
+      addEvent(dropdown, 'click', function () {
+        console.log('click dropdown', dropdown.className.match(/(?:^|\s)open(?!\S)/));
+        if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
+          dropdown.className = dropdown.className.replace(/(?:^|\s)open(?!\S)/g, '');
+        } else {
+          dropdown.className += " open";
+        }
+      });
     }
   }
 
@@ -386,6 +423,8 @@
 
   // All done - show body
   document.body.style.display = '';
+
+});
 
 })(window, document);
 
