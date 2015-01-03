@@ -110,7 +110,7 @@ store.get('theme', function (ok, val) {
     newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <ul class="nav"><li class="dropdown"><a href="javascript:return true;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
+                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <ul class="nav"><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
                         '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
@@ -153,7 +153,7 @@ store.get('theme', function (ok, val) {
     var dropdown = document.getElementsByClassName("dropdown")[0];
     if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
-        console.log('click dropdown', dropdown.className.match(/(?:^|\s)open(?!\S)/));
+        // console.log('click dropdown', dropdown.className.match(/(?:^|\s)open(?!\S)/));
         if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
           dropdown.className = dropdown.className.replace(/(?:^|\s)open(?!\S)/g, '');
         } else {
@@ -345,15 +345,65 @@ store.get('theme', function (ok, val) {
     };
   }
 
+  var toc = [];
+  var heading_counter = [0, 0, 0, 0, 0, 0];
+
+  var heading_number = markdownEl.getAttribute('heading_number');
+
+  var hn_table = ['i', 'i', 'i', 'i', 'i', 'i'];
+  if (heading_number != 'none') {
+    var ary = heading_number.split('.');
+    for (var i = 0; i < 6; i++) {
+      if (ary[i] != 'i') {
+        hn_table[i] = 'a';
+      }
+    }
+  }
+
+  var itoa = function (i, j) {
+    if (hn_table[j] == 'a' && i <= 26) {
+      return String.fromCharCode(96 + i);
+    } else {
+      return '' + i;
+    }
+  }
+
+  var counter_to_str = function (hc) {
+    var i = 5;
+    var ret = "" + itoa(hc[0], 0);
+    for (; i >= 0; i--) {
+      if (hc[i]) break;
+    }
+    for (var j = 1; j <= i; j++) {
+      ret += "." + itoa(hc[j], j);
+    }
+    return ret;
+  };
+
   var renderer = new marked.Renderer();
   renderer.heading = function (text, level) {
-    var escapedText = 'h' + level + '_' + text.toLowerCase().replace(/[^\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
+
+    heading_counter[level-1]++;
+    for (var i = level; i < 6; i++) {
+      heading_counter[i] = 0;
+    }
+
+    var heading_number_str = counter_to_str(heading_counter);
+
+    var escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
+
+    var before_heading;
+    if (heading_number == 'none') {
+      before_heading = '';
+    } else {
+      before_heading = heading_number_str;
+    }
 
     return '<h' + level + ' style="position:relative;"><a name="' +
                 escapedText +
                  '" class="anchor" href="#' +
                  escapedText +
-                 '"><span class="header-link"></span></a>' +
+                 '"><span class="header-link"></span></a>' + before_heading + " " + 
                   text + '</h' + level + '>';
   }
 
