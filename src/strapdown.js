@@ -110,7 +110,7 @@ store.get('theme', function (ok, val) {
     newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <ul class="nav"><li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
+                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <ul class="nav"><li class="dropdown"><a href="#__invalid__" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
                         '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
@@ -345,9 +345,21 @@ store.get('theme', function (ok, val) {
     };
   }
 
+  var renderer = new marked.Renderer();
+  renderer.heading = function (text, level) {
+    var escapedText = 'h' + level + '_' + text.toLowerCase().replace(/[^\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
+
+    return '<h' + level + ' style="position:relative;"><a name="' +
+                escapedText +
+                 '" class="anchor" href="#' +
+                 escapedText +
+                 '"><span class="header-link"></span></a>' +
+                  text + '</h' + level + '>';
+  }
+
   // Generate Markdown
   var markdown_without_mathjax = removeMath(markdown);
-  var html = marked(markdown_without_mathjax);
+  var html = marked(markdown_without_mathjax, { renderer: renderer } );
   var html_with_mathjax = replaceMath(html);
   document.getElementById('content').innerHTML = html_with_mathjax;
 

@@ -46,6 +46,62 @@ td[align=right] { text-align: right; }
 td[align=center] { text-align: center; }
 td[align=left] { text-align: left; }
 
+/* header anchor */
+
+.anchor {
+  text-decoration: none !important;
+  cursor: auto;
+  vertical-align: top;
+  position: absolute;
+  left: 0px;
+  margin-left: -30px;
+  top: -6px;
+  bottom: 0px;
+  outline:none;
+  width: 0px;
+}
+
+@media (min-width: 980px) {
+  .anchor {
+    padding-top: 60px;
+    margin-top: -60px;
+  }
+}
+
+.anchor:active, .anchor:focus, .anchor .header-link:active, .anchor .header-link:focus {
+  outline:none;
+}
+
+.anchor .header-link:before {
+  content: '\00b6';
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.anchor .header-link {
+  opacity: 0;
+  float: right;
+  width: 30px;
+  position: absolute;
+  bottom:0;
+  outline:none;
+  text-align: center;
+  transition: opacity 0.5s ease;
+}
+
+.anchor .header-link:hover {
+  opacity: 1;
+  vertical-align: middle;
+  outline:none;
+}
+
+.anchor:hover .header-link, h1:hover .header-link, h2:hover .header-link, h3:hover .header-link, h4:hover .header-link, h5:hover .header-link {
+  display: inline-block;
+  opacity: 1;
+  vertical-align: middle;
+  outline:none;
+}
+
 /*******************************************************************
 
 This chunk is for Google's Code Prettify:
