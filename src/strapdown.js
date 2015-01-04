@@ -351,7 +351,7 @@ store.get('theme', function (ok, val) {
   var heading_number = markdownEl.getAttribute('heading_number');
 
   var hn_table = ['i', 'i', 'i', 'i', 'i', 'i'];
-  if (heading_number != 'none') {
+  if (heading_number && heading_number != 'none') {
     var ary = heading_number.split('.');
     for (var i = 0; i < 6; i++) {
       if (ary[i] != 'i') {
@@ -380,6 +380,8 @@ store.get('theme', function (ok, val) {
     return ret;
   };
 
+  var toc = [];
+
   var renderer = new marked.Renderer();
   renderer.heading = function (text, level) {
 
@@ -392,25 +394,74 @@ store.get('theme', function (ok, val) {
 
     var escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
 
+    // generate heading
     var before_heading;
-    if (heading_number == 'none') {
+    if (!heading_number || heading_number == 'none') {
       before_heading = '';
     } else {
-      before_heading = heading_number_str;
+      before_heading = heading_number_str + ' ';
     }
+
+    // for table of content
+    var a = toc;
+    for (var i = 0; i < level-1; i++) {
+      if (a.length == 0 || !Array.isArray(a[a.length-1])) {
+        a.push([]);
+      }
+      a = a[a.length-1];
+    }
+    a.push({
+      'target': '#' + escapedText,
+      'title': before_heading + text
+    });
 
     return '<h' + level + ' style="position:relative;"><a name="' +
                 escapedText +
                  '" class="anchor" href="#' +
                  escapedText +
-                 '"><span class="header-link"></span></a>' + before_heading + " " + 
+                 '"><span class="header-link"></span></a>' + before_heading + 
                   text + '</h' + level + '>';
   }
 
   // Generate Markdown
   var markdown_without_mathjax = removeMath(markdown);
   var html = marked(markdown_without_mathjax, { renderer: renderer } );
+
   var html_with_mathjax = replaceMath(html);
+
+  var show_toc = markdownEl.getAttribute('toc');
+  if (show_toc == 'true') {
+    var toc_html = document.createElement('ul');
+    
+    var traverse = function(list, ul) {
+      for (var i = 0; i < list.length; i++) {
+        var e;
+        if (Array.isArray(list[i])) {
+          e = document.createElement('ul');
+          traverse(list[i], e);
+        } else {
+          e = document.createElement('li');
+          var a = document.createElement('a');
+          a.setAttribute('href', list[i].target);
+          a.appendChild(document.createTextNode(list[i].title));
+          e.appendChild(a);
+        }
+        ul.appendChild(e);
+      }
+    }
+    traverse(toc, toc_html);
+
+    var div = document.createElement('div');
+    div.className = 'container';
+    var title = document.createElement('h1');
+    title.appendChild(document.createTextNode('Table of Content'));
+    div.appendChild(title);
+    div.appendChild(document.createElement('hr'));
+    div.appendChild(toc_html);
+    div.appendChild(document.createElement('hr'));
+    document.body.insertBefore(div, document.getElementById('content'));
+  }
+
   document.getElementById('content').innerHTML = html_with_mathjax;
 
   if (html_with_mathjax != html) {
