@@ -12,8 +12,20 @@ import (
 var port = flag.Int("port", 8080, "The port for the server to listen")
 var addr = flag.String("address", "0.0.0.0", "Listening address")
 
-func handleView(w http.ResponseWriter, r *http.Request) {
-	content, err := ioutil.ReadFile(r.URL.Path[1:] + ".md")
+func handle(w http.ResponseWriter, r *http.Request) {
+	fp := r.URL.Path[1:] + ".md"
+
+	if r.Method == "POST" || r.Method == "PUT" {
+		err := ioutil.WriteFile(fp, []byte(r.FormValue("body")), 0600)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		return
+	}
+
+	content, err := ioutil.ReadFile(fp)
 
 	if err != nil {
 		fmt.Fprintf(w, "error: %v", err)
@@ -29,7 +41,7 @@ func handleView(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
-	http.HandleFunc("/", handleView)
+	http.HandleFunc("/", handle)
 
 	host := fmt.Sprintf("%s:%d", *addr, *port)
 	log.Printf("listening on %s", host)
