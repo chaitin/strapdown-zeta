@@ -3,11 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/libgit2/git2go"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"time"
 )
 
 var port = flag.Int("port", 8080, "The port for the server to listen")
@@ -30,11 +32,62 @@ func init() {
 	}
 }
 
+func push(fp string, content []byte, comment string, author string) error {
+	var err error
+
+	err = ioutil.WriteFile(fp, content, 0600)
+	if err != nil {
+		return err
+	}
+	repo, err := git.OpenRepository(".")
+	if err != nil {
+		return err
+	}
+	index, err := repo.Index()
+	if err != nil {
+		return err
+	}
+	err = index.AddByPath(fp)
+	if err != nil {
+		return err
+	}
+	treeId, err := index.WriteTree()
+	if err != nil {
+		return err
+	}
+	tree, err := repo.LookupTree(treeId)
+	if err != nil {
+		return err
+	}
+
+	sig := &git.Signature{
+		Name:  author,
+		Email: "strapdown@gmail.com",
+		When:  time.Now(),
+	}
+
+	currentBranch, err := repo.Head()
+	if err == nil && currentBranch != nil {
+		currentTip, err2 := repo.LookupCommit(currentBranch.Target())
+		if err2 != nil {
+			return err2
+		}
+		_, err = repo.CreateCommit("HEAD", sig, sig, comment, tree, currentTip)
+	} else {
+		_, err = repo.CreateCommit("HEAD", sig, sig, comment, tree)
+	}
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
 	fp := r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
-		err := ioutil.WriteFile(fp, []byte(r.FormValue("body")), 0600)
+		err := push(fp, []byte(r.FormValue("body")), "comment", "anonymous")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -78,7 +131,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handle)
-
 	host := fmt.Sprintf("%s:%d", *addr, *port)
 	log.Printf("listening on %s", host)
 	l, err := net.Listen("tcp", host)
