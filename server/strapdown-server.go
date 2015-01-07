@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"time"
 )
 
@@ -34,6 +35,11 @@ func init() {
 
 func push(fp string, content []byte, comment string, author string) error {
 	var err error
+
+	err = os.MkdirAll(path.Dir(fp), 0600)
+	if err != nil {
+		return err
+	}
 
 	err = ioutil.WriteFile(fp, content, 0600)
 	if err != nil {
