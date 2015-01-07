@@ -125,16 +125,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	custom_view_head, err := ioutil.ReadFile(fp + ".head")
 	if err != nil {
-		fmt.Fprintf(w, "%s\n", view_head)
+		fmt.Fprintf(w, "%s", view_head)
 	} else {
-		fmt.Fprintf(w, "%s\n", custom_view_head)
+		fmt.Fprintf(w, "%s", custom_view_head)
 	}
 	w.Write(content)
 	custom_view_tail, err := ioutil.ReadFile(fp + ".tail")
 	if err != nil {
-		fmt.Fprintf(w, "%s\n", view_tail)
+		fmt.Fprintf(w, "%s", view_tail)
 	} else {
-		fmt.Fprintf(w, "%s\n", custom_view_tail)
+		fmt.Fprintf(w, "%s", custom_view_tail)
 	}
 }
 
