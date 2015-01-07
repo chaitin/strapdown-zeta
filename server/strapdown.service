@@ -1,0 +1,12 @@
+[Unit]
+Description=Strapdown Wiki
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/strapdown-server -port=3366
+WorkingDirectory=/home/wiki/strapdown
+Restart=always
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

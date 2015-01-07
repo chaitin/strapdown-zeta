@@ -123,9 +123,19 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%s\n", view_head)
+	custom_view_head, err := ioutil.ReadFile(fp + ".head")
+	if err != nil {
+		fmt.Fprintf(w, "%s\n", view_head)
+	} else {
+		fmt.Fprintf(w, "%s\n", custom_view_head)
+	}
 	w.Write(content)
-	fmt.Fprintf(w, "\n%s", view_tail)
+	custom_view_tail, err := ioutil.ReadFile(fp + ".tail")
+	if err != nil {
+		fmt.Fprintf(w, "%s\n", view_tail)
+	} else {
+		fmt.Fprintf(w, "%s\n", custom_view_tail)
+	}
 }
 
 func main() {

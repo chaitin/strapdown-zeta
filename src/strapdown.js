@@ -354,7 +354,7 @@ store.get('theme', function (ok, val) {
   if (heading_number && heading_number != 'none') {
     var ary = heading_number.split('.');
     for (var i = 0; i < 6; i++) {
-      if (ary[i] != 'i') {
+      if (ary[i] == 'a') {
         hn_table[i] = 'a';
       }
     }
