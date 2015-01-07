@@ -87,7 +87,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	fp := r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
-		err := push(fp, []byte(r.FormValue("body")), "comment", "anonymous")
+		err := push(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+r.RemoteAddr)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
