@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -31,6 +32,8 @@ func init() {
 	if edit_tail, err = ioutil.ReadFile("edit.tail"); err != nil {
 		log.Fatalf("cannot read edit.tail")
 	}
+	edit_head = []byte(strings.TrimSpace(string(edit_head)))
+	edit_tail = []byte(strings.TrimSpace(string(edit_tail)))
 }
 
 func push(fp string, content []byte, comment string, author string) error {
@@ -105,9 +108,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	content, err := ioutil.ReadFile(fp)
 
 	handleEdit := func() {
-		fmt.Fprintf(w, "%s\n", edit_head)
+		w.Write(edit_head)
 		w.Write(content)
-		fmt.Fprintf(w, "\n%s", edit_tail)
+		w.Write(edit_tail)
 	}
 
 	if err != nil {
@@ -131,16 +134,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	custom_view_head, err := ioutil.ReadFile(fp + ".head")
 	if err != nil {
-		fmt.Fprintf(w, "%s", view_head)
+		w.Write(view_head)
 	} else {
-		fmt.Fprintf(w, "%s", custom_view_head)
+		w.Write(custom_view_head)
 	}
 	w.Write(content)
 	custom_view_tail, err := ioutil.ReadFile(fp + ".tail")
 	if err != nil {
-		fmt.Fprintf(w, "%s", view_tail)
+		w.Write(view_tail)
 	} else {
-		fmt.Fprintf(w, "%s", custom_view_tail)
+		w.Write(custom_view_tail)
 	}
 }
 
