@@ -92,11 +92,23 @@ func push(fp string, content []byte, comment string, author string) error {
 	return nil
 }
 
+func remote_ip(r *http.Request) string {
+	ret := r.RemoteAddr
+	if r.Header.Get("X-FORWARDED-FOR") != "" {
+		if strings.Index(ret, "127.0.0.1") == 0 {
+			ret = r.Header.Get("X-FORWARDED-FOR")
+		} else {
+			ret = fmt.Sprintf("%s,%s", r.RemoteAddr, r.Header.Get("X-FORWARDED-FOR"))
+		}
+	}
+	return ret
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
 	fp := r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
-		err := push(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+r.RemoteAddr)
+		err := push(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
