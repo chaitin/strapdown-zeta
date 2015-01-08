@@ -94,11 +94,15 @@ func push(fp string, content []byte, comment string, author string) error {
 
 func remote_ip(r *http.Request) string {
 	ret := r.RemoteAddr
+	i := strings.IndexByte(ret, ':')
+	if i > -1 {
+		ret = ret[:i]
+	}
 	if r.Header.Get("X-FORWARDED-FOR") != "" {
 		if strings.Index(ret, "127.0.0.1") == 0 {
 			ret = r.Header.Get("X-FORWARDED-FOR")
 		} else {
-			ret = fmt.Sprintf("%s,%s", r.RemoteAddr, r.Header.Get("X-FORWARDED-FOR"))
+			ret = fmt.Sprintf("%s,%s", ret, r.Header.Get("X-FORWARDED-FOR"))
 		}
 	}
 	return ret
