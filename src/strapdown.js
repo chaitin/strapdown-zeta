@@ -392,7 +392,7 @@ store.get('theme', function (ok, val) {
 
     var heading_number_str = counter_to_str(heading_counter);
 
-    var escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
+    var escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^-_.\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
 
     // generate heading
     var before_heading;
