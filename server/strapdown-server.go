@@ -34,6 +34,11 @@ func init() {
 	}
 	edit_head = []byte(strings.TrimSpace(string(edit_head)))
 	edit_tail = []byte(strings.TrimSpace(string(edit_tail)))
+	_, err = git.OpenRepository(".")
+	if err != nil {
+		log.Printf("please run `git init` in this directory for strapdown-server to run")
+		log.Fatal(err)
+	}
 }
 
 func push(fp string, content []byte, comment string, author string) error {
@@ -48,6 +53,7 @@ func push(fp string, content []byte, comment string, author string) error {
 	if err != nil {
 		return err
 	}
+
 	repo, err := git.OpenRepository(".")
 	if err != nil {
 		return err
@@ -60,10 +66,12 @@ func push(fp string, content []byte, comment string, author string) error {
 	if err != nil {
 		return err
 	}
+
 	treeId, err := index.WriteTree()
 	if err != nil {
 		return err
 	}
+
 	tree, err := repo.LookupTree(treeId)
 	if err != nil {
 		return err
@@ -108,20 +116,97 @@ func remote_ip(r *http.Request) string {
 	return ret
 }
 
+func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string, error) {
+	var err error
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, err
+	}
+
+	enter := tree.EntryByName(fileName)
+	if enter == nil {
+		return nil, err
+	}
+
+	oid := enter.Id
+	blb, err := repo.LookupBlob(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := string(blb.Contents())
+	return &ret, nil
+}
+
+func getFileOfVersion(fileName string, version string) ([]byte, error) {
+	var err error
+
+	repo, err := git.OpenRepository(".")
+	if err != nil {
+		return nil, err
+	}
+
+	currentBranch, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	commit, err := repo.LookupCommit(currentBranch.Target())
+	if err != nil {
+		return nil, err
+	}
+
+	vl := len(version)
+
+	if vl < 4 || vl > 40 {
+		return nil, fmt.Errorf("version length should be in range [4, 40], provided %d", vl)
+	}
+
+	for commit != nil {
+		if commit.Id().String()[0:len(version)] == version {
+			str, err := getFile(repo, commit, fileName)
+			if err != nil {
+				return nil, err
+			}
+
+			var s []byte
+			if str != nil {
+				s = []byte(*str)
+			}
+			return s, nil
+		}
+		commit = commit.Parent(0)
+	}
+	return nil, nil
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
+	statusCode := http.StatusOK
+	defer func() {
+		log.Printf("[ %s ] - %d %s", r.Method, statusCode, r.URL.Path)
+	}()
 	fp := r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
 		err := push(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			statusCode = http.StatusInternalServerError
+			http.Error(w, err.Error(), statusCode)
 			return
 		}
-		http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		statusCode = http.StatusFound
+		http.Redirect(w, r, r.URL.Path, statusCode)
 		return
 	}
 
-	content, err := ioutil.ReadFile(fp)
+	q := r.URL.Query()
+
+	_, doedit := q["edit"]
+	version, doversion := q["version"]
+	// fmt.Printf("doedit = %v, doversion = %v, version = %v\n", doedit, doversion, version)
+
+	var content []byte
+	var err error
 
 	handleEdit := func() {
 		w.Write(edit_head)
@@ -129,20 +214,35 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		w.Write(edit_tail)
 	}
 
-	if err != nil {
-		if _, err := os.Stat(fp); err != nil {
-			// file not exist or permission denied, enter edit mode
-			handleEdit()
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	if doversion && len(version) > 0 && len(version[0]) > 0 {
+		content, err = getFileOfVersion(fp, version[0])
+		if err != nil {
+			statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), statusCode)
+			return
 		}
-		return
+		if content == nil {
+			statusCode = http.StatusNotFound
+			http.Error(w, "Error : Can not find "+fp+" of version "+version[0], statusCode)
+			return
+		}
+	} else {
+		doversion = false
+		content, err = ioutil.ReadFile(fp)
+
+		if err != nil {
+			if _, err := os.Stat(fp); err != nil {
+				// file not exist or permission denied, enter edit mode
+				handleEdit()
+			} else {
+				statusCode = http.StatusNotFound
+				http.Error(w, err.Error(), statusCode)
+			}
+			return
+		}
 	}
 
-	q := r.URL.Query()
-	_, exists := q["edit"]
-
-	if exists {
+	if doedit {
 		// enter edit mode
 		handleEdit()
 		return
