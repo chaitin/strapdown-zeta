@@ -41,7 +41,7 @@ func init() {
 	}
 }
 
-func push(fp string, content []byte, comment string, author string) error {
+func save_and_commit(fp string, content []byte, comment string, author string) error {
 	var err error
 
 	err = os.MkdirAll(path.Dir(fp), 0600)
@@ -183,12 +183,12 @@ func getFileOfVersion(fileName string, version string) ([]byte, error) {
 func handle(w http.ResponseWriter, r *http.Request) {
 	statusCode := http.StatusOK
 	defer func() {
-		log.Printf("[ %s ] - %d %s", r.Method, statusCode, r.URL.Path)
+		log.Printf("[ %s ] - %d %s", r.Method, statusCode, r.URL.String())
 	}()
 	fp := r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
-		err := push(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
+		err := save_and_commit(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
 		if err != nil {
 			statusCode = http.StatusInternalServerError
 			http.Error(w, err.Error(), statusCode)
