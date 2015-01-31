@@ -19,6 +19,9 @@ import (
 
 var port = flag.Int("port", 8080, "The port for the server to listen")
 var addr = flag.String("address", "0.0.0.0", "Listening address")
+var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
+var root = flag.String("dir", "", "The root directory for the git/wiki")
+
 var view_head, view_tail, edit_head, edit_tail []byte
 
 func init() {
@@ -37,11 +40,6 @@ func init() {
 	}
 	edit_head = []byte(strings.TrimSpace(string(edit_head)))
 	edit_tail = []byte(strings.TrimSpace(string(edit_tail)))
-	_, err = git.OpenRepository(".")
-	if err != nil {
-		log.Printf("please run `git init` in this directory for strapdown-server to run")
-		log.Fatal(err)
-	}
 }
 
 func save_and_commit(fp string, content []byte, comment string, author string) error {
@@ -350,6 +348,35 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+	var err error
+
+	if len(*root) > 0 {
+		err = os.Chdir(*root)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		log.Printf("chdir to %s", *root)
+	}
+
+	if *initgit {
+		if _, err = git.OpenRepository("."); err != nil {
+			_, err = git.InitRepository(".", false)
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+			log.Printf("git init finished at .")
+		} else {
+			log.Printf("git repository already found, skip git init")
+		}
+	}
+	_, err = git.OpenRepository(".")
+	if err != nil {
+		log.Printf("git repository not found at current directory. please use `-init` switch or run `git init` in this directory")
+		log.Fatal(err)
+		return
+	}
 	http.HandleFunc("/", handle)
 	host := fmt.Sprintf("%s:%d", *addr, *port)
 	log.Printf("listening on %s", host)

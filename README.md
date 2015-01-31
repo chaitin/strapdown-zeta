@@ -93,6 +93,8 @@ The server supports the following parameters.
 
  - `-address="0.0.0.0"`, specify the listening address.
  - `-port=8080`, specify the listening port
+ - `-init`, do automatic `git init` before starting the server, if git repo not found in working directory.
+ - `-dir=/path/to/dir`, use the directory as the root of the git powered wiki.
 
 ## Installation
 
