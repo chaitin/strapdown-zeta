@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/libgit2/git2go"
@@ -8,8 +9,10 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -180,6 +183,31 @@ func getFileOfVersion(fileName string, version string) ([]byte, error) {
 	return nil, nil
 }
 
+// copied from http://golang.org/src/net/http/fs.go
+func safe_open(base string, name string) (*os.File, error) {
+	if filepath.Separator != '/' && strings.IndexRune(name, filepath.Separator) >= 0 ||
+		strings.Contains(name, "\x00") {
+		return nil, errors.New("http: invalid character in file path")
+	}
+	dir := base
+	if dir == "" {
+		dir = "."
+	}
+	f, err := os.Open(filepath.Join(dir, filepath.FromSlash(path.Clean("/"+name))))
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+var htmlReplacer = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+	"\"", "&#34;",
+	"'", "&#39;",
+)
+
 func handle(w http.ResponseWriter, r *http.Request) {
 	statusCode := http.StatusOK
 	defer func() {
@@ -187,6 +215,11 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var err error
+
+	q := r.URL.Query()
+
+	_, doedit := q["edit"]
+	version, doversion := q["version"]
 
 	fp := r.URL.Path[1:]
 
@@ -196,9 +229,52 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = os.Stat(fp); err == nil {
-		http.ServeFile(w, r, fp)
-		return
+	if stat, err := os.Stat(fp); err == nil {
+		if !stat.IsDir() {
+			http.ServeFile(w, r, fp)
+			return
+		} else {
+			if statmd, err := os.Stat(fp + ".md"); err == nil && !statmd.IsDir() {
+				// if the following cases, dont list dir:
+				// if /path/to/dir/.md exists, just show its content instead of listing dir
+				// if doedit, goto edit mode
+				// if it's root directory /, goto edit mode or view mode
+			} else if !doedit && len(fp) > 0 {
+				// list dir here
+
+				dirfile, err := safe_open(fp, "")
+				if err != nil {
+					statusCode = http.StatusBadRequest
+					http.Error(w, err.Error(), statusCode)
+					return
+				}
+
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				fmt.Fprintf(w, `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
+<title>Directory listing for %s</title>
+<body>
+<h2>Directory listing for %s</h2>
+<hr>
+<ul>
+`, fp, fp)
+				for {
+					dirs, err := dirfile.Readdir(100)
+					if err != nil || len(dirs) == 0 {
+						break
+					}
+					for _, d := range dirs {
+						name := d.Name()
+						if d.IsDir() {
+							name += "/"
+						}
+						dirurl := url.URL{Path: path.Join("/", fp, name)}
+						fmt.Fprintf(w, "<li><a href=\"%s\">%s</a></li>\n", dirurl.String(), htmlReplacer.Replace(name))
+					}
+				}
+				fmt.Fprintf(w, "</ul><hr></body></html>\n")
+				return
+			}
+		}
 	}
 
 	fp = r.URL.Path[1:] + ".md"
@@ -214,12 +290,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.URL.Path, statusCode)
 		return
 	}
-
-	q := r.URL.Query()
-
-	_, doedit := q["edit"]
-	version, doversion := q["version"]
-	// fmt.Printf("doedit = %v, doversion = %v, version = %v\n", doedit, doversion, version)
 
 	var content []byte
 
