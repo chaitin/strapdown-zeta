@@ -1,28 +1,98 @@
 
 # Strapdown-Zeta
 
-Strapdown-Zeta is a Git-powered wiki system, derived form strapdown.js project.
+Strapdown-Zeta is a Git-powered wiki system, derived from strapdown.js project.
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required.
 
+Strapdown-Zeta add more features including a standalone server providing a git powered wiki system.
 
 ## Features
 
- - Git Powered Wiki system. A standalone server is provided, just `git init` then run the server will provide you a full functional geeky wiki server.
+### Strapdown Static Markdown Page
+
  - [MathJax](http://www.mathjax.org/) support. Feel free to type in your awesome math equations.
  - Theme switchable. 14 Bootstrap themes included by default, you can add more as you wish. And everybody can switch the theme thru one click.
- - Table of Content auto generation. Just specify `toc="true"` in the xml tag
+ - `Table of Content` auto generation. Just specify `toc="true"` in the `xmp` tag
  - Heading numbering and anchor support, just one click will bring you to the section you are going to.
+ - Use highlight.js for syntax highlighting, which provides more beautiful coloring and more powerful syntax parsing.
+ - Blazing fast loading speed! All the codes are written using [vanilla-js](http://vanilla-js.com/), only less than 200KiB source code after compressing.
+
+### Git Powered Wiki
+
+ - Git Powered Wiki system. A standalone server is provided, just `git init` then run the server will get you a full functional geeky wiki server.
+ - Files can be extracted using git version(sha hash)
+ - Custom view header and tail can be specified for different files.
+ - Handle of static files. Directory listing can be turned on and off.
 
 For more, please see:
 
 + http://strapdown.ztx.io
 + [Strapdown MathJax Test Page](http://strapdown.ztx.io/test.html)
-+ http://strapdownjs.com
 
 ## Usage
 
-TODO
+### Use Strapdown static html
+
+Open your favorite text editor, paste the following lines into the text, then type markdown content in the middle, save the file as test.html, and open it, here you go!
+
+```
+<!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cerulean" style="display:none;">
+
+# title
+
+your awesome markdown content goes here...
+
+</xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
+```
+
+#### Choose theme
+
+You can set your favorite theme in `xmp` tag. The following themes are built-in by default.
+
+ - Amelia
+ - Bootstrap
+ - Cerulean
+ - Cosmo
+ - Cyborg
+ - Flatly
+ - Journal
+ - Readable
+ - Simplex
+ - Slate
+ - Spacelab
+ - Spruce
+ - Superhero
+ - United
+
+To use Cosmo, use the following line
+
+```
+<!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cosmo" style="display:none;">
+
+your awesome markdown content goes here...
+
+</xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
+```
+
+#### Table of Content
+
+To generate table of content, specify `toc="true"` in xmp tag.
+
+```
+<!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cosmo" toc="true" style="display:none;">
+
+your awesome markdown content goes here...
+
+</xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
+```
+
+### Strapdown Server
+
+The server supports the following parameters.
+
+ - `-address="0.0.0.0"`, specify the listening address.
+ - `-port=8080`, specify the listening port
 
 ## Installation
 
@@ -32,7 +102,7 @@ Standalone downloadable binary will be released soon...
 
 ### For hackers
 
-You can hack this project any way you want. Please follow the following build instructions get started.
+You can hack this project any way you want. Please follow the following build instructions to get started.
 
 ## Build
 

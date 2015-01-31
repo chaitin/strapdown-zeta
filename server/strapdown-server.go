@@ -185,7 +185,23 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		log.Printf("[ %s ] - %d %s", r.Method, statusCode, r.URL.String())
 	}()
-	fp := r.URL.Path[1:] + ".md"
+
+	var err error
+
+	fp := r.URL.Path[1:]
+
+	if strings.HasPrefix(fp, ".git/") || fp == ".git" {
+		statusCode = http.StatusForbidden
+		http.Error(w, "access of .git directory not allowed", statusCode)
+		return
+	}
+
+	if _, err = os.Stat(fp); err == nil {
+		http.ServeFile(w, r, fp)
+		return
+	}
+
+	fp = r.URL.Path[1:] + ".md"
 
 	if r.Method == "POST" || r.Method == "PUT" {
 		err := save_and_commit(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
@@ -206,7 +222,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("doedit = %v, doversion = %v, version = %v\n", doedit, doversion, version)
 
 	var content []byte
-	var err error
 
 	handleEdit := func() {
 		w.Write(edit_head)
