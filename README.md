@@ -1,7 +1,7 @@
 
 # Strapdown-Zeta
 
-Strapdown-Zeta is a Git-powered wiki system, derived from strapdown.js project.
+Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown.js](http://strapdownjs.com/) project.
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required.
 
@@ -11,6 +11,9 @@ Strapdown-Zeta add more features including a standalone server providing a git p
 
 ### Strapdown Static Markdown Page
 
+ - Search Engine friendly.
+ - Cross-browser compatible and responsive in mobile screens.
+ - GitHub flavored Markdown syntax.
  - [MathJax](http://www.mathjax.org/) support. Feel free to type in your awesome math equations.
  - Theme switchable. 14 Bootstrap themes included by default, you can add more as you wish. And everybody can switch the theme thru one click.
  - `Table of Content` auto generation. Just specify `toc="true"` in the `xmp` tag
