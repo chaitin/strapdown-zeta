@@ -351,7 +351,7 @@ store.get('theme', function (ok, val) {
   var heading_number = markdownEl.getAttribute('heading_number');
 
   var hn_table = ['i', 'i', 'i', 'i', 'i', 'i'];
-  if (heading_number && heading_number != 'none') {
+  if (heading_number && heading_number != 'none' && heading_number != "false" ) {
     var ary = heading_number.split('.');
     for (var i = 0; i < 6; i++) {
       if (ary[i] == 'a') {
@@ -396,7 +396,7 @@ store.get('theme', function (ok, val) {
 
     // generate heading
     var before_heading;
-    if (!heading_number || heading_number == 'none') {
+    if (!heading_number || heading_number == 'none' || heading_number == "false") {
       before_heading = '';
     } else {
       before_heading = heading_number_str + ' ';
