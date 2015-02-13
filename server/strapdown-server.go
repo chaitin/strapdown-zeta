@@ -29,6 +29,33 @@ var default_heading_number = flag.String("heading_number", "false", "set default
 var default_title = flag.String("title", "Wiki", "default title for wiki pages")
 var default_theme = flag.String("theme", "cerulean", "default theme for strapdown")
 
+type DirEntry struct {
+	Urlpath string
+	Name    string
+	Size    int64
+	IsDir   bool
+	ModTime time.Time
+}
+
+func (this *DirEntry) ReadableSize(use_kibibyte bool) string {
+	num := float32(this.Size)
+	base := float32(1000)
+	unit := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+	if use_kibibyte {
+		base = float32(1024)
+		unit = []string{"B", "kiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"}
+	}
+	var cur string
+	for _, x := range unit {
+		if -base < num && num < base {
+			return fmt.Sprintf("%3.1f %s", num, x)
+		}
+		num = num / base
+		cur = x
+	}
+	return fmt.Sprintf("%3.1f %s", num, cur)
+}
+
 type Config struct {
 	Title         string
 	Theme         string
@@ -36,6 +63,7 @@ type Config struct {
 	HeadingNumber string
 	Host          string
 	Content       template.HTML
+	DirEntries    []DirEntry
 }
 
 func (config *Config) FillDefault(content []byte) {
@@ -56,7 +84,7 @@ func (config *Config) FillDefault(content []byte) {
 	}
 }
 
-var viewTemplate, editTemplate *template.Template
+var viewTemplate, editTemplate, listdirTemplate *template.Template
 
 func init_after_main() { // init after main because we need to chdir first, then write the default favicon
 	var err error
@@ -68,6 +96,104 @@ func init_after_main() { // init after main because we need to chdir first, then
 	if err != nil {
 		log.Fatalf("cannot parse edit template")
 	}
+	listdirTemplate, err = template.New("listdir").Parse(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <style type="text/css" media="screen">
+    #list {
+        margin: 51px auto;
+        -webkit-box-sizing: border-box; /* Safari, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+    }
+    #list table {
+        -webkit-box-sizing: border-box; /* Safari, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        max-width: 100%;
+        border-collapse: collapse;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
+    #list td, #list th {
+        display: table-cell;
+        font-size: 16px;
+        height: 26px;
+        line-height: 26px;
+        text-align: center;
+        vertical-align: top;
+        min-width: 100px;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
+    #list tr>th:nth-child(1) {
+        text-align: left;
+    }
+    #list tr>td:nth-child(1) {
+        text-align: left;
+        width: auto;
+        white-space: normal;
+        max-width: 90%;
+        text-align:left;
+    }
+    #list tr>td>a {
+        display: block;
+        color: #333;
+        text-decoration: none;
+    }
+    #list .endslash {
+        color: #6299fe;
+        font-weight: bold;
+    }
+    @media (max-width: 980px) {
+      #list {
+        margin: 0 10px 10px 0;
+        -webkit-box-sizing: border-box; /* Safari, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <div id="headline" class="brand"> Directory Listing of {{.Title}} </div>
+      </div> 
+    </div>
+  </div>
+  <div id="list" class="container">
+    <hr />
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Size</th>
+          <th>Datetime</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $index, $element := .DirEntries }}
+        <tr>
+          <td><a href="{{$element.Urlpath}}">{{$element.Name}} {{ if $element.IsDir }} <span class="endslash">/</span> {{ end }} </a></td>
+          <td><a href="{{$element.Urlpath}}" title="{{$element.Size}}B">{{$element.ReadableSize true}}</a></td>
+          <td><a href="{{$element.Urlpath}}">{{$element.ModTime.Format "2006-01-02 15:04:05"}}</a></td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+    <hr />
+  </div>
+</body>
+</html>
+`)
 	defaultFavicon, err := base64.StdEncoding.DecodeString("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")
 	if err != nil {
 		log.Printf("[ WARN ] %v", err)
@@ -288,23 +414,36 @@ func handle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				// w.Write(view_head)
-				fmt.Fprintf(w, "# Directory listing for %s\n", fp)
+
+				custom_option, err := ioutil.ReadFile(fp + ".option.json")
+				var config Config = Config{}
+				if err == nil {
+					json.Unmarshal(custom_option, &config)
+				}
+				if config.Title == "" {
+					config.Title = fp
+				}
+				config.FillDefault(nil)
+				config.DirEntries = make([]DirEntry, 0, 16)
+
 				for {
-					dirs, err := dirfile.Readdir(100)
+					dirs, err := dirfile.Readdir(128)
 					if err != nil || len(dirs) == 0 {
 						break
 					}
 					for _, d := range dirs {
-						name := d.Name()
-						if d.IsDir() {
-							name += "/"
+						dirurl := url.URL{Path: path.Join("/", fp, d.Name())}
+						dirurls := dirurl.String()
+						if strings.HasSuffix(dirurls, ".md") {
+							dirurls = strings.TrimSuffix(dirurls, ".md")
 						}
-						dirurl := url.URL{Path: path.Join("/", fp, name)}
-						fmt.Fprintf(w, " - [%s](%s)\n", htmlReplacer.Replace(name), dirurl.String())
+						config.DirEntries = append(config.DirEntries, DirEntry{Name: d.Name(), IsDir: d.IsDir(), Urlpath: dirurls, Size: d.Size(), ModTime: d.ModTime()})
 					}
 				}
-				// w.Write(view_tail)
+				err = listdirTemplate.Execute(w, config)
+				if err != nil {
+					log.Printf("[ ERR ] fill list dir template error: %v", err)
+				}
 				return
 			}
 		}
@@ -333,7 +472,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(custom_option, &config)
 		}
 		config.FillDefault(content)
-		editTemplate.Execute(w, config)
+		err = editTemplate.Execute(w, config)
+		if err != nil {
+			log.Printf("[ ERR ] fill edit template error: %v", err)
+		}
 	}
 
 	if doversion && len(version) > 0 && len(version[0]) > 0 {
@@ -383,7 +525,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(custom_view_option, &config)
 		}
 		config.FillDefault(content)
-		viewTemplate.Execute(w, config)
+		err = viewTemplate.Execute(w, config)
+		if err != nil {
+			log.Printf("[ ERR ] fill view template error: %v", err)
+		}
 	}
 }
 
