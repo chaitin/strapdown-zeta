@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/libgit2/git2go"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net"
@@ -22,24 +24,45 @@ var addr = flag.String("address", "0.0.0.0", "Listening address")
 var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
 var root = flag.String("dir", "", "The root directory for the git/wiki")
 
-var view_head, view_tail, edit_head, edit_tail []byte
+type Config struct {
+	Title         string
+	Theme         string
+	Toc           bool
+	HeadingNumber string
+	Host          string
+	Content       template.HTML
+}
+
+func (config *Config) FillDefault(content []byte) {
+	if config.Title == "" {
+		config.Title = "Wiki"
+	}
+	if config.Theme == "" {
+		config.Theme = "cerulean"
+	}
+	if config.HeadingNumber == "" {
+		config.HeadingNumber = "false"
+	}
+	if config.Host == "" {
+		config.Host = "cdn.ztx.io"
+	}
+	if config.Content == "" {
+		config.Content = template.HTML(content)
+	}
+}
+
+var viewTemplate, editTemplate *template.Template
 
 func init() {
 	var err error
-	if view_head, err = ioutil.ReadFile("view.head"); err != nil {
-		log.Fatalf("cannot read view.head")
+	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"http://{{.Host}}/strapdown/strapdown.min.js\"></script> </html>\n")
+	if err != nil {
+		log.Fatalf("cannot parse view template")
 	}
-	if view_tail, err = ioutil.ReadFile("view.tail"); err != nil {
-		log.Fatalf("cannot read view.tail")
+	editTemplate, err = template.New("edit").Parse("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\"><title>{{.Title}}</title><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/cerulean.min.css\" /><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css\" /><style type=\"text/css\" media=\"screen\">html, body {height: 100%;overflow: hidden;margin: 0;padding: 0;}#editor {margin: 0;position: absolute;top: 51px;bottom: 0;left: 0;right: 0;}@media (max-width: 980px) {#editor {top: 60px;}}</style></head><body><div class=\"navbar navbar-fixed-top\"><div class=\"navbar-inner\"><div style=\"padding:0 20px\"><a class=\"btn btn-navbar\" data-toggle=\"collapse\" data-target=\".navbar-responsive-collapse\"><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span></a><div id=\"headline\" class=\"brand\"> {{.Title}} </div><div class=\"nav-collapse collapse navbar-responsive-collapse pull-right\"> <form class=\"nav\" method=\"POST\" name=\"body\"><input id=\"savValue\" type=\"hidden\" name=\"body\" value=\"\" /><button class=\"btn btn-default btn-sm\" type=\"submit\">Save</button></form></div></div> </div></div><xmp id=\"editor\">{{.Content}}</xmp><script src=\"http://{{.Host}}/ace/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script><script src=\"http://{{.Host}}/strapdown/edit.js\" type=\"text/javascript\" charset=\"utf-8\"></script></body></html>\n")
+	if err != nil {
+		log.Fatalf("cannot parse edit template")
 	}
-	if edit_head, err = ioutil.ReadFile("edit.head"); err != nil {
-		log.Fatalf("cannot read edit.head")
-	}
-	if edit_tail, err = ioutil.ReadFile("edit.tail"); err != nil {
-		log.Fatalf("cannot read edit.tail")
-	}
-	edit_head = []byte(strings.TrimSpace(string(edit_head)))
-	edit_tail = []byte(strings.TrimSpace(string(edit_tail)))
 }
 
 func save_and_commit(fp string, content []byte, comment string, author string) error {
@@ -248,13 +271,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				fmt.Fprintf(w, `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
-<title>Directory listing for %s</title>
-<body>
-<h2>Directory listing for %s</h2>
-<hr>
-<ul>
-`, fp, fp)
+				// w.Write(view_head)
+				fmt.Fprintf(w, "# Directory listing for %s\n", fp)
 				for {
 					dirs, err := dirfile.Readdir(100)
 					if err != nil || len(dirs) == 0 {
@@ -266,10 +284,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 							name += "/"
 						}
 						dirurl := url.URL{Path: path.Join("/", fp, name)}
-						fmt.Fprintf(w, "<li><a href=\"%s\">%s</a></li>\n", dirurl.String(), htmlReplacer.Replace(name))
+						fmt.Fprintf(w, " - [%s](%s)\n", htmlReplacer.Replace(name), dirurl.String())
 					}
 				}
-				fmt.Fprintf(w, "</ul><hr></body></html>\n")
+				// w.Write(view_tail)
 				return
 			}
 		}
@@ -292,9 +310,13 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	var content []byte
 
 	handleEdit := func() {
-		w.Write(edit_head)
-		w.Write(content)
-		w.Write(edit_tail)
+		custom_option, err := ioutil.ReadFile(fp + ".option.json")
+		var config Config = Config{}
+		if err == nil {
+			json.Unmarshal(custom_option, &config)
+		}
+		config.FillDefault(content)
+		editTemplate.Execute(w, config)
 	}
 
 	if doversion && len(version) > 0 && len(version[0]) > 0 {
@@ -331,18 +353,20 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	custom_view_head, err := ioutil.ReadFile(fp + ".head")
-	if err != nil {
-		w.Write(view_head)
-	} else {
+	custom_view_head, errh := ioutil.ReadFile(fp + ".head")
+	custom_view_tail, errt := ioutil.ReadFile(fp + ".tail")
+	if errh == nil && errt == nil {
 		w.Write(custom_view_head)
-	}
-	w.Write(content)
-	custom_view_tail, err := ioutil.ReadFile(fp + ".tail")
-	if err != nil {
-		w.Write(view_tail)
-	} else {
+		w.Write(content)
 		w.Write(custom_view_tail)
+	} else {
+		custom_view_option, errv := ioutil.ReadFile(fp + ".option.json")
+		var config Config = Config{}
+		if errv == nil {
+			json.Unmarshal(custom_view_option, &config)
+		}
+		config.FillDefault(content)
+		viewTemplate.Execute(w, config)
 	}
 }
 
