@@ -24,6 +24,10 @@ var port = flag.Int("port", 8080, "The port for the server to listen")
 var addr = flag.String("address", "0.0.0.0", "Listening address")
 var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
 var root = flag.String("dir", "", "The root directory for the git/wiki")
+var default_host = flag.String("host", "cdn.ztx.io", "Default host hosting the strapdown static files")
+var default_heading_number = flag.String("heading_number", "false", "set default value for showing heading number")
+var default_title = flag.String("title", "Wiki", "default title for wiki pages")
+var default_theme = flag.String("theme", "cerulean", "default theme for strapdown")
 
 type Config struct {
 	Title         string
@@ -36,16 +40,16 @@ type Config struct {
 
 func (config *Config) FillDefault(content []byte) {
 	if config.Title == "" {
-		config.Title = "Wiki"
+		config.Title = *default_title
 	}
 	if config.Theme == "" {
-		config.Theme = "cerulean"
+		config.Theme = *default_theme
 	}
 	if config.HeadingNumber == "" {
-		config.HeadingNumber = "false"
+		config.HeadingNumber = *default_heading_number
 	}
 	if config.Host == "" {
-		config.Host = "cdn.ztx.io"
+		config.Host = *default_host
 	}
 	if config.Content == "" {
 		config.Content = template.HTML(content)
