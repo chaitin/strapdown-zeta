@@ -364,14 +364,6 @@ func safe_open(base string, name string) (*os.File, error) {
 	return f, nil
 }
 
-var htmlReplacer = strings.NewReplacer(
-	"&", "&amp;",
-	"<", "&lt;",
-	">", "&gt;",
-	"\"", "&#34;",
-	"'", "&#39;",
-)
-
 func handle(w http.ResponseWriter, r *http.Request) {
 	statusCode := http.StatusOK
 	defer func() {
@@ -393,8 +385,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stat, err := os.Stat(fp); err == nil {
-		if !stat.IsDir() {
+	if fpstat, err := os.Stat(fp); err == nil {
+		if !fpstat.IsDir() {
 			http.ServeFile(w, r, fp)
 			return
 		} else {
@@ -425,6 +417,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 				}
 				config.FillDefault(nil)
 				config.DirEntries = make([]DirEntry, 0, 16)
+
+				fpurl := url.URL{Path: path.Join("/", fp, "..")}
+				config.DirEntries = append(config.DirEntries, DirEntry{Name: "..", IsDir: true, Urlpath: fpurl.String(), Size: fpstat.Size(), ModTime: fpstat.ModTime()})
 
 				for {
 					dirs, err := dirfile.Readdir(128)
