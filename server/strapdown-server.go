@@ -10,7 +10,6 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,8 +19,7 @@ import (
 	"time"
 )
 
-var port = flag.Int("port", 8080, "The port for the server to listen")
-var addr = flag.String("address", "0.0.0.0", "Listening address")
+var addr = flag.String("addr", ":8080", "Listening `host:port`, you can specify multiple listening address separated by comma, e.g. (127.0.0.1:8080,192.168.1.2:8080)")
 var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
 var root = flag.String("dir", "", "The root directory for the git/wiki")
 var default_host = flag.String("host", "cdn.ztx.io", "Default host hosting the strapdown static files")
@@ -560,12 +558,24 @@ func main() {
 	}
 	init_after_main()
 	http.HandleFunc("/", handle)
-	host := fmt.Sprintf("%s:%d", *addr, *port)
-	log.Printf("listening on %s", host)
-	l, err := net.Listen("tcp", host)
-	if err != nil {
-		log.Fatal(err)
+
+	cnt := 0
+	ch := make(chan bool)
+	for _, host := range strings.Split(*addr, ",") {
+		cnt += 1
+		log.Printf("[ %d ] listening on %s", cnt, host)
+		go func(h string, aid int) {
+			e := http.ListenAndServe(h, nil)
+			if e != nil {
+				log.Printf("[ %d ] failed to bind on %s: %v", aid, h, e)
+				ch <- false
+			} else {
+				ch <- true
+			}
+		}(host, cnt)
 	}
-	s := &http.Server{}
-	s.Serve(l)
+	for cnt > 0 {
+		<-ch
+		cnt -= 1
+	}
 }
