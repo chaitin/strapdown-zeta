@@ -288,12 +288,18 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 		return nil, err
 	}
 
-	enter := tree.EntryByName(fileName)
-	if enter == nil {
+	var entry *git.TreeEntry
+	if strings.IndexByte(fileName, '/') >= 0 {
+		entry, err = tree.EntryByPath(fileName)
+	} else {
+		entry = tree.EntryByName(fileName)
+		err = nil
+	}
+	if entry == nil || err != nil {
 		return nil, err
 	}
 
-	oid := enter.Id
+	oid := entry.Id
 	blb, err := repo.LookupBlob(oid)
 	if err != nil {
 		return nil, err

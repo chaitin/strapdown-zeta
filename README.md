@@ -1,11 +1,11 @@
 
-# Strapdown-Zeta
+# Strapdown-Zeta - Git-powered Wiki for Hackers!
 
 Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown.js](http://strapdownjs.com/) project.
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required.
 
-Strapdown-Zeta add more features including a standalone server providing a git powered wiki system.
+Strapdown-Zeta add more features including a standalone server providing a git powered wiki system, on top of [libgit2](https://github.com/libgit2/git2go), we don't want any possible command injections!
 
 ## Features
 
@@ -94,10 +94,13 @@ your awesome markdown content goes here...
 
 The server supports the following parameters.
 
- - `-address="0.0.0.0"`, specify the listening address.
- - `-port=8080`, specify the listening port
+ - `-addr="0.0.0.0"`, specify the listening host:port tuple, multiple addresses can be specified by separation of comma, e.g. `192.168.1.10:8080,127.0.0.1:8080`.
  - `-init`, do automatic `git init` before starting the server, if git repo not found in working directory.
  - `-dir=/path/to/dir`, use the directory as the root of the git powered wiki.
+ - `-title=MyTitle`, specify the default title of Wiki
+ - `-heading_number=true|false`, set default value for whether to show heading numbers
+ - `-host=some.domain.com`, the default hosting of strapdown static files
+ - `-theme=cerulean|cosmo|...`, the default theme to use
 
 ## Installation
 
