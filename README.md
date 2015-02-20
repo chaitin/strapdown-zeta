@@ -5,7 +5,7 @@ Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required.
 
-Strapdown-Zeta add more features including a standalone server providing a git powered wiki system, on top of [libgit2](https://github.com/libgit2/git2go), we don't want any possible command injections!
+Strapdown-Zeta add more features including a standalone server providing a git powered wiki system, on top of [libgit2](https://github.com/libgit2/git2go), we don't want any potential command injections!
 
 ## Features
 
