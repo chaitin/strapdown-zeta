@@ -227,7 +227,7 @@ func init_after_main() { // init after main because we need to chdir first, then
     }
     #list .table td input {
         padding: 0 4px;
-        margin: -4px 12px 0;
+        margin: 0px 32px 0 12px;
         vertical-align: middle;
         width: 12px;
         height: 12px;
@@ -268,7 +268,7 @@ func init_after_main() { // init after main because we need to chdir first, then
     }
     #list tr>th:nth-child(1) {
         text-align: left;
-        padding-left: 44px;
+        padding-left: 64px;
     }
     #list tr>td:nth-child(1) {
         text-align: left;
@@ -370,6 +370,8 @@ func save_and_commit(fp string, content []byte, comment string, author string) e
 	if err != nil {
 		return err
 	}
+	defer repo.Free()
+
 	index, err := repo.Index()
 	if err != nil {
 		return err
@@ -434,6 +436,7 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 	if err != nil {
 		return nil, err
 	}
+	defer tree.Free()
 
 	var entry *git.TreeEntry
 	if strings.IndexByte(fileName, '/') >= 0 {
@@ -445,12 +448,14 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 	if entry == nil || err != nil {
 		return nil, err
 	}
+	defer entry.Free()
 
 	oid := entry.Id
 	blb, err := repo.LookupBlob(oid)
 	if err != nil {
 		return nil, err
 	}
+	defer blb.Free()
 
 	ret := string(blb.Contents())
 	return &ret, nil
@@ -541,6 +546,7 @@ func history(fp string, size int) ([]CommitEntry, error) {
 		}
 
 		if entry != nil && err == nil {
+			defer entry.Free()
 			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
 			cnt += 1
 			// log.Println(commit.Message(), commit.Id().String()[0:12])
@@ -784,7 +790,7 @@ func main() {
 	}
 
 	if *initgit {
-		if _, err = git.OpenRepository("."); err != nil {
+		if repo, err = git.OpenRepository("."); err != nil {
 			_, err = git.InitRepository(".", false)
 			if err != nil {
 				log.Fatal(err)
@@ -793,13 +799,16 @@ func main() {
 			log.Printf("git init finished at .")
 		} else {
 			log.Printf("git repository already found, skip git init")
+			repo.Free()
 		}
 	}
-	_, err = git.OpenRepository(".")
+	repo, err = git.OpenRepository(".")
 	if err != nil {
 		log.Printf("git repository not found at current directory. please use `-init` switch or run `git init` in this directory")
 		log.Fatal(err)
 		return
+	} else {
+		repo.Free()
 	}
 	init_after_main()
 
