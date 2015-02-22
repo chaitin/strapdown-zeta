@@ -160,4 +160,18 @@ location ~ \.php$ {
  - BMP文件 文件名.{d3e34b21-9d75-101a-8c3d-00aa001a1652}
  - HTML文件 文件名.{25336920-03f9-11cf-8fd0-00aa00686f13}
 
+# Test embedded lists
+
+https://github.com/chjj/marked/issues/258
+
+1. Next item should be indented
+  1. Next item should be indented
+    1. Just a list item
+    2. Next item should be indented - marked breaks here!
+      1. Just a list item
+      2. Next item should be indented
+        1. Just a list item
+        2. Next item should be indented
+          1. Just a list item
+
 </xmp> <script src="http://cdn.ztx.io/strapdown/strapdown.min.js"></script> </html>
