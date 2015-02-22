@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,7 @@ import (
 	"fmt"
 	"github.com/libgit2/git2go"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -104,7 +106,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 	if err != nil {
 		log.Fatalf("cannot parse view template")
 	}
-	editTemplate, err = template.New("edit").Parse("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\"><title>{{.Title}}</title><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/cerulean.min.css\" /><style type=\"text/css\" media=\"screen\">html, body {height: 100%;overflow: hidden;margin: 0;padding: 0;}#editor {margin: 0;position: absolute;top: 51px;bottom: 0;left: 0;right: 0;}</style></head><body><div class=\"navbar navbar-fixed-top\"><div class=\"navbar-inner\"><div style=\"padding:0 20px\"><a class=\"btn btn-navbar\" data-toggle=\"collapse\" data-target=\".navbar-responsive-collapse\"><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span></a><div id=\"headline\" class=\"brand\"> {{.Title}} </div><div class=\"nav-collapse collapse navbar-responsive-collapse pull-right\"> <form class=\"nav\" method=\"POST\" name=\"body\"><input id=\"savValue\" type=\"hidden\" name=\"body\" value=\"\" /><button class=\"btn btn-default btn-sm\" type=\"submit\">Save</button></form></div></div> </div></div><xmp id=\"editor\">{{.Content}}</xmp><script src=\"http://{{.Host}}/ace/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script><script src=\"http://{{.Host}}/strapdown/edit.js\" type=\"text/javascript\" charset=\"utf-8\"></script></body></html>\n")
+	editTemplate, err = template.New("edit").Parse("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\"><title>{{.Title}}</title><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/cerulean.min.css\" /><style type=\"text/css\" media=\"screen\">html, body {height: 100%;overflow: hidden;margin: 0;padding: 0;}#editor {margin: 0;position: absolute;top: 51px;bottom: 0;left: 0;right: 0;}</style></head><body><div class=\"navbar navbar-fixed-top\"><div class=\"navbar-inner\"><div style=\"padding:0 20px\"><a class=\"btn btn-navbar\" data-toggle=\"collapse\" data-target=\".navbar-responsive-collapse\"><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span></a><div id=\"headline\" class=\"brand\"> {{.Title}} </div><div class=\"nav-collapse collapse navbar-responsive-collapse pull-right\"> <form class=\"nav\" method=\"POST\" action=\"?edit\" name=\"body\"><input id=\"savValue\" type=\"hidden\" name=\"body\" value=\"\" /><button class=\"btn btn-default btn-sm\" type=\"submit\">Save</button></form></div></div> </div></div><xmp id=\"editor\">{{.Content}}</xmp><script src=\"http://{{.Host}}/ace/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script><script src=\"http://{{.Host}}/strapdown/edit.js\" type=\"text/javascript\" charset=\"utf-8\"></script></body></html>\n")
 	if err != nil {
 		log.Fatalf("cannot parse edit template")
 	}
@@ -448,7 +450,6 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 	if entry == nil || err != nil {
 		return nil, err
 	}
-	defer entry.Free()
 
 	oid := entry.Id
 	blb, err := repo.LookupBlob(oid)
@@ -505,6 +506,9 @@ func getFileOfVersion(fileName string, version string) ([]byte, error) {
 }
 
 func history(fp string, size int) ([]CommitEntry, error) {
+	if len(fp) == 0 {
+		return nil, nil
+	}
 	var err error
 	repo, err := git.OpenRepository(".")
 	if err != nil {
@@ -546,7 +550,6 @@ func history(fp string, size int) ([]CommitEntry, error) {
 		}
 
 		if entry != nil && err == nil {
-			defer entry.Free()
 			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
 			cnt += 1
 			// log.Println(commit.Message(), commit.Id().String()[0:12])
@@ -585,12 +588,23 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
+	fp := r.URL.Path[1:]
+	fpmd := fp + ".md"
+
+	// parse query and param first
 	q := r.URL.Query()
 
 	_, doedit := q["edit"]
-	version, doversion := q["version"]
+	version_ary, doversion := q["version"]
 	histsize_ary, dohistory := q["history"]
 
+	var version string
+	if doversion && len(version_ary) > 0 && len(version_ary[0]) > 0 {
+		version = version_ary[0]
+	} else {
+		doversion = false
+		version = ""
+	}
 	histsize := *default_histsize
 	if dohistory && len(histsize_ary) > 0 {
 		histsize, err = strconv.Atoi(histsize_ary[0])
@@ -598,21 +612,24 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			histsize = *default_histsize
 		}
 	}
-	// log.Printf("histzie = %d\n", histsize)
 
-	fp := r.URL.Path[1:]
-
+	// forbidden any access of git related object
 	if strings.HasPrefix(fp, ".git/") || fp == ".git" || fp == ".gitignore" || fp == ".gitmodules" {
 		statusCode = http.StatusForbidden
 		http.Error(w, "access of .git related files/directory not allowed", statusCode)
 		return
 	}
 
-	if dohistory { // raw file, directory, markdown file all have a history in git, so handle them together here
+	// raw file, directory, markdown file all have a history in git, so handle them together here
+	if dohistory {
 		commit_history, err := history(fp, histsize)
-		if err != nil || commit_history == nil {
+		if err != nil || commit_history == nil || len(commit_history) == 0 {
 			statusCode = http.StatusBadRequest
-			http.Error(w, err.Error(), statusCode)
+			if err != nil {
+				http.Error(w, err.Error(), statusCode)
+			} else {
+				http.Error(w, "No commit history found for "+fp, statusCode)
+			}
 			return
 		}
 		custom_option, err := ioutil.ReadFile(fp + ".option.json")
@@ -633,13 +650,83 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check the raw file first
+	// handle post or put here, upload or edit or options
+	if r.Method == "POST" || r.Method == "PUT" {
+		// if dooptions { // handle options first
+		// // TODO
+		// }
+		// edit or upload here
+		var savefp string
+		if doedit {
+			savefp = fpmd
+		} else {
+			// do upload, or just raw post/put via command line(curl)
+			savefp = fp
+		}
+		upload_content := []byte(r.FormValue("body"))
+		if len(upload_content) == 0 && r.ContentLength > 0 {
+			err = r.ParseMultipartForm(1048576 * 100)
+			if err != nil {
+				statusCode = http.StatusInternalServerError
+				http.Error(w, err.Error(), statusCode)
+				return
+			}
+			_, mh, err := r.FormFile("body")
+			if err != nil {
+				statusCode = http.StatusBadRequest
+				http.Error(w, err.Error(), statusCode)
+				return
+			}
+			buffer := &bytes.Buffer{}
+			file, err := mh.Open()
+			if err != nil {
+				statusCode = http.StatusBadRequest
+				http.Error(w, err.Error(), statusCode)
+				return
+			}
+			defer file.Close()
+			if _, err = io.Copy(buffer, file); err != nil {
+				statusCode = http.StatusInternalServerError
+				http.Error(w, err.Error(), statusCode)
+				return
+			}
+			upload_content = buffer.Bytes()
+		}
+		err := save_and_commit(savefp, upload_content, "update "+savefp, "anonymous@"+remote_ip(r))
+		if err != nil {
+			statusCode = http.StatusInternalServerError
+			http.Error(w, err.Error(), statusCode)
+			return
+		}
+		statusCode = http.StatusFound
+		http.Redirect(w, r, r.URL.Path, statusCode)
+		return
+	}
+
+	// edit, view, with version considered below
+
+	// check the raw file or directory first, no edit for raw file, no version for directory
 	if fpstat, err := os.Stat(fp); err == nil {
-		if !fpstat.IsDir() { // if the file exist, return the file
-			http.ServeFile(w, r, fp)
+		if !fpstat.IsDir() { // if the file exist, return the file with version handled
+			if doversion {
+				content, err := getFileOfVersion(fp, version)
+				if err != nil {
+					statusCode = http.StatusBadRequest
+					http.Error(w, err.Error(), statusCode)
+					return
+				}
+				if content == nil {
+					statusCode = http.StatusNotFound
+					http.Error(w, "Error : Can not find "+fp+" of version "+version, statusCode)
+					return
+				}
+				w.Write(content)
+			} else {
+				http.ServeFile(w, r, fp)
+			}
 			return
 		} else { // if it's a directory, then check .md first
-			if statmd, err := os.Stat(fp + ".md"); err == nil && !statmd.IsDir() {
+			if statmd, err := os.Stat(fpmd); err == nil && !statmd.IsDir() {
 				// if the following cases, dont list dir:
 				// if /path/to/dir/.md exists, just show its content instead of listing dir
 				// if doedit, goto edit mode
@@ -693,24 +780,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fp = r.URL.Path[1:] + ".md"
-
-	if r.Method == "POST" || r.Method == "PUT" {
-		err := save_and_commit(fp, []byte(r.FormValue("body")), "update "+fp, "anonymous@"+remote_ip(r))
-		if err != nil {
-			statusCode = http.StatusInternalServerError
-			http.Error(w, err.Error(), statusCode)
-			return
-		}
-		statusCode = http.StatusFound
-		http.Redirect(w, r, r.URL.Path, statusCode)
-		return
-	}
-
 	var content []byte
 
 	handleEdit := func() {
-		custom_option, err := ioutil.ReadFile(fp + ".option.json")
+		custom_option, err := ioutil.ReadFile(fpmd + ".option.json")
 		var config Config = Config{}
 		if err == nil {
 			json.Unmarshal(custom_option, &config)
@@ -722,8 +795,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if doversion && len(version) > 0 && len(version[0]) > 0 {
-		content, err = getFileOfVersion(fp, version[0])
+	if doversion {
+		content, err = getFileOfVersion(fpmd, version)
 		if err != nil {
 			statusCode = http.StatusBadRequest
 			http.Error(w, err.Error(), statusCode)
@@ -731,15 +804,14 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 		if content == nil {
 			statusCode = http.StatusNotFound
-			http.Error(w, "Error : Can not find "+fp+" of version "+version[0], statusCode)
+			http.Error(w, "Error : Can not find "+fpmd+" of version "+version, statusCode)
 			return
 		}
 	} else {
-		doversion = false
-		content, err = ioutil.ReadFile(fp)
+		content, err = ioutil.ReadFile(fpmd)
 
 		if err != nil {
-			if _, err := os.Stat(fp); err != nil {
+			if _, err := os.Stat(fpmd); err != nil {
 				// file not exist or permission denied, enter edit mode
 				handleEdit()
 			} else {
@@ -756,14 +828,14 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	custom_view_head, errh := ioutil.ReadFile(fp + ".head")
-	custom_view_tail, errt := ioutil.ReadFile(fp + ".tail")
+	custom_view_head, errh := ioutil.ReadFile(fpmd + ".head")
+	custom_view_tail, errt := ioutil.ReadFile(fpmd + ".tail")
 	if errh == nil && errt == nil {
 		w.Write(custom_view_head)
 		w.Write(content)
 		w.Write(custom_view_tail)
 	} else {
-		custom_view_option, errv := ioutil.ReadFile(fp + ".option.json")
+		custom_view_option, errv := ioutil.ReadFile(fpmd + ".option.json")
 		var config Config = Config{}
 		if errv == nil {
 			json.Unmarshal(custom_view_option, &config)
@@ -790,7 +862,7 @@ func main() {
 	}
 
 	if *initgit {
-		if repo, err = git.OpenRepository("."); err != nil {
+		if repo, err := git.OpenRepository("."); err != nil {
 			_, err = git.InitRepository(".", false)
 			if err != nil {
 				log.Fatal(err)
@@ -802,7 +874,7 @@ func main() {
 			repo.Free()
 		}
 	}
-	repo, err = git.OpenRepository(".")
+	repo, err := git.OpenRepository(".")
 	if err != nil {
 		log.Printf("git repository not found at current directory. please use `-init` switch or run `git init` in this directory")
 		log.Fatal(err)
