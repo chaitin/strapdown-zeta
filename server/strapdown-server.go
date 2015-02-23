@@ -60,6 +60,7 @@ func (this *DirEntry) ReadableSize(use_kibibyte bool) string {
 
 type CommitEntry struct {
 	Id        string
+	EntryId   string
 	Timestamp time.Time
 	Author    string
 	Message   string
@@ -464,6 +465,7 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 
 func getFileOfVersion(fileName string, version string) ([]byte, error) {
 	var err error
+	var commit *git.Commit
 
 	repo, err := git.OpenRepository(".")
 	if err != nil {
@@ -471,20 +473,41 @@ func getFileOfVersion(fileName string, version string) ([]byte, error) {
 	}
 	defer repo.Free()
 
-	currentBranch, err := repo.Head()
-	if err != nil {
-		return nil, err
-	}
-
-	commit, err := repo.LookupCommit(currentBranch.Target())
-	if err != nil {
-		return nil, err
-	}
-
 	vl := len(version)
 
 	if vl < 4 || vl > 40 {
 		return nil, fmt.Errorf("version length should be in range [4, 40], provided %d", vl)
+	}
+
+	oid, err := git.NewOid(version)
+	if err == nil {
+		// TODO: git2go seems haven't implemented git_commit_lookup_prefix API, so now this lookup only works for full-width 40 hex version
+		commit, err = repo.LookupCommit(oid)
+
+		if err == nil && commit != nil {
+			str, err := getFile(repo, commit, fileName)
+			if err != nil {
+				return nil, err
+			}
+
+			var s []byte
+			if str != nil {
+				s = []byte(*str)
+			}
+			return s, nil
+		}
+	}
+
+	// if the commit version id not as long as 40 hexchars, we just loop from head to the initial commit, looking for such a commit matching prefix
+	currentBranch, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+	defer currentBranch.Free()
+
+	commit, err = repo.LookupCommit(currentBranch.Target())
+	if err != nil {
+		return nil, err
 	}
 
 	for commit != nil {
@@ -550,9 +573,11 @@ func history(fp string, size int) ([]CommitEntry, error) {
 		}
 
 		if entry != nil && err == nil {
-			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
+			if len(filehistory) > 0 && filehistory[len(filehistory)-1].EntryId == entry.Id.String() {
+				filehistory = filehistory[:len(filehistory)-1]
+			}
+			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), EntryId: entry.Id.String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
 			cnt += 1
-			// log.Println(commit.Message(), commit.Id().String()[0:12])
 			if size > 0 && cnt >= size {
 				return false
 			}
