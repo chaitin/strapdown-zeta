@@ -615,6 +615,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	fp := r.URL.Path[1:]
 	fpmd := fp + ".md"
+	fpstat, fperr := os.Stat(fp)
+	fpmdstat, fpmderr := os.Stat(fpmd)
 
 	// parse query and param first
 	q := r.URL.Query()
@@ -647,23 +649,29 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	// raw file, directory, markdown file all have a history in git, so handle them together here
 	if dohistory {
-		commit_history, err := history(fp, histsize)
+		var fp_history string
+		if fpmderr == nil && !fpmdstat.IsDir() {
+			fp_history = fpmd
+		} else {
+			fp_history = fp
+		}
+		commit_history, err := history(fp_history, histsize)
 		if err != nil || commit_history == nil || len(commit_history) == 0 {
 			statusCode = http.StatusBadRequest
 			if err != nil {
 				http.Error(w, err.Error(), statusCode)
 			} else {
-				http.Error(w, "No commit history found for "+fp, statusCode)
+				http.Error(w, "No commit history found for "+fp_history, statusCode)
 			}
 			return
 		}
-		custom_option, err := ioutil.ReadFile(fp + ".option.json")
+		custom_option, err := ioutil.ReadFile(fp_history + ".option.json")
 		var config Config = Config{}
 		if err == nil {
 			json.Unmarshal(custom_option, &config)
 		}
 		if config.Title == "" {
-			config.Title = fp
+			config.Title = fp_history
 		}
 		config.FillDefault(nil)
 		config.CommitEntries = commit_history
@@ -731,7 +739,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	// edit, view, with version considered below
 
 	// check the raw file or directory first, no edit for raw file, no version for directory
-	if fpstat, err := os.Stat(fp); err == nil {
+	if fperr == nil {
 		if !fpstat.IsDir() { // if the file exist, return the file with version handled
 			if doversion {
 				content, err := getFileOfVersion(fp, version)
@@ -751,7 +759,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		} else { // if it's a directory, then check .md first
-			if statmd, err := os.Stat(fpmd); err == nil && !statmd.IsDir() {
+			if fpmderr == nil && !fpmdstat.IsDir() {
 				// if the following cases, dont list dir:
 				// if /path/to/dir/.md exists, just show its content instead of listing dir
 				// if doedit, goto edit mode
