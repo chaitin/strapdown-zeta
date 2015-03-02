@@ -379,12 +379,19 @@ func save_and_commit(fp string, content []byte, comment string, author string) e
 	if err != nil {
 		return err
 	}
+	defer index.Free()
+
 	err = index.AddByPath(fp)
 	if err != nil {
 		return err
 	}
 
 	treeId, err := index.WriteTree()
+	if err != nil {
+		return err
+	}
+
+	err = index.Write()
 	if err != nil {
 		return err
 	}
