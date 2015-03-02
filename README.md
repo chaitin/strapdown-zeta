@@ -1,5 +1,5 @@
 
-# Strapdown-Zeta - Git-powered Wiki for Hackers!
+# Strapdown-Zeta - Git powered Wiki for Hackers!
 
 Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown.js](http://strapdownjs.com/) project.
 
@@ -21,11 +21,11 @@ Strapdown-Zeta add more features including a standalone server providing a git p
  - Use highlight.js for syntax highlighting, which provides more beautiful coloring and more powerful syntax parsing.
  - Blazing fast loading speed! All the codes are written using [vanilla-js](http://vanilla-js.com/), only less than 200KiB source code after compressing.
 
-### Git Powered Wiki
+### Git powered Wiki
 
  - Git Powered Wiki system. A standalone server is provided, just `git init` then run the server will get you a full functional geeky wiki server.
- - Files can be extracted using git version(sha hash)
- - Custom view header and tail can be specified for different files.
+ - File modification history and view by commit version(shortened sha hash).
+ - Custom view options can be specified for different files.
  - Handle of static files. Directory listing can be turned on and off.
 
 For more, please see:
