@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -748,6 +749,14 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	// check the raw file or directory first, no edit for raw file, no version for directory
 	if fperr == nil {
 		if !fpstat.IsDir() { // if the file exist, return the file with version handled
+			var mimetype string = "application/octet-stream"
+			lastdot := strings.LastIndex(fp, ".")
+			if lastdot > -1 {
+				mimetype = mime.TypeByExtension(fp[lastdot:])
+			}
+
+			w.Header().Set("Content-Type", mimetype)
+
 			if doversion {
 				content, err := getFileOfVersion(fp, version)
 				if err != nil {
