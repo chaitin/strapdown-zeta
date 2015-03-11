@@ -102,7 +102,7 @@ func (config *Config) FillDefault(content []byte) {
 	}
 }
 
-var viewTemplate, editTemplate, listdirTemplate, historyTemplate *template.Template
+var viewTemplate, editTemplate, listdirTemplate, historyTemplate, diffTemplate *template.Template
 var authenticator *auth.BasicAuth
 
 func init_after_main() { // init after main because we need to chdir first, then write the default favicon
@@ -338,7 +338,7 @@ func init_after_main() { // init after main because we need to chdir first, then
       <tbody>
         {{ range $index, $element := .CommitEntries }}
         <tr>
-          <td><input type="checkbox" /><a href="?version={{$element.Id}}">{{ $element.ShortHash }}</a></td>
+          <td><input type="checkbox" ver="{{$element.ShortHash}}" class="ver_check" /><a href="?version={{$element.Id}}">{{ $element.ShortHash }}</a></td>
           <td><span>{{$element.Message}}</span></td>
           <td>{{$element.Timestamp.Format "2006-01-02 15:04:05"}}</td>
           <td>{{$element.Author}}</td>
@@ -346,6 +346,26 @@ func init_after_main() { // init after main because we need to chdir first, then
         {{ end }}
       </tbody>
     </table>
+    <p><button class="btn btn-primary disabled" id="diff_btn" data-toggle="button">Diff</button></p>
+    <script>
+      document.getElementById("diff_btn").addEventListener("click",function(e){
+        var checkBoxs = document.getElementsByClassName("ver_check");
+        var length = checkBoxs.length;
+        var checkedCount = 0;
+        var selects = [];
+        for(var i = 0 ;i < length; i++){
+          if(checkBoxs[i].getAttribute("checked") || checkBoxs[i].checked){
+            selects.push(checkBoxs[i].getAttribute("ver"));
+          }
+        }
+        if(selects.length != 2){
+          alert("please select TWO versions!");
+        }else{
+          // old one first
+          window.open("?diff=" + selects[1] + "," + selects[0]);
+        }
+      });
+    </script>
     <hr />
   </div>
 </body>
@@ -354,6 +374,41 @@ func init_after_main() { // init after main because we need to chdir first, then
 	if err != nil {
 		log.Fatalf("cannot parse history template: %v", err)
 	}
+
+	diffTemplate, err = template.New("diff").Parse(`<!DOCTYPE html>
+<html>
+  <head>
+  <title>{{.Title}}</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <style type="text/css" media="screen">
+    #diff {
+        margin: 56px auto;
+        -webkit-box-sizing: border-box; /* Safari, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+    }
+  </style>
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <div id="headline" class="brand"> {{.Title}} </div>
+        </div> 
+      </div>
+    </div>
+    <div id="diff" class="container">
+    <div><pre>{{.Content}}</pre></div>
+    </div>
+  </body>
+</html>
+`)
+	if err != nil {
+		log.Fatalf("cannot parse diff template")
+	}
+
 	defaultFavicon, err := base64.StdEncoding.DecodeString("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")
 	if err != nil {
 		log.Printf("[ WARN ] %v", err)
@@ -480,6 +535,101 @@ func getFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 
 	ret := string(blb.Contents())
 	return &ret, nil
+}
+
+func getFileDiff(fileName string, diff_versions []string) (*string, error) {
+	// only diff .md file
+	// diff folder is not supported  or TODO?
+	var err error
+
+	// open repo
+	repo, err := git.OpenRepository(".")
+	if err != nil {
+		return nil, err
+	}
+	defer repo.Free()
+
+	// get file of diff_versions[0]
+	obj0, err := repo.RevparseSingle(fmt.Sprintf("%s:%s", diff_versions[0], fileName))
+	if err != nil || obj0 == nil {
+		return nil, err
+	}
+	// get file of diff_versions[1]
+	obj1, err := repo.RevparseSingle(fmt.Sprintf("%s:%s", diff_versions[1], fileName))
+	if err != nil || obj1 == nil {
+		return nil, err
+	}
+	// TODO: since git2go did not implement
+	//           git_diff_blob_to_buffer,git_diff_blobs or git_diff_buffers for sigle file diff
+	//           try to use git_diff_tree_to_tree with 2 newly built tree to diff one file
+	bld, err := repo.TreeBuilder()
+	if err != nil || bld == nil {
+		return nil, err
+	}
+	err = bld.Insert(fileName, obj0.Id(), 0100755)
+	if err != nil {
+		return nil, err
+	}
+	treeId1, err := bld.Write()
+	if err != nil {
+		return nil, err
+	}
+	// git2go did not implement git_treebuilder_clear,manually remove items
+	err = bld.Remove(fileName)
+	if err != nil {
+		return nil, err
+	}
+	err = bld.Insert(fileName, obj1.Id(), 0100755)
+	if err != nil {
+		return nil, err
+	}
+	treeId2, err := bld.Write()
+	if err != nil {
+		return nil, err
+	}
+	defer bld.Free()
+	tree1, err := repo.LookupTree(treeId1)
+	if err != nil {
+		return nil, err
+	}
+	tree2, err := repo.LookupTree(treeId2)
+	if err != nil {
+		return nil, err
+	}
+	// diff,err := repo.DiffTreeToTree(tree1,tree2,nil)
+	diff, err := repo.DiffTreeToTree(tree1, tree2, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	diffResult := ""
+	filecb := func(diffDelta git.DiffDelta, progress float64) (git.DiffForEachHunkCallback, error) {
+		// diffResult += fmt.Sprintf("delta old file: %s new file %s\n",diffDelta.OldFile.Path,diffDelta.NewFile.Path)
+		hunkcb := func(diffHunk git.DiffHunk) (git.DiffForEachLineCallback, error) {
+			diffResult += fmt.Sprintf("%s", diffHunk.Header)
+			linecb := func(diffLine git.DiffLine) error {
+				diffPrefix := ""
+				switch diffLine.Origin {
+				case git.DiffLineAddition:
+					diffPrefix = "+"
+				case git.DiffLineDeletion:
+					diffPrefix = "-"
+				}
+				diffResult += fmt.Sprintf("%s%s", diffPrefix, diffLine.Content)
+				return nil
+			}
+			return linecb, nil
+		}
+		return hunkcb, nil
+	}
+
+	err = diff.ForEach(filecb, git.DiffDetailLines)
+	if err != nil {
+		return nil, err
+	}
+
+	return &diffResult, nil
+
 }
 
 func getFileOfVersion(fileName string, version string) ([]byte, error) {
@@ -652,6 +802,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	_, doedit := q["edit"]
 	version_ary, doversion := q["version"]
 	histsize_ary, dohistory := q["history"]
+	diff_ary, dodiff := q["diff"]
 
 	var version string
 	if doversion && len(version_ary) > 0 && len(version_ary[0]) > 0 {
@@ -665,6 +816,18 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		histsize, err = strconv.Atoi(histsize_ary[0])
 		if err != nil {
 			histsize = *default_histsize
+		}
+	}
+
+	var diff string
+	var diff_parts []string
+	if dodiff && len(diff_ary) > 0 {
+		diff = diff_ary[0]
+		diff_parts = strings.Split(diff, ",")
+		if len(diff_parts) != 2 {
+			statusCode = http.StatusBadRequest
+			http.Error(w, "Bad Parameter,please select TWO versions ", statusCode)
+			return
 		}
 	}
 
@@ -867,6 +1030,32 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("[ ERR ] fill edit template error: %v", err)
 		}
+	}
+
+	handleDiff := func() {
+		var config Config = Config{}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		custom_option, err := ioutil.ReadFile(fp + ".option.json")
+		if err == nil {
+			json.Unmarshal(custom_option, &config)
+		}
+		_content, err := getFileDiff(fpmd, diff_parts)
+		if err != nil {
+			statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), statusCode)
+			return
+		}
+		config.FillDefault([]byte(*_content))
+		config.Title = "diff for file from " + diff_parts[0] + " to " + diff_parts[1]
+		err = diffTemplate.Execute(w, config)
+		if err != nil {
+			log.Printf("[ ERR ] fill edit template error: %v", err)
+		}
+	}
+
+	if dodiff {
+		handleDiff()
+		return
 	}
 
 	if doversion {
