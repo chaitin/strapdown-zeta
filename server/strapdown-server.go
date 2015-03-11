@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	auth "github.com/abbot/go-http-auth"
 	"github.com/libgit2/git2go"
 	"html/template"
 	"io"
@@ -26,6 +27,7 @@ import (
 var addr = flag.String("addr", ":8080", "Listening `host:port`, you can specify multiple listening address separated by comma, e.g. (127.0.0.1:8080,192.168.1.2:8080)")
 var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
 var root = flag.String("dir", "", "The root directory for the git/wiki")
+var default_auth = flag.String("auth", ".htpasswd", "Default auth file to use as authentication, authentication will be disabled if auth file not exist")
 var default_host = flag.String("host", "cdn.ztx.io", "Default host hosting the strapdown static files")
 var default_heading_number = flag.String("heading_number", "false", "set default value for showing heading number")
 var default_title = flag.String("title", "Wiki", "default title for wiki pages")
@@ -101,9 +103,18 @@ func (config *Config) FillDefault(content []byte) {
 }
 
 var viewTemplate, editTemplate, listdirTemplate, historyTemplate *template.Template
+var authenticator *auth.BasicAuth
 
 func init_after_main() { // init after main because we need to chdir first, then write the default favicon
 	var err error
+
+	if _, err := os.Stat(*default_auth); len(*default_auth) > 0 && (!os.IsNotExist(err)) {
+		authenticator = auth.NewBasicAuthenticator("strapdown.ztx.io", auth.HtpasswdFileProvider(*default_auth))
+		log.Printf("use authentication file: %s", *default_auth)
+	} else {
+		log.Printf("authentication file not exist, disable http authentication")
+	}
+
 	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"http://{{.Host}}/strapdown/strapdown.min.js\"></script> </html>\n")
 	if err != nil {
 		log.Fatalf("cannot parse view template")
@@ -614,12 +625,21 @@ func safe_open(base string, name string) (*os.File, error) {
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
+
 	statusCode := http.StatusOK
 	defer func() {
 		log.Printf("[ %s ] - %d %s", r.Method, statusCode, r.URL.String())
 	}()
 
 	var err error
+	var username string = ""
+
+	if authenticator != nil { // check http auth
+		if username = authenticator.CheckAuth(r); username == "" {
+			authenticator.RequireAuth(w, r)
+			return
+		}
+	}
 
 	fp := r.URL.Path[1:]
 	fpmd := fp + ".md"
@@ -652,6 +672,11 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(fp, ".git/") || fp == ".git" || fp == ".gitignore" || fp == ".gitmodules" {
 		statusCode = http.StatusForbidden
 		http.Error(w, "access of .git related files/directory not allowed", statusCode)
+		return
+	}
+	if len(*default_auth) > 0 && fp == *default_auth || fpmd == *default_auth {
+		statusCode = http.StatusForbidden
+		http.Error(w, "access of password file not allowed", statusCode)
 		return
 	}
 

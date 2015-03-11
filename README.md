@@ -27,6 +27,7 @@ Strapdown-Zeta add more features including a standalone server providing a git p
  - File modification history and view by commit version(shortened sha hash).
  - Custom view options can be specified for different files.
  - Handle of static files. Directory listing can be turned on and off.
+ - HTTP Authentication provided.
 
 For more, please see:
 
@@ -98,6 +99,7 @@ The server supports the following parameters.
  - `-init`, do automatic `git init` before starting the server, if git repo not found in working directory.
  - `-dir=/path/to/dir`, use the directory as the root of the git powered wiki.
  - `-title=MyTitle`, specify the default title of Wiki
+ - `-auth=.htpasswd`, specify the authentication file to use, htpasswd format
  - `-heading_number=true|false`, set default value for whether to show heading numbers
  - `-host=some.domain.com`, the default hosting of strapdown static files
  - `-theme=cerulean|cosmo|...`, the default theme to use
@@ -164,4 +166,5 @@ All credit goes to the projects below that make up most of Strapdown.js:
  - [cbmixx](https://github.com/cbmixx)
  - [qoshi](https://github.com/qoshi)
  - [arturadib](https://github.com/arturadib)
+ - [zyaboutblank](https://github.com/zyaboutblank)
 
