@@ -322,3 +322,14 @@ For highlight.js syntax highlighting
   opacity: 0.5;
 }
 
+/*
+
+Make the edit and history button switchable
+
+*/
+.edit-link, .history-link{
+  display: none;
+}
+.edit .edit-link, .history .history-link{
+  display: block;
+}

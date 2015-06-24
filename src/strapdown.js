@@ -106,11 +106,13 @@ store.get('theme', function (ok, val) {
   // Insert navbar if there's none
   var newNode = document.createElement('div');
   newNode.className = 'navbar navbar-fixed-top';
+  newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
+  newNode.className += markdownEl.getAttribute('history') ? " history" : '';
   if (!navbarEl && titleEl) {
     newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse"> <ul class="nav pull-right"><li><a class="btn btn-default navbar-btn" href="?history">History</a></li><li><a class="btn btn-default navbar-btn" href="?edit">Edit</a> </li><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
+                        '<div class="nav-collapse collapse navbar-responsive-collapse"> <ul class="nav pull-right"><li class="history-link"><a href="?history">History</a></li><li class="edit-link"><a href="?edit">Edit</a> </li><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
                         '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
