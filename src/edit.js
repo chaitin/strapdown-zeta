@@ -8,17 +8,20 @@
 
     //add ace 
     var editor = ace.edit("editor"),
-    session = editor.getSession();
+        session = editor.getSession(),
+        saved = false;
+
 
     editor.setTheme("ace/theme/monokai");
     session.setMode("ace/mode/markdown");
     session.setTabSize(2);
     session.setUseSoftTabs(true);
-
+    
     if (ok && value){
       //TODO: Add timestamp check?
       session.setValue(value)
     }
+
     //bind event
     var sav = document.getElementById("savValue"),
     form = document.getElementsByTagName('form')[0];
@@ -26,8 +29,11 @@
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
       store.remove(filename)
+      saved = true
     });
-    var lastmodify = Date.now() - 100000;
+
+    var lastmodify = Date.now() - 2000;
+
     editor.on('change', function(e){
       var now = Date.now();
       if(now - lastmodify > 1000 * 2){
@@ -35,6 +41,12 @@
         // update the saved value
         console.log('saved')
         lastmodify = now;
+      }
+    })
+    document.getElementsByTagName('body')[0].addEventListener('unload',function(){
+      if(!saved){
+        store.set(filename, session.getValue())
+        console.log('saved')
       }
     })
   })
