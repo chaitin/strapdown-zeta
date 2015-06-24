@@ -25,7 +25,7 @@
 
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
-      store.set(filename, '')
+      store.remove(filename)
     });
     var lastmodify = Date.now() - 100000;
     editor.on('change', function(e){
