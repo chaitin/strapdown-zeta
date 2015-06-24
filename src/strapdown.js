@@ -110,7 +110,8 @@ store.get('theme', function (ok, val) {
     newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <ul class="nav"><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
+                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <a class="btn btn-default navbar-btn" href="?history">History</a> <a class="btn btn-default navbar-btn" href="?edit">Edit</a> <ul class="nav"><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
+
                         '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
