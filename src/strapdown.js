@@ -110,8 +110,7 @@ store.get('theme', function (ok, val) {
     newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse pull-right"> <a class="btn btn-default navbar-btn" href="?history">History</a> <a class="btn btn-default navbar-btn" href="?edit">Edit</a> <ul class="nav"><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
-
+                        '<div class="nav-collapse collapse navbar-responsive-collapse"> <ul class="nav pull-right"><li><a class="btn btn-default navbar-btn" href="?history">History</a></li><li><a class="btn btn-default navbar-btn" href="?edit">Edit</a> </li><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
                         '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
@@ -155,7 +154,9 @@ store.get('theme', function (ok, val) {
         themeEl.appendChild(li);
       });
     }
-    var dropdown = document.getElementsByClassName("dropdown")[0];
+    var dropdown = document.getElementsByClassName("dropdown")[0],
+        toggleBtn = document.getElementsByClassName('btn-navbar')[0],
+        menus = document.getElementsByClassName('navbar-responsive-collapse')[0];
     if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
         // console.log('click dropdown', dropdown.className.match(/(?:^|\s)open(?!\S)/));
@@ -164,6 +165,9 @@ store.get('theme', function (ok, val) {
         } else {
           dropdown.className += " open";
         }
+      });
+      addEvent(toggleBtn, 'click', function(){
+        menus.style.height = menus.style.height ? "" : "auto";
       });
     }
   }
