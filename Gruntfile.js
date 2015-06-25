@@ -27,7 +27,8 @@ module.exports = function(grunt) {
       my_target: {
         files: {
           'build/strapdown-src.min.js': ['src/strapdown.js'],
-          'build/edit-src.min.js': ['src/edit.js']
+          'build/edit-src.min.js': ['src/edit.js'],
+          'build/render-src.min.js': ['src/render.js'],
         }
       }
     },
@@ -37,12 +38,12 @@ module.exports = function(grunt) {
           separator: '\n',
         },
         // use prettify js or highlight.js by uncommenting the corresponding line
-        src: ['vendor/marked.min.js', 'vendor/highlight.pack.js', 'vendor/persist-min.js', 'build/strapdown-src.min.js'],
+        src: ['vendor/marked.min.js', 'vendor/highlight.pack.js', 'vendor/persist-min.js', 'build/render-src.min.js', 'build/strapdown-src.min.js'],
         // src: ['vendor/marked.min.js', 'vendor/prettify.min.js', 'build/strapdown-src.min.js'],
         dest: 'build/strapdown.min.js'
       },
       editor: {
-        src: ['vendor/persist-min.js', 'build/edit-src.min.js'],
+        src: ['vendor/persist-min.js', 'build/render-src.min.js', 'build/edit-src.min.js'],
         dest: 'build/edit.min.js',
         options: {
           separator: '\n',
