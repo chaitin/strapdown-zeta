@@ -137,6 +137,7 @@ Then do the following
 
 ```
 $ cd server
+$ go get
 $ go build
 ```
 
@@ -167,4 +168,5 @@ All credit goes to the projects below that make up most of Strapdown.js:
  - [qoshi](https://github.com/qoshi)
  - [arturadib](https://github.com/arturadib)
  - [zyaboutblank](https://github.com/zyaboutblank)
+ - [pandada8](https://github.com/pandada8)
 
