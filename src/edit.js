@@ -55,8 +55,9 @@
     document.getElementById('preview-toggle').addEventListener('click', function(){
       console.log("You Clicl the preview page")
       if(renderedContainer.style.display == 'none'){
-        var renderTarget = document.createElement("div");
-        render('cerulean', markdownEl, renderTarget)
+        var renderTarget = document.createElement("div"),
+            markdown = session.getValue();
+        render(renderTarget, markdown, 'cerulean', null, false)
         renderedContainer.innerHTML = ""
         renderedContainer.appendChild(renderTarget);
         renderedContainer.style.display = 'block';

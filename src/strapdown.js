@@ -149,8 +149,10 @@ store.get('theme', function (ok, val) {
       });
     }
   }
-
-  render(theme, markdownEl, newNode);
+  var markdown = markdownEl.textContent || markdownEl.innerText,
+      heading_number = markdownEl.getAttribute("heading_number"),
+      show_toc = markdownEl.getAttribute("toc");
+  render(newNode, markdown, theme, heading_number, show_toc);
 
   // All done - show body
   document.body.style.display = '';

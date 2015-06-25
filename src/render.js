@@ -33,8 +33,7 @@ function upsertTheme(theme){
   }
 }
 
-function render(theme, markdownEl, newNode){
-  var markdown = markdownEl.textContent || markdownEl.innerText;
+function render(newNode, markdown, theme, heading_number, show_toc){
 
   upsertTheme(theme);
   //////////////////////////////////////////////////////////////////////
@@ -222,8 +221,6 @@ function render(theme, markdownEl, newNode){
   var toc = [];
   var heading_counter = [0, 0, 0, 0, 0, 0];
 
-  var heading_number = markdownEl.getAttribute('heading_number');
-
   var hn_table = ['i', 'i', 'i', 'i', 'i', 'i'];
   if (heading_number && heading_number != 'none' && heading_number != "false" ) {
     var ary = heading_number.split('.');
@@ -303,7 +300,6 @@ function render(theme, markdownEl, newNode){
 
   var html_with_mathjax = replaceMath(html);
 
-  var show_toc = markdownEl.getAttribute('toc');
   if (show_toc == 'true') {
     var toc_html = document.createElement('ul');
 
