@@ -796,7 +796,7 @@ func history(fp string, size int) ([]CommitEntry, error) {
 			}
 			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), EntryId: entry.Id.String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
 			cnt += 1
-			if size > 0 && cnt >= size {
+			if size > 0 && len(filehistory) >= size {
 				return false
 			}
 		}
