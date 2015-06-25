@@ -55,13 +55,15 @@
     document.getElementById('preview-toggle').addEventListener('click', function(){
       console.log("You Clicl the preview page")
       if(renderedContainer.style.display == 'none'){
+        markdownEl.style.display = 'none';
         var renderTarget = document.createElement("div"),
             markdown = session.getValue();
-        render(renderTarget, markdown, 'cerulean', null, false)
+        renderTarget.className = 'container';
+        renderTarget.id = 'content';
         renderedContainer.innerHTML = ""
         renderedContainer.appendChild(renderTarget);
+        render(renderTarget, markdown, 'cerulean', null, false)
         renderedContainer.style.display = 'block';
-        markdownEl.style.display = 'none';
       }else{
         renderedContainer.style.display = 'none';
         markdownEl.style.display = 'block';

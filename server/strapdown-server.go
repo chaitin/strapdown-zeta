@@ -143,6 +143,9 @@ func init_after_main() { // init after main because we need to chdir first, then
         left: 0;
         right: 0;
     }
+		.render-target{
+			margin-top: 60px;
+		}
   </style>
 </head>
 <body>
