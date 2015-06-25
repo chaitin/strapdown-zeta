@@ -50,17 +50,20 @@
       }
     })
 
-    var renderedContainer = document.getElementsByClassName('render-target')
+    var renderedContainer = document.getElementsByClassName('render-target')[0]
 
     document.getElementById('preview-toggle').addEventListener('click', function(){
-      if(renderedContainer.styles.display == 'none'){
-        renderedContainer.innerHtml = "<xmp>" + session.getValue() + "<xmp>";
-        // and call the render stuff here
-        renderedContainer.styles.display = 'block';
-        markdownEl.styles.display = 'none';
+      console.log("You Clicl the preview page")
+      if(renderedContainer.style.display == 'none'){
+        var renderTarget = document.createElement("div");
+        render('cerulean', markdownEl, renderTarget)
+        renderedContainer.innerHTML = ""
+        renderedContainer.appendChild(renderTarget);
+        renderedContainer.style.display = 'block';
+        markdownEl.style.display = 'none';
       }else{
-        renderedContainer.styles.display = 'none';
-        markdownEl.styles.display = 'block';
+        renderedContainer.style.display = 'none';
+        markdownEl.style.display = 'block';
       }
     })
   })
