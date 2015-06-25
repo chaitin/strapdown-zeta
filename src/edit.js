@@ -1,8 +1,10 @@
 ;(function(window, document){
 
   var store = new Persist.Store('strapdown_editor', { swf_path: '/persist.swf' }),
-  filename = window.location.pathname,
-  markdownEl = document.getElementsByTagName('xmp')[0] || document.getElementsByTagName('textarea')[0];
+      markdownEl = document.getElementsByTagName('xmp')[0] || document.getElementsByTagName('textarea')[0],
+      version = markdownEl.getAttribute('version'),
+      filename = window.location.protocol == 'file:' ? "local" : window.location.pathname + "-" + version;
+  
 
   store.get(filename, function(ok, value){
 
@@ -11,14 +13,12 @@
         session = editor.getSession(),
         saved = false;
 
-
     editor.setTheme("ace/theme/monokai");
     session.setMode("ace/mode/markdown");
     session.setTabSize(2);
     session.setUseSoftTabs(true);
-    
+
     if (ok && value){
-      //TODO: Add timestamp check?
       session.setValue(value)
     }
 

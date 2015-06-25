@@ -774,14 +774,14 @@ func safe_open(base string, name string) (*os.File, error) {
 	return f, nil
 }
 
-func getHeadVersion() (string){
-	var err error;
+func getHeadVersion() string {
+	var err error
 	repo, err := git.OpenRepository(".")
-	if err != nil{
+	if err != nil {
 		return ""
 	}
 	head, err := repo.Head()
-	if err != nil{
+	if err != nil {
 		return ""
 	}
 	return head.Target().String()
@@ -809,7 +809,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	fpstat, fperr := os.Stat(fp)
 	fpmdstat, fpmderr := os.Stat(fpmd)
 
-
 	// parse query and param first
 	q := r.URL.Query()
 
@@ -820,7 +819,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	var version string
 	if doversion {
-		if len(version_ary) > 0 && len(version_ary[0]) > 0{
+		if len(version_ary) > 0 && len(version_ary[0]) > 0 {
 			version = version_ary[0]
 		} else {
 			doversion = false
