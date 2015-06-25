@@ -788,6 +788,9 @@ func getHeadVersion() string {
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
+	// cache is evil
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
+	w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
 
 	statusCode := http.StatusOK
 	defer func() {
