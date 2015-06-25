@@ -143,6 +143,9 @@ func init_after_main() { // init after main because we need to chdir first, then
         left: 0;
         right: 0;
     }
+		.render-target{
+			margin-top: 60px;
+		}
   </style>
 </head>
 <body>
@@ -155,15 +158,23 @@ func init_after_main() { // init after main because we need to chdir first, then
           <span class="icon-bar"></span>
         </a>
         <div id="headline" class="brand"> {{.Title}} </div>
-        <div class="nav-collapse collapse navbar-responsive-collapse pull-right"> 
-          <form class="nav" method="POST" action="?edit" name="body" enctype="multipart/form-data" >
-            <input id="savValue" type="hidden" name="body" value="" />
-            <button class="btn btn-default btn-sm" type="submit">Save</button>
-          </form>
+        <div class="nav-collapse collapse navbar-responsive-collapse">
+          <ul class="nav pull-right">
+            <li>
+              <a href="#" id="preview-toggle">Preview</a>
+            </li>
+            <li>
+              <form class="nav" method="POST" action="?edit" name="body" enctype="multipart/form-data" >
+                <input id="savValue" type="hidden" name="body" value="" />
+                <button class="btn btn-default btn-sm" type="submit">Save</button>
+              </form>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
+  <div class="render-target" style="display:none"></div>
   <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
   <script src="http://{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://{{.Host}}/strapdown/edit.min.js" type="text/javascript" charset="utf-8"></script>
@@ -243,7 +254,7 @@ func init_after_main() { // init after main because we need to chdir first, then
     <div class="navbar-inner">
       <div class="container">
         <div id="headline" class="brand"> Directory Listing of {{.Title}} </div>
-      </div> 
+      </div>
     </div>
   </div>
   <div id="list" class="container">
@@ -371,7 +382,7 @@ func init_after_main() { // init after main because we need to chdir first, then
     <div class="navbar-inner">
       <div class="container">
         <div id="headline" class="brand"> History of {{.Title}} </div>
-      </div> 
+      </div>
     </div>
   </div>
   <div id="list" class="container">
@@ -446,7 +457,7 @@ func init_after_main() { // init after main because we need to chdir first, then
       <div class="navbar-inner">
         <div class="container">
           <div id="headline" class="brand"> {{.Title}} </div>
-        </div> 
+        </div>
       </div>
     </div>
     <div id="diff" class="container">

@@ -7,7 +7,7 @@
 
   store.get(filename, function(ok, value){
 
-    //add ace 
+    //add ace
     var editor = ace.edit("editor"),
         session = editor.getSession(),
         saved = false;
@@ -23,9 +23,10 @@
       }
     }
 
+
     //bind event
     var sav = document.getElementById("savValue"),
-    form = document.getElementsByTagName('form')[0];
+        form = document.getElementsByTagName('form')[0];
 
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
@@ -48,6 +49,25 @@
         store.set(filename, session.getValue());
       }
     })
+
+    var renderedContainer = document.getElementsByClassName('render-target')[0]
+
+    document.getElementById('preview-toggle').addEventListener('click', function(){
+      console.log("You Clicl the preview page")
+      if(renderedContainer.style.display == 'none'){
+        markdownEl.style.display = 'none';
+        var renderTarget = document.createElement("div"),
+            markdown = session.getValue();
+        renderTarget.className = 'container';
+        renderTarget.id = 'content';
+        renderedContainer.innerHTML = ""
+        renderedContainer.appendChild(renderTarget);
+        render(renderTarget, markdown, 'cerulean', null, false)
+        renderedContainer.style.display = 'block';
+      }else{
+        renderedContainer.style.display = 'none';
+        markdownEl.style.display = 'block';
+      }
+    })
   })
 })(window, document);
-
