@@ -82,6 +82,7 @@ type Config struct {
 	Content       template.HTML
 	DirEntries    []DirEntry
 	CommitEntries []CommitEntry
+	Version       string
 }
 
 func (config *Config) FillDefault(content []byte) {
@@ -119,7 +120,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 	if err != nil {
 		log.Fatalf("cannot parse view template")
 	}
-	editTemplate, err = template.New("edit").Parse("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\"><title>{{.Title}}</title><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/cerulean.min.css\" /><style type=\"text/css\" media=\"screen\">html, body {height: 100%;overflow: hidden;margin: 0;padding: 0;}#editor {margin: 0;position: absolute;top: 51px;bottom: 0;left: 0;right: 0;}</style></head><body><div class=\"navbar navbar-fixed-top\"><div class=\"navbar-inner\"><div style=\"padding:0 20px\"><a class=\"btn btn-navbar\" data-toggle=\"collapse\" data-target=\".navbar-responsive-collapse\"><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span></a><div id=\"headline\" class=\"brand\"> {{.Title}} </div><div class=\"nav-collapse collapse navbar-responsive-collapse pull-right\"> <form class=\"nav\" method=\"POST\" action=\"?edit\" name=\"body\"><input id=\"savValue\" type=\"hidden\" name=\"body\" value=\"\" /><button class=\"btn btn-default btn-sm\" type=\"submit\">Save</button></form></div></div> </div></div><xmp id=\"editor\">{{.Content}}</xmp><script src=\"http://{{.Host}}/ace/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script><script src=\"http://{{.Host}}/strapdown/edit.js\" type=\"text/javascript\" charset=\"utf-8\"></script></body></html>\n")
+	editTemplate, err = template.New("edit").Parse("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\"><title>{{.Title}}</title><link rel=\"stylesheet\" href=\"http://{{.Host}}/strapdown/themes/cerulean.min.css\" /><style type=\"text/css\" media=\"screen\">html, body {height: 100%;overflow: hidden;margin: 0;padding: 0;}#editor {margin: 0;position: absolute;top: 51px;bottom: 0;left: 0;right: 0;}</style></head><body><div class=\"navbar navbar-fixed-top\"><div class=\"navbar-inner\"><div style=\"padding:0 20px\"><a class=\"btn btn-navbar\" data-toggle=\"collapse\" data-target=\".navbar-responsive-collapse\"><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span><span class=\"icon-bar\"></span></a><div id=\"headline\" class=\"brand\"> {{.Title}} </div><div class=\"nav-collapse collapse navbar-responsive-collapse pull-right\"> <form class=\"nav\" method=\"POST\" action=\"?edit\" name=\"body\" enctype=\"multipart/form-data\" ><input id=\"savValue\" type=\"hidden\" name=\"body\" value=\"\" /><button class=\"btn btn-default btn-sm\" type=\"submit\">Save</button></form></div></div> </div></div><xmp version=\"{{.Version}}\" id=\"editor\">{{.Content}}</xmp><script src=\"http://{{.Host}}/ace/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script><script src=\"http://{{.Host}}/strapdown/edit.min.js\" type=\"text/javascript\" charset=\"utf-8\"></script></body></html>\n")
 	if err != nil {
 		log.Fatalf("cannot parse edit template")
 	}
@@ -696,7 +697,6 @@ func getFileOfVersion(fileName string, version string) ([]byte, error) {
 	}
 	return nil, nil
 }
-
 func history(fp string, size int) ([]CommitEntry, error) {
 	if len(fp) == 0 {
 		return nil, nil
@@ -774,7 +774,23 @@ func safe_open(base string, name string) (*os.File, error) {
 	return f, nil
 }
 
+func getHeadVersion() string {
+	var err error
+	repo, err := git.OpenRepository(".")
+	if err != nil {
+		return ""
+	}
+	head, err := repo.Head()
+	if err != nil {
+		return ""
+	}
+	return head.Target().String()
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
+	// cache is evil
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
+	w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
 
 	statusCode := http.StatusOK
 	defer func() {
@@ -805,11 +821,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	diff_ary, dodiff := q["diff"]
 
 	var version string
-	if doversion && len(version_ary) > 0 && len(version_ary[0]) > 0 {
-		version = version_ary[0]
-	} else {
-		doversion = false
-		version = ""
+	if doversion {
+		if len(version_ary) > 0 && len(version_ary[0]) > 0 {
+			version = version_ary[0]
+		} else {
+			doversion = false
+		}
+	}
+	if !doversion {
+		// we put the head version
+		version = getHeadVersion()
 	}
 	histsize := *default_histsize
 	if dohistory && len(histsize_ary) > 0 {
@@ -1018,7 +1039,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var content []byte
-
 	handleEdit := func() {
 		custom_option, err := ioutil.ReadFile(fpmd + ".option.json")
 		var config Config = Config{}
@@ -1026,6 +1046,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(custom_option, &config)
 		}
 		config.FillDefault(content)
+		config.Version = version
 		err = editTemplate.Execute(w, config)
 		if err != nil {
 			log.Printf("[ ERR ] fill edit template error: %v", err)
