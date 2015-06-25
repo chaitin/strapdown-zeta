@@ -7,7 +7,7 @@
 
   store.get(filename, function(ok, value){
 
-    //add ace 
+    //add ace
     var editor = ace.edit("editor"),
         session = editor.getSession(),
         saved = false;
@@ -23,9 +23,10 @@
       }
     }
 
+
     //bind event
     var sav = document.getElementById("savValue"),
-    form = document.getElementsByTagName('form')[0];
+        form = document.getElementsByTagName('form')[0];
 
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
@@ -48,6 +49,19 @@
         store.set(filename, session.getValue());
       }
     })
+
+    var renderedContainer = document.getElementsByClassName('render-target')
+
+    document.getElementById('preview-toggle').addEventListener('click', function(){
+      if(renderedContainer.styles.display == 'none'){
+        renderedContainer.innerHtml = "<xmp>" + session.getValue() + "<xmp>";
+        // and call the render stuff here
+        renderedContainer.styles.display = 'block';
+        markdownEl.styles.display = 'none';
+      }else{
+        renderedContainer.styles.display = 'none';
+        markdownEl.styles.display = 'block';
+      }
+    })
   })
 })(window, document);
-

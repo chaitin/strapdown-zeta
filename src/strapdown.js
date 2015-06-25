@@ -109,7 +109,7 @@ store.get('theme', function (ok, val) {
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
   newNode.className += markdownEl.getAttribute('history') ? " history" : '';
   if (!navbarEl && titleEl) {
-    newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' + 
+    newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' +
                         '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
                         '<div id="headline" class="brand"> </div>' +
                         '<div class="nav-collapse collapse navbar-responsive-collapse"> <ul class="nav pull-right"><li class="history-link"><a href="?history">History</a></li><li class="edit-link"><a href="?edit">Edit</a> </li><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
@@ -430,7 +430,7 @@ store.get('theme', function (ok, val) {
                 escapedText +
                  '" class="anchor" href="#' +
                  escapedText +
-                 '"><span class="header-link"></span></a>' + before_heading + 
+                 '"><span class="header-link"></span></a>' + before_heading +
                   text + '</h' + level + '>';
   }
 
@@ -443,7 +443,7 @@ store.get('theme', function (ok, val) {
   var show_toc = markdownEl.getAttribute('toc');
   if (show_toc == 'true') {
     var toc_html = document.createElement('ul');
-    
+
     var traverse = function(list, ul) {
       for (var i = 0; i < list.length; i++) {
         var e;
