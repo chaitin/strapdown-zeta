@@ -28,7 +28,6 @@
 
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
-      store.remove(filename)
       saved = true
     });
 
