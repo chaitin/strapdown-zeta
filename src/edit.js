@@ -3,8 +3,7 @@
   var store = new Persist.Store('strapdown_editor', { swf_path: '/persist.swf' }),
       markdownEl = document.getElementsByTagName('xmp')[0] || document.getElementsByTagName('textarea')[0],
       version = markdownEl.getAttribute('version'),
-      filename = window.location.protocol == 'file:' ? "local" : window.location.pathname + "-" + version;
-  
+      filename = window.location.pathname + "#" + version;  // # will not exist in pathname, but - is possible
 
   store.get(filename, function(ok, value){
 
@@ -18,8 +17,10 @@
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
-    if (ok && value){
-      session.setValue(value)
+    if (ok && value) {
+      if (confirm("Detected unsaved document cache, do you want to load the cache?")) {
+        session.setValue(value)
+      }
     }
 
     //bind event
@@ -28,6 +29,7 @@
 
     form.addEventListener("submit",function(){
       sav.value = editor.getValue();
+      store.set(filename, session.getValue())
       saved = true
     });
 
@@ -38,14 +40,12 @@
       if(now - lastmodify > 1000 * 2){
         store.set(filename, session.getValue())
         // update the saved value
-        console.log('saved')
         lastmodify = now;
       }
     })
     document.getElementsByTagName('body')[0].addEventListener('unload',function(){
-      if(!saved){
-        store.set(filename, session.getValue())
-        console.log('saved')
+      if (!saved) {
+        store.set(filename, session.getValue());
       }
     })
   })
