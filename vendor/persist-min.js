@@ -29,7 +29,7 @@ fn.call(scope||this,true,this.store.getItem(key));},set:function(key,val,fn,scop
 fn.call(scope||this,true,val);},remove:function(key,fn,scope){var val;key=this.key(key);val=this.store[key];this.store.removeItem(key);if(fn)
 fn.call(scope||this,(val!==null),val);}}},localstorage:{size:-1,test:function(){return window.localStorage?true:false;},methods:{key:function(key){return esc(this.name)+esc(key);},init:function(){this.store=localStorage;},get:function(key,fn,scope){key=this.key(key);if(fn)
 fn.call(scope||this,true,this.store.getItem(key));},set:function(key,val,fn,scope){key=this.key(key);this.store.setItem(key,val);if(fn)
-fn.call(scope||this,true,val);},remove:function(key,fn,scope){var val;key=this.key(key);val=this.getItem(key);this.store.removeItem(key);if(fn)
+fn.call(scope||this,true,val);},remove:function(key,fn,scope){var val;key=this.key(key);val=this.store.getItem(key);this.store.removeItem(key);if(fn)
 fn.call(scope||this,(val!==null),val);}}},ie:{prefix:'_persist_data-',size:64*1024,test:function(){return window.ActiveXObject?true:false;},make_userdata:function(id){var el=document.createElement('div');el.id=id;el.style.display='none';el.addBehavior('#default#userData');document.body.appendChild(el);return el;},methods:{init:function(){var id=B.ie.prefix+esc(this.name);this.el=B.ie.make_userdata(id);if(this.o.defer)
 this.load();},get:function(key,fn,scope){var val;key=esc(key);if(!this.o.defer)
 this.load();val=this.el.getAttribute(key);if(fn)
@@ -51,4 +51,4 @@ P.Store.prototype[key]=b.methods[key];}}
 P._init=true;};P={VERSION:VERSION,type:null,size:0,add:function(o){B[o.id]=o;C.search_order=[o.id].concat(C.search_order);init();},remove:function(id){var ofs=C.search_order.indexOf(id);if(ofs<0)
 return;C.search_order.splice(ofs,1);delete B[id];init();},Cookie:ec,Store:function(name,o){if(!C.name_re.exec(name))
 throw new Error("Invalid name");if(!P.type)
-throw new Error("No suitable storage found");o=o||{};this.name=name;o.domain=o.domain||location.hostname||'localhost.localdomain';this.o=o;o.expires=o.expires||365*2;o.path=o.path||'/';this.init();}};init();return P;})();
+throw new Error("No suitable storage found");o=o||{};this.name=name;o.domain=o.domain||location.hostname||'localhost.localdomain';this.o=o;o.expires=o.expires||365*2;o.path=o.path||'/';this.init();}};init();return P;})()
