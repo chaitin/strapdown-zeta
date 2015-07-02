@@ -35,7 +35,6 @@ function upsertTheme(theme){
 
 function render(newNode, markdown, theme, heading_number, show_toc){
 
-  upsertTheme(theme);
   //////////////////////////////////////////////////////////////////////
   //
   // Markdown!

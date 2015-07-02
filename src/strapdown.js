@@ -51,16 +51,6 @@ store.get('theme', function (ok, val) {
   //
   // <head> stuff
   //
-  var base = getScriptBase("strapdown");
-  var linkEl = document.createElement('link');
-  linkEl.href = base + '/strapdown.min.css';
-  linkEl.rel = 'stylesheet';
-  document.head.appendChild(linkEl);
-
-  var linkEl = document.createElement('link');
-  linkEl.href = base + '/themes/bootstrap-responsive.min.css';
-  linkEl.rel = 'stylesheet';
-  document.head.appendChild(linkEl);
 
   // Use <meta> viewport so that Bootstrap is actually responsive on mobile
   var metaEl = document.createElement('meta');
@@ -74,6 +64,20 @@ store.get('theme', function (ok, val) {
   // Get theme
   theme = theme || markdownEl.getAttribute('theme') || 'cerulean';
   theme = theme.toLowerCase();
+
+  var base = getScriptBase("strapdown");
+
+  upsertTheme(base, theme);
+
+  var linkEl = document.createElement('link');
+  linkEl.href = base + '/strapdown.min.css';
+  linkEl.rel = 'stylesheet';
+  document.head.appendChild(linkEl);
+
+  var linkEl = document.createElement('link');
+  linkEl.href = base + '/themes/bootstrap-responsive.min.css';
+  linkEl.rel = 'stylesheet';
+  document.head.appendChild(linkEl);
 
   //////////////////////////////////////////////////////////////////////
   //
