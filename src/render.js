@@ -340,43 +340,47 @@ function render(newNode, markdown, theme, heading_number, show_toc){
   document.getElementById('content').innerHTML = html_with_mathjax;
 
   if (html_with_mathjax != html) {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG";
+    if(!window.MathJax){
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG";
 
-    var callback = function () {
-      // config options
-      // http://docs.mathjax.org/en/latest/options/tex2jax.html#configure-tex2jax
-      MathJax.Ajax.timeout = 60000;
-      MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ['$','$']],
-            displayMath:[ ['$$', '$$']],
-            processEscapes: true,
-            balanceBraces: true,
-        },
-        messageStyle: "none",
-        SVG: {
-          styles: {
-            ".MathJax_SVG svg > g, .MathJax_SVG_Display svg > g": {
-              "fill": "#4d4d4c",
-              "stroke": "#4d4d4c"
+        var callback = function () {
+          // config options
+          // http://docs.mathjax.org/en/latest/options/tex2jax.html#configure-tex2jax
+          MathJax.Ajax.timeout = 60000;
+          MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [ ['$','$']],
+                displayMath:[ ['$$', '$$']],
+                processEscapes: true,
+                balanceBraces: true,
+            },
+            messageStyle: "none",
+            SVG: {
+              styles: {
+                ".MathJax_SVG svg > g, .MathJax_SVG_Display svg > g": {
+                  "fill": "#4d4d4c",
+                  "stroke": "#4d4d4c"
+                }
+              },
+              scale: 100
             }
-          },
-          scale: 100
+        });
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub, newNode]);
         }
-      });
-      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        script.onload = callback;
+        // for IE 6, IE 7
+        script.onreadystatechange = function () {
+          if (this.readyState == 'complete') {
+            callback();
+          }
+        }
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }else{
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub, newNode]);
     }
 
-    script.onload = callback;
-    // for IE 6, IE 7
-    script.onreadystatechange = function () {
-      if (this.readyState == 'complete') {
-        callback();
-      }
-    }
-    document.getElementsByTagName("head")[0].appendChild(script);
   }
 
   if ('hljs' in window) {
