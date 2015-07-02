@@ -14,9 +14,8 @@ function getScriptBase(filename) {
   }
   return origin.substr(0, origin.lastIndexOf('/'));
 }
-function upsertTheme(theme){
+function upsertTheme(base, theme){
   var found = false,
-      base  = getScriptBase("strapdown"),
       csses = document.getElementsByTagName("link")
   for(var i = csses.length - 1; i >= 0; i--){
     if(csses[i].rel == 'stylesheet' && csses[i].href.match(base + "/themes/")){

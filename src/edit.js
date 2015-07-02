@@ -28,7 +28,7 @@
     var sav = document.getElementById("savValue"),
         form = document.getElementsByTagName('form')[0];
 
-    form.addEventListener("submit",function(){
+    addEvent(form, "submit", function(){
       sav.value = editor.getValue();
       store.set(filename, session.getValue());
       saved = true;
@@ -44,7 +44,7 @@
         lastmodify = now;
       }
     })
-    document.getElementsByTagName('body')[0].addEventListener('unload',function(){
+    addEvent(document.getElementsByTagName('body')[0], 'unload',function(){
       if (!saved) {
         store.set(filename, session.getValue());
       }
@@ -52,7 +52,7 @@
 
     var renderedContainer = document.getElementsByClassName('render-target')[0];
 
-    document.getElementById('preview-toggle').addEventListener('click', function(){
+    addEvent(document.getElementById('preview-toggle'), 'click', function() {
       if (renderedContainer.style.display == 'none') {
         markdownEl.style.display = 'none';
         var renderTarget = document.createElement("div"),

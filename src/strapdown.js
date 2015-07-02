@@ -141,7 +141,6 @@ store.get('theme', function (ok, val) {
         menus = document.getElementsByClassName('navbar-responsive-collapse')[0];
     if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
-        // console.log('click dropdown', dropdown.className.match(/(?:^|\s)open(?!\S)/));
         if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
           dropdown.className = dropdown.className.replace(/(?:^|\s)open(?!\S)/g, '');
         } else {
