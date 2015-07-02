@@ -4,6 +4,13 @@ function addEvent(element, evnt, funct) {
   else
    return element.addEventListener(evnt, funct, false);
 }
+function setInnerText(element, text) {
+    if (typeof element.textContent !== 'undefined') {
+      element.textContent = text;
+    } else {
+      element.innerText = text;
+    }
+}
 function getScriptBase(filename) {
   var origin = '',
       scriptEls = document.getElementsByTagName('script');

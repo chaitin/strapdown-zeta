@@ -52,7 +52,8 @@
 
     var renderedContainer = document.getElementsByClassName('render-target')[0];
 
-    addEvent(document.getElementById('preview-toggle'), 'click', function() {
+    var preview_toggle = document.getElementById('preview-toggle');
+    addEvent(preview_toggle, 'click', function() {
       if (renderedContainer.style.display == 'none') {
         markdownEl.style.display = 'none';
         var renderTarget = document.createElement("div"),
@@ -63,9 +64,11 @@
         renderedContainer.appendChild(renderTarget);
         render(renderTarget, markdown, 'cerulean', null, false)
         renderedContainer.style.display = 'block';
+        setInnerText(preview_toggle, "Edit");
       } else {
         renderedContainer.style.display = 'none';
         markdownEl.style.display = 'block';
+        setInnerText(preview_toggle, "Preview");
       }
     });
   })

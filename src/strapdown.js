@@ -118,11 +118,7 @@ store.get('theme', function (ok, val) {
         }
         var li = document.createElement("li");
         var a = document.createElement("a");
-        if (typeof a.textContent !== 'undefined') {
-          a.textContent = val;
-        } else {
-          a.innerText = val;
-        }
+        setInnerText(a, val);
         a.setAttribute('href', '#');
         li.appendChild(a);
         addEvent(a, 'click', function () {
