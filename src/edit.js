@@ -62,13 +62,13 @@
         renderTarget.id = 'content';
         renderedContainer.innerHTML = ""
         renderedContainer.appendChild(renderTarget);
-        render(renderTarget, markdown, 'cerulean', null, false)
+        render(renderTarget, markdown, 'cerulean', null, false);
         renderedContainer.style.display = 'block';
-        setInnerText(preview_toggle, "Edit");
+        setInnerText(preview_toggle, "Continue Editing");
       } else {
         renderedContainer.style.display = 'none';
         markdownEl.style.display = 'block';
-        setInnerText(preview_toggle, "Preview");
+        setInnerText(preview_toggle, "Instant Preview");
       }
     });
   })

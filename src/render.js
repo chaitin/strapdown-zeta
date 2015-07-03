@@ -391,8 +391,9 @@ function render(newNode, markdown, theme, heading_number, show_toc){
       if (codeEl.parentNode.nodeName.toLowerCase() == 'pre') {
         codeEl.parentNode.className = 'code-wrapper ' + lang;
       }
+      hljs.highlightBlock(codeEl);
     }
-    hljs.initHighlightingOnLoad();
+    // hljs.initHighlighting();
   } else if ('prettyPrint' in window) {
     // Prettify
     var codeEls = document.getElementsByTagName('code');

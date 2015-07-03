@@ -128,12 +128,20 @@ func init_after_main() { // init after main because we need to chdir first, then
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>{{.Title}}</title>
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/strapdown.min.css" />
   <style type="text/css" media="screen">
     html, body {
         height: 100%;
-        overflow: hidden;
         margin: 0;
         padding: 0;
+    }
+    body {
+      padding: 0px;
+      font-size: 15px;
+      line-height: 100%;
+    }
+    xmp, textarea {
+        display: block;
     }
     #editor {
         margin: 0;
@@ -164,7 +172,7 @@ func init_after_main() { // init after main because we need to chdir first, then
         <div class="nav-collapse collapse navbar-responsive-collapse">
           <ul class="nav pull-right">
             <li>
-              <a href="#" id="preview-toggle">Preview</a>
+              <a href="#" id="preview-toggle">Instant Preview</a>
             </li>
             <li>
               <form class="nav" method="POST" action="?edit" name="body" enctype="multipart/form-data" >
