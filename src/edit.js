@@ -69,6 +69,7 @@
         renderedContainer.style.display = 'none';
         markdownEl.style.display = 'block';
         setInnerText(preview_toggle, "Instant Preview");
+        document.getElementsByTagName('textarea')[0].focus();
       }
     });
   })
