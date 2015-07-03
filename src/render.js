@@ -390,8 +390,8 @@ function render(newNode, markdown, theme, heading_number, show_toc){
       var lang = codeEl.className;
       if (codeEl.parentNode.nodeName.toLowerCase() == 'pre') {
         codeEl.parentNode.className = 'code-wrapper ' + lang;
+        hljs.highlightBlock(codeEl);
       }
-      hljs.highlightBlock(codeEl);
     }
     // hljs.initHighlighting();
   } else if ('prettyPrint' in window) {
