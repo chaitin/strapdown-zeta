@@ -74,10 +74,10 @@ store.get('theme', function (ok, val) {
   linkEl.rel = 'stylesheet';
   document.head.appendChild(linkEl);
 
-  var linkEl = document.createElement('link');
-  linkEl.href = base + '/themes/bootstrap-responsive.min.css';
-  linkEl.rel = 'stylesheet';
-  document.head.appendChild(linkEl);
+  // var linkEl = document.createElement('link');
+  // linkEl.href = base + '/themes/bootstrap-responsive.min.css';
+  // linkEl.rel = 'stylesheet';
+  // document.head.appendChild(linkEl);
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -90,15 +90,45 @@ store.get('theme', function (ok, val) {
 
   // Insert navbar if there's none
   var newNode = document.createElement('div');
-  newNode.className = 'navbar navbar-fixed-top';
+  newNode.className = 'navbar navbar-default navbar-fixed-top';
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
   newNode.className += markdownEl.getAttribute('history') ? " history" : '';
   if (!navbarEl && titleEl) {
-    newNode.innerHTML = '<div class="navbar-inner"> <div class="container">' +
-                        '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>' +
-                        '<div id="headline" class="brand"> </div>' +
-                        '<div class="nav-collapse collapse navbar-responsive-collapse"> <ul class="nav pull-right"><li class="history-link"><a href="?history">History</a></li><li class="edit-link"><a href="?edit">Edit</a> </li><li class="dropdown"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a><ul class="dropdown-menu" id="theme"></ul></li></ul> </div>' +
-                        '</div> </div>';
+    newNode.innerHTML = '<div class="container">'+
+                          '<div class="navbar-header">'+
+                            '<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav" aria-expand="false">'+
+                              '<span class="icon-bar"></span>'+
+                              '<span class="icon-bar"></span>'+
+                              '<span class="icon-bar"></span>'+
+                            '</button>'+
+                            '<div class="navbar-brand">Wiki</div>'+
+                          '</div>'+
+                          '<ul class="nav navbar-nav navbar-right">'+
+                            '<li class="history-link"><a href="?history">History</a></li>'+
+                            '<li class="edit-link"><a href="?edit">Edit</a></li>'+
+                            '<li class="dropdown">'+
+                              '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>'+
+                              '<ul class="dropdown-menu" id="theme">'+
+                              '</ul>'+
+                            '</li>'+
+                          '</ul>'+
+                        '</div>'
+    // newNode.innerHTML = '<div class="navbar-inner">'+
+    //                       '<div class="container">' +
+    //                       '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">'+
+    //                       '<span class="icon-bar"></span>'+
+    //                       '<span class="icon-bar"></span>'+
+    //                       '<span class="icon-bar"></span></a>' +
+    //                     '<div id="headline" class="brand"> </div>' +
+    //                     '<div class="nav-collapse collapse navbar-responsive-collapse">'+
+    //                     '<ul class="nav pull-right">'+
+    //                     '<li class="history-link"><a href="?history">History</a></li>'+
+    //                     '<li class="edit-link"><a href="?edit">Edit</a></li>'+
+    //                     '<li class="dropdown">'+
+    //                       '<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a>'+
+    //                       '<ul class="dropdown-menu" id="theme"></ul>'+
+    //                     '</li></ul> </div>' +
+    //                     '</div> </div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
     var headlineEl = document.getElementById('headline');
@@ -109,7 +139,7 @@ store.get('theme', function (ok, val) {
 
     var themeEl = document.getElementById('theme');
     if (themeEl) {
-      var themes = ['Amelia', 'Bootstrap', 'Cerulean', 'Cosmo', 'Cyborg', 'Flatly', 'Journal', 'Readable', 'Simplex', 'Slate', 'Spacelab', 'Spruce', 'Superhero', 'United', 'Reset'];
+      var themes = ['chaitin', "Cerulean", "Cosmo", "Cyborg", "Darkly", "Flatly", "Journal", "Lumen", "Paper", "Readable", "Sandstone", "Simplex", "Slate", "Spacelab", "Superhero", "United", "Yeti"];
       themes.forEach(function(val) {
         if (val == 'Reset') {
           var dvd = document.createElement("li");
@@ -133,7 +163,7 @@ store.get('theme', function (ok, val) {
       });
     }
     var dropdown = document.getElementsByClassName("dropdown")[0],
-        toggleBtn = document.getElementsByClassName('btn-navbar')[0],
+        toggleBtn = document.getElementsByClassName('navbar-toggle')[0],
         menus = document.getElementsByClassName('navbar-responsive-collapse')[0];
     if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
