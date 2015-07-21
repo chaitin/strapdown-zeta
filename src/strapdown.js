@@ -74,11 +74,6 @@ store.get('theme', function (ok, val) {
   linkEl.rel = 'stylesheet';
   document.head.appendChild(linkEl);
 
-  // var linkEl = document.createElement('link');
-  // linkEl.href = base + '/themes/bootstrap-responsive.min.css';
-  // linkEl.rel = 'stylesheet';
-  // document.head.appendChild(linkEl);
-
   //////////////////////////////////////////////////////////////////////
   //
   // <body> stuff
@@ -112,23 +107,7 @@ store.get('theme', function (ok, val) {
                               '</ul>'+
                             '</li>'+
                           '</ul>'+
-                        '</div>'
-    // newNode.innerHTML = '<div class="navbar-inner">'+
-    //                       '<div class="container">' +
-    //                       '<a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">'+
-    //                       '<span class="icon-bar"></span>'+
-    //                       '<span class="icon-bar"></span>'+
-    //                       '<span class="icon-bar"></span></a>' +
-    //                     '<div id="headline" class="brand"> </div>' +
-    //                     '<div class="nav-collapse collapse navbar-responsive-collapse">'+
-    //                     '<ul class="nav pull-right">'+
-    //                     '<li class="history-link"><a href="?history">History</a></li>'+
-    //                     '<li class="edit-link"><a href="?edit">Edit</a></li>'+
-    //                     '<li class="dropdown">'+
-    //                       '<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">Theme<b class="caret"></b></a>'+
-    //                       '<ul class="dropdown-menu" id="theme"></ul>'+
-    //                     '</li></ul> </div>' +
-    //                     '</div> </div>';
+                        '</div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
     var headlineEl = document.getElementById('headline');

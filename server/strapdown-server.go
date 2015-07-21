@@ -121,9 +121,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 <html>
 	<title>{{.Title}}</title>
 	<meta charset="utf-8">
-	<xmp edit="true" history="true" theme="{{.Theme}}" toc="{{.Toc}}" heading_number="{{.HeadingNumber}}" style="display:none;">
-		{{.Content}}
-	</xmp>
+	<xmp edit="true" history="true" theme="{{.Theme}}" toc="{{.Toc}}" heading_number="{{.HeadingNumber}}" style="display:none;">{{.Content}}</xmp>
 	<script src="http://{{.Host}}/strapdown/strapdown.min.js"></script>
 </html>
 		`)
@@ -170,31 +168,30 @@ func init_after_main() { // init after main because we need to chdir first, then
   </style>
 </head>
 <body>
-  <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div style="padding:0 20px">
-        <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </a>
-        <div id="headline" class="brand"> {{.Title}} </div>
-        <div class="nav-collapse collapse navbar-responsive-collapse">
-          <ul class="nav pull-right">
-            <li>
-              <a href="#" id="preview-toggle">Instant Preview</a>
-            </li>
-            <li>
-              <form class="nav" method="POST" action="?edit" name="body" enctype="multipart/form-data" >
-                <input id="savValue" type="hidden" name="body" value="" />
-                <button class="btn btn-default btn-sm" type="submit">Save</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+	<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav" aria-expand="false">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<div class="navbar-brand">Wiki</div>
+			</div>
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="#" id="preview-toggle">Instant Preview</a>
+				</li>
+				<li>
+					<form method="POST" action="?edit" name="body" enctype="multipart/form-data" >
+						<input id="savValue" type="hidden" name="body" value="" />
+						<button class="btn btn-default navbar-btn" type="submit">Save</button>
+					</form>
+				</li>
+			</ul>
+
+		</div>
+	</div>
   <div class="render-target" style="display:none"></div>
   <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
   <script src="http://{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
