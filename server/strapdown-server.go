@@ -344,10 +344,10 @@ func init_after_main() { // init after main because we need to chdir first, then
   </style>
   </head>
   <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <div id="headline" class="brand"> {{.Title}} </div>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <div id="headline" class="navbar-brand"> {{.Title}} </div>
         </div>
       </div>
     </div>
