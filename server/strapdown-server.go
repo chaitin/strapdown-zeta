@@ -212,72 +212,22 @@ func init_after_main() { // init after main because we need to chdir first, then
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
-    #list {
-        margin: 51px auto;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-    }
-    #list table {
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-        max-width: 100%;
-        border-collapse: collapse;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list td, #list th {
-        display: table-cell;
-        font-size: 16px;
-        height: 26px;
-        line-height: 26px;
-        text-align: center;
-        vertical-align: top;
-        min-width: 100px;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list tr>th:nth-child(1) {
-        text-align: left;
-    }
-    #list tr>td:nth-child(1) {
-        text-align: left;
-        width: auto;
-        white-space: normal;
-        max-width: 90%;
-        text-align:left;
-    }
-    #list tr>td>a {
-        display: block;
-        color: #333;
-        text-decoration: none;
-    }
-    #list .endslash {
-        color: #6299fe;
-        font-weight: bold;
-    }
-    @media (max-width: 980px) {
-      #list {
-        margin: 0 10px 10px 0;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-      }
+    body {
+        margin: 70px auto;
     }
   </style>
 </head>
 <body>
-  <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container">
-        <div id="headline" class="brand"> Directory Listing of {{.Title}} </div>
-      </div>
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+			<div class="navbar-header">
+        <div id="headline" class="navbar-brand"> Directory Listing of {{.Title}} </div>
+			</div>
     </div>
   </div>
   <div id="list" class="container">
     <hr />
-    <table class="table table-hover">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>Filename</th>
