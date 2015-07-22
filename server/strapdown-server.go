@@ -116,7 +116,15 @@ func init_after_main() { // init after main because we need to chdir first, then
 		log.Printf("authentication file not exist, disable http authentication")
 	}
 
-	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp edit=\"true\" history=\"true\" theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"http://{{.Host}}/strapdown/strapdown.min.js\"></script> </html>\n")
+	viewTemplate, err = template.New("view").Parse(`
+<!DOCTYPE html>
+<html>
+	<title>{{.Title}}</title>
+	<meta charset="utf-8">
+	<xmp edit="true" history="true" theme="{{.Theme}}" toc="{{.Toc}}" heading_number="{{.HeadingNumber}}" style="display:none;">{{.Content}}</xmp>
+	<script src="http://{{.Host}}/strapdown/strapdown.min.js"></script>
+</html>
+		`)
 	if err != nil {
 		log.Fatalf("cannot parse view template")
 	}
@@ -160,31 +168,30 @@ func init_after_main() { // init after main because we need to chdir first, then
   </style>
 </head>
 <body>
-  <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div style="padding:0 20px">
-        <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </a>
-        <div id="headline" class="brand"> {{.Title}} </div>
-        <div class="nav-collapse collapse navbar-responsive-collapse">
-          <ul class="nav pull-right">
-            <li>
-              <a href="#" id="preview-toggle">Instant Preview</a>
-            </li>
-            <li>
-              <form class="nav" method="POST" action="?edit" name="body" enctype="multipart/form-data" >
-                <input id="savValue" type="hidden" name="body" value="" />
-                <button class="btn btn-default btn-sm" type="submit">Save</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+	<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav" aria-expand="false">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<div class="navbar-brand">Wiki</div>
+			</div>
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="#" id="preview-toggle">Instant Preview</a>
+				</li>
+				<li>
+					<form method="POST" action="?edit" name="body" enctype="multipart/form-data" >
+						<input id="savValue" type="hidden" name="body" value="" />
+						<button class="btn btn-default navbar-btn" type="submit">Save</button>
+					</form>
+				</li>
+			</ul>
+
+		</div>
+	</div>
   <div class="render-target" style="display:none"></div>
   <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
   <script src="http://{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -205,72 +212,22 @@ func init_after_main() { // init after main because we need to chdir first, then
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
-    #list {
-        margin: 51px auto;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-    }
-    #list table {
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-        max-width: 100%;
-        border-collapse: collapse;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list td, #list th {
-        display: table-cell;
-        font-size: 16px;
-        height: 26px;
-        line-height: 26px;
-        text-align: center;
-        vertical-align: top;
-        min-width: 100px;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list tr>th:nth-child(1) {
-        text-align: left;
-    }
-    #list tr>td:nth-child(1) {
-        text-align: left;
-        width: auto;
-        white-space: normal;
-        max-width: 90%;
-        text-align:left;
-    }
-    #list tr>td>a {
-        display: block;
-        color: #333;
-        text-decoration: none;
-    }
-    #list .endslash {
-        color: #6299fe;
-        font-weight: bold;
-    }
-    @media (max-width: 980px) {
-      #list {
-        margin: 0 10px 10px 0;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-      }
+    body {
+        margin: 70px auto;
     }
   </style>
 </head>
 <body>
-  <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container">
-        <div id="headline" class="brand"> Directory Listing of {{.Title}} </div>
-      </div>
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+			<div class="navbar-header">
+        <div id="headline" class="navbar-brand"> Directory Listing of {{.Title}} </div>
+			</div>
     </div>
   </div>
   <div id="list" class="container">
     <hr />
-    <table class="table table-hover">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>Filename</th>
@@ -306,99 +263,22 @@ func init_after_main() { // init after main because we need to chdir first, then
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
-    #list {
-        margin: 51px auto;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-    }
-    #list .table td input {
-        padding: 0 4px;
-        margin: 0px 32px 0 12px;
-        vertical-align: middle;
-        width: 12px;
-        height: 12px;
-    }
-    #list .table td span {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 650px;
-        display: inline-block;
-    }
-    #list .table td input+a {
-        display: inline-block;
-    }
-    #list .table td input+a:hover {
-        text-decoration: underline;
-    }
-    #list table {
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-        max-width: 100%;
-        border-collapse: collapse;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list td, #list th {
-        display: table-cell;
-        font-size: 16px;
-        height: 26px;
-        line-height: 26px;
-        text-align: center;
-        vertical-align: top;
-        min-width: 100px;
-        word-wrap: break-word;
-        word-break: break-all;
-    }
-    #list tr>th:nth-child(1) {
-        text-align: left;
-        padding-left: 64px;
-    }
-    #list tr>td:nth-child(1) {
-        text-align: left;
-        font-family: Courier;
-    }
-    #list tr>th:nth-child(2) {
-        text-align: left;
-    }
-    #list tr>td:nth-child(2) {
-        text-align: left;
-        width: auto;
-        text-align:left;
-    }
-    #list tr>td>a {
-        display: block;
-        color: #333;
-        text-decoration: none;
-    }
-    #list .endslash {
-        color: #6299fe;
-        font-weight: bold;
-    }
-    @media (max-width: 980px) {
-      #list {
-        margin: 0 10px 10px 0;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-      }
-    }
+		body {
+				margin: 70px auto;
+		}
   </style>
 </head>
 <body>
-  <div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container">
-        <div id="headline" class="brand"> History of {{.Title}} </div>
-      </div>
-    </div>
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+				<div id="headline" class="navbar-brand"> History of {{.Title}} </div>
+			</div>
+		</div>
   </div>
   <div id="list" class="container">
     <hr />
-    <table class="table table-hover">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>Revision</th>
@@ -464,10 +344,10 @@ func init_after_main() { // init after main because we need to chdir first, then
   </style>
   </head>
   <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <div id="headline" class="brand"> {{.Title}} </div>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <div id="headline" class="navbar-brand"> {{.Title}} </div>
         </div>
       </div>
     </div>

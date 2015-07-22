@@ -56,6 +56,12 @@ module.exports = function(grunt) {
         dest: 'build/strapdown.min.css',
         ext: '.min.css'
       }
+    },
+    watch: {
+      scripts: {
+        files: ['src/*.js'],
+        tasks: ['build'],
+      },
     }
   });
 
@@ -64,6 +70,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
   grunt.registerTask('default', ['build']);

@@ -6,7 +6,7 @@ This chunk is to fix Bootstrap so that the Markdown output looks good
 *******************************************************************/
 
 body {
-  padding-top: 60px;
+  padding-top: 70px;
   padding-bottom: 40px;
   font-size: 15px;
   line-height: 150%;
@@ -173,10 +173,10 @@ For highlight.js syntax highlighting
 
 */
 
-.hljs { 
+.hljs {
     display: block;
-    padding: .8em 1em; 
-    background-color: #2c2c27; 
+    padding: .8em 1em;
+    background-color: #2c2c27;
 }
 
 
