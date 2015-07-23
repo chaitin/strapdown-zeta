@@ -62,7 +62,7 @@ store.get('theme', function (ok, val) {
     document.head.appendChild(metaEl);
 
   // Get theme
-  theme = theme || markdownEl.getAttribute('theme') || 'cerulean';
+  theme = theme || markdownEl.getAttribute('theme') || 'chaitin';
   theme = theme.toLowerCase();
 
   var base = getScriptBase("strapdown");
@@ -98,15 +98,17 @@ store.get('theme', function (ok, val) {
                             '</button>'+
                             '<div class="navbar-brand">Wiki</div>'+
                           '</div>'+
-                          '<ul class="nav navbar-nav navbar-right">'+
-                            '<li class="history-link"><a href="?history">History</a></li>'+
-                            '<li class="edit-link"><a href="?edit">Edit</a></li>'+
-                            '<li class="dropdown">'+
-                              '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>'+
-                              '<ul class="dropdown-menu" id="theme">'+
-                              '</ul>'+
-                            '</li>'+
-                          '</ul>'+
+                          '<div class="collapse navbar-collapse">'+
+                            '<ul class="nav navbar-nav navbar-right">'+
+                              '<li class="history-link"><a href="?history">History</a></li>'+
+                              '<li class="edit-link"><a href="?edit">Edit</a></li>'+
+                              '<li class="dropdown">'+
+                                '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>'+
+                                '<ul class="dropdown-menu" id="theme">'+
+                                '</ul>'+
+                              '</li>'+
+                            '</ul>'+
+                          '</div>'+
                         '</div>';
     document.body.insertBefore(newNode, document.body.firstChild);
     var title = titleEl.innerHTML;
@@ -114,7 +116,6 @@ store.get('theme', function (ok, val) {
     if (headlineEl) {
       headlineEl.innerHTML = title;
     }
-
 
     var themeEl = document.getElementById('theme');
     if (themeEl) {
@@ -143,7 +144,7 @@ store.get('theme', function (ok, val) {
     }
     var dropdown = document.getElementsByClassName("dropdown")[0],
         toggleBtn = document.getElementsByClassName('navbar-toggle')[0],
-        menus = document.getElementsByClassName('navbar-responsive-collapse')[0];
+        menus = document.getElementsByClassName('navbar-collapse')[0];
     if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
         if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
@@ -153,7 +154,10 @@ store.get('theme', function (ok, val) {
         }
       });
       addEvent(toggleBtn, 'click', function(){
-        menus.style.height = menus.style.height ? "" : "auto";
+        console.log(menus.className);
+        var classList = menus.className.split(' ');
+        classList.indexOf('collapse') > -1 ? classList.splice(classList.indexOf('collapse') ,1) : classList.push('collapse');
+        menus.className = classList.join(' ');
       });
     }
   }
