@@ -19,7 +19,7 @@
       if (confirm("Detected unsaved document cache, do you want to load the cache?")) {
         session.setValue(value);
       }
-      store.clear(filename);  
+      store.clear(filename);
     }
 
 
@@ -55,6 +55,8 @@
     })
 
     var renderedContainer = document.getElementsByClassName('render-target')[0];
+    var store_of_theme = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
+    var theme = store_of_theme.get("theme") || "chaitin";
 
     var preview_toggle = document.getElementById('preview-toggle');
     addEvent(preview_toggle, 'click', function() {
@@ -66,7 +68,7 @@
         renderTarget.id = 'content';
         renderedContainer.innerHTML = ""
         renderedContainer.appendChild(renderTarget);
-        render(renderTarget, markdown, 'cerulean', null, false);
+        render(renderTarget, markdown, theme, null, false);
         renderedContainer.style.display = 'block';
         setInnerText(preview_toggle, "Continue Editing");
       } else {

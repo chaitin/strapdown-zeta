@@ -137,7 +137,7 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
     var dropdown = document.getElementsByClassName("dropdown")[0],
         toggleBtn = document.getElementsByClassName('navbar-toggle')[0],
         menus = document.getElementsByClassName('navbar-collapse')[0];
-    if (themeEl && dropdown) { 
+    if (themeEl && dropdown) {
       addEvent(dropdown, 'click', function () {
         if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
           dropdown.className = dropdown.className.replace(/(?:^|\s)open(?!\S)/g, '');
