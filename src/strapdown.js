@@ -2,11 +2,7 @@
 (function(window, document) {
 var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
 
-store.get('theme', function (ok, val) {
-  var theme = null;
-  if (ok) {
-    theme = val;
-  }
+  var theme = store.get('theme') || 'chaitin';
 
   //////////////////////////////////////////////////////////////////////
   //
@@ -132,11 +128,7 @@ store.get('theme', function (ok, val) {
         a.setAttribute('href', '#');
         li.appendChild(a);
         addEvent(a, 'click', function () {
-          if (val == 'Reset') {
-            store.set('theme', '');
-          } else {
-            store.set('theme', val);
-          }
+          store.set('theme', val);
           location.reload();
         });
         themeEl.appendChild(li);
@@ -145,7 +137,7 @@ store.get('theme', function (ok, val) {
     var dropdown = document.getElementsByClassName("dropdown")[0],
         toggleBtn = document.getElementsByClassName('navbar-toggle')[0],
         menus = document.getElementsByClassName('navbar-collapse')[0];
-    if (themeEl && dropdown) {
+    if (themeEl && dropdown) { 
       addEvent(dropdown, 'click', function () {
         if (dropdown.className.match(/(?:^|\s)open(?!\S)/)) {
           dropdown.className = dropdown.className.replace(/(?:^|\s)open(?!\S)/g, '');
@@ -154,7 +146,6 @@ store.get('theme', function (ok, val) {
         }
       });
       addEvent(toggleBtn, 'click', function(){
-        console.log(menus.className);
         var classList = menus.className.split(' ');
         classList.indexOf('collapse') > -1 ? classList.splice(classList.indexOf('collapse') ,1) : classList.push('collapse');
         menus.className = classList.join(' ');
@@ -168,7 +159,6 @@ store.get('theme', function (ok, val) {
 
   // All done - show body
   document.body.style.display = '';
-});
 })(window, document);
 
 // vim: ai:ts=2:sts=2:sw=2:

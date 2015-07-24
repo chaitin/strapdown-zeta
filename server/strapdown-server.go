@@ -151,6 +151,9 @@ func init_after_main() { // init after main because we need to chdir first, then
     xmp, textarea {
         display: block;
     }
+		.navbar{
+			z-index: 10;
+		}
     #editor {
         margin: 0;
         position: absolute;
@@ -158,7 +161,7 @@ func init_after_main() { // init after main because we need to chdir first, then
         bottom: 0;
         left: 0;
         right: 0;
-				z-index: 0;
+				// z-index: 0;
     }
     #preview-toggle {
         margin-right: 10px;
