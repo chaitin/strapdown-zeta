@@ -158,6 +158,7 @@ func init_after_main() { // init after main because we need to chdir first, then
         bottom: 0;
         left: 0;
         right: 0;
+				z-index: 0;
     }
     #preview-toggle {
         margin-right: 10px;
@@ -178,18 +179,19 @@ func init_after_main() { // init after main because we need to chdir first, then
 				</button>
 				<div class="navbar-brand">Wiki</div>
 			</div>
-			<ul class="nav navbar-nav navbar-right">
-				<li>
-					<a href="#" id="preview-toggle">Instant Preview</a>
-				</li>
-				<li>
-					<form method="POST" action="?edit" name="body" enctype="multipart/form-data" >
-						<input id="savValue" type="hidden" name="body" value="" />
-						<button class="btn btn-default navbar-btn" type="submit">Save</button>
-					</form>
-				</li>
-			</ul>
-
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<a href="#" id="preview-toggle">Instant Preview</a>
+					</li>
+					<li>
+						<form method="POST" action="?edit" name="body" enctype="multipart/form-data" >
+							<input id="savValue" type="hidden" name="body" value="" />
+							<button class="btn btn-default navbar-btn" type="submit">Save</button>
+						</form>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</div>
   <div class="render-target" style="display:none"></div>
