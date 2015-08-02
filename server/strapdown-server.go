@@ -172,7 +172,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 </head>
 <body>
 	<div class="navbar navbar-default navbar-fixed-top">
-		<div class="container">
+		<div class="container-fluid">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav" aria-expand="false">
 					<span class="icon-bar"></span>
