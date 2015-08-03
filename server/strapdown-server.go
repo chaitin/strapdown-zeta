@@ -204,7 +204,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 	</div>
   <div class="render-target" style="display:none"></div>
   <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
-  <script src="{{.Host}}/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <script src="{{.Host}}/edit.min.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>
