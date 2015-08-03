@@ -101,6 +101,7 @@ The server supports the following parameters.
  - `-title=MyTitle`, specify the default title of Wiki
  - `-auth=.htpasswd`, specify the authentication file to use, htpasswd format
  - `-heading_number=true|false`, set default value for whether to show heading numbers
+ - `-toc=true|false`, set default value for whether to show table of content
  - `-host=some.domain.com`, the default hosting of strapdown static files
  - `-theme=cerulean|cosmo|...`, the default theme to use
 
