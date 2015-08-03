@@ -15,11 +15,13 @@
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
-    if (value) {
+    if (value && value != editor.getValue()) {
       if (confirm("Detected unsaved document cache, do you want to load the cache?")) {
         session.setValue(value);
       }
-      store.clear(filename);
+      store.remove(filename);
+    }else{
+      store.remove(filename);
     }
 
 
