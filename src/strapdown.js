@@ -115,7 +115,7 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
 
     var themeEl = document.getElementById('theme');
     if (themeEl) {
-      var themes = ['chaitin', "Cerulean", "Cosmo", "Cyborg", "Darkly", "Flatly", "Journal", "Lumen", "Paper", "Readable", "Sandstone", "Simplex", "Slate", "Spacelab", "Superhero", "United", "Yeti"];
+      var themes = ['Chaitin', "Cerulean", "Cosmo", "Cyborg", "Darkly", "Flatly", "Journal", "Lumen", "Paper", "Readable", "Sandstone", "Simplex", "Slate", "Spacelab", "Superhero", "United", "Yeti"];
       themes.forEach(function(val) {
         if (val == 'Reset') {
           var dvd = document.createElement("li");
