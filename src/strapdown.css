@@ -327,9 +327,9 @@ For highlight.js syntax highlighting
 Make the edit and history button switchable
 
 */
-.edit-link, .history-link{
-  display: none;
+.nav>li.edit-link, .nav>li.history-link{
+  display: none !important;
 }
-.edit .edit-link, .history .history-link{
-  display: block;
+.edit li.edit-link, .history li.history-link{
+  display: block !important;
 }
