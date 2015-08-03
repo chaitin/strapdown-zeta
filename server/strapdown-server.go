@@ -139,9 +139,9 @@ func init_after_main() { // init after main because we need to chdir first, then
   <link rel="stylesheet" href="http://{{.Host}}/strapdown/strapdown.min.css" />
   <style type="text/css" media="screen">
     html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
     body {
       padding: 0px;
@@ -149,24 +149,33 @@ func init_after_main() { // init after main because we need to chdir first, then
       line-height: 100%;
     }
     xmp, textarea {
-        display: block;
+      display: block;
     }
 		.navbar{
 			z-index: 10;
 		}
     #editor {
-        margin: 0;
-        position: absolute;
-        top: 51px;
-        bottom: 0;
-        left: 0;
-        right: 0;
+      margin: 0;
+      position: absolute;
+      top: 51px;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
     #preview-toggle {
-        margin-right: 10px;
+      margin-right: 10px;
     }
     .render-target{
-        margin-top: 60px;
+      margin-top: 60px;
+    }
+    @media (max-width: 768px){
+      .navbar .navbar-btn{
+        display: block;
+        width: 100%;
+      }
+    }
+    .navbar .navbar-btn{
+      margin-right: 14px;
     }
   </style>
 </head>

@@ -15,6 +15,12 @@
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
+    var title = document.getElementsByTagName('title')[0].innerText;
+    var headlineEl = document.getElementById('headline');
+    if (headlineEl) {
+      headlineEl.innerHTML = title;
+    }
+
     if (value && value != editor.getValue()) {
       if (confirm("Detected unsaved document cache, do you want to load the cache?")) {
         session.setValue(value);
