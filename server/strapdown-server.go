@@ -30,6 +30,7 @@ var root = flag.String("dir", "", "The root directory for the git/wiki")
 var default_auth = flag.String("auth", ".htpasswd", "Default auth file to use as authentication, authentication will be disabled if auth file not exist")
 var default_host = flag.String("host", "cdn.ztx.io", "Default host hosting the strapdown static files")
 var default_heading_number = flag.String("heading_number", "false", "set default value for showing heading number")
+var default_toc = flag.String("toc", "false", "set default value for showing table of content")
 var default_title = flag.String("title", "Wiki", "default title for wiki pages")
 var default_theme = flag.String("theme", "cerulean", "default theme for strapdown")
 var default_histsize = flag.Int("histsize", 30, "default history size")
@@ -76,7 +77,7 @@ func (this *CommitEntry) ShortHash() string {
 type Config struct {
 	Title         string
 	Theme         string
-	Toc           bool
+	Toc           string
 	HeadingNumber string
 	Host          string
 	Content       template.HTML
@@ -94,6 +95,9 @@ func (config *Config) FillDefault(content []byte) {
 	}
 	if config.HeadingNumber == "" {
 		config.HeadingNumber = *default_heading_number
+	}
+	if config.Toc == "" {
+		config.Toc = *default_toc
 	}
 	if config.Host == "" {
 		config.Host = *default_host
