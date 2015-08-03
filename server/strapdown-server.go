@@ -28,7 +28,7 @@ var addr = flag.String("addr", ":8080", "Listening `host:port`, you can specify 
 var initgit = flag.Bool("init", false, "init git repository before running, just like `git init`")
 var root = flag.String("dir", "", "The root directory for the git/wiki")
 var default_auth = flag.String("auth", ".htpasswd", "Default auth file to use as authentication, authentication will be disabled if auth file not exist")
-var default_host = flag.String("host", "cdn.ztx.io", "Default host hosting the strapdown static files")
+var default_host = flag.String("host", "http://cdn.ztx.io/strapdown", "URL prefix where the strapdown static files are hosted")
 var default_heading_number = flag.String("heading_number", "false", "set default value for showing heading number")
 var default_toc = flag.String("toc", "false", "set default value for showing table of content")
 var default_title = flag.String("title", "Wiki", "default title for wiki pages")
@@ -121,7 +121,7 @@ func init_after_main() { // init after main because we need to chdir first, then
 	}
 
 	// dont expand viewTemplate, adding a leading and trailing line to markdown to make it render as html is a feature!
-	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp edit=\"true\" history=\"true\" theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"http://{{.Host}}/strapdown/strapdown.min.js\"></script> </html>\n")
+	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp edit=\"true\" history=\"true\" theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"{{.Host}}/strapdown.min.js\"></script> </html>\n")
 	if err != nil {
 		log.Fatalf("cannot parse view template")
 	}
@@ -132,8 +132,8 @@ func init_after_main() { // init after main because we need to chdir first, then
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>{{.Title}}</title>
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/strapdown.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/strapdown.min.css" />
   <style type="text/css" media="screen">
     html, body {
       height: 100%;
@@ -204,8 +204,8 @@ func init_after_main() { // init after main because we need to chdir first, then
 	</div>
   <div class="render-target" style="display:none"></div>
   <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
-  <script src="http://{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-  <script src="http://{{.Host}}/strapdown/edit.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="{{.Host}}/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="{{.Host}}/edit.min.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>
 `)
@@ -219,8 +219,8 @@ func init_after_main() { // init after main because we need to chdir first, then
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>{{.Title}}</title>
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
     body {
         margin: 70px auto;
@@ -270,8 +270,8 @@ func init_after_main() { // init after main because we need to chdir first, then
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>{{.Title}}</title>
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
 		body {
 				margin: 70px auto;
@@ -342,8 +342,8 @@ func init_after_main() { // init after main because we need to chdir first, then
   <head>
   <title>{{.Title}}</title>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
-  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="{{.Host}}/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
     #diff {
         margin: 56px auto;
