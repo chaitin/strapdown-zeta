@@ -116,15 +116,8 @@ func init_after_main() { // init after main because we need to chdir first, then
 		log.Printf("authentication file not exist, disable http authentication")
 	}
 
-	viewTemplate, err = template.New("view").Parse(`
-<!DOCTYPE html>
-<html>
-	<title>{{.Title}}</title>
-	<meta charset="utf-8">
-	<xmp edit="true" history="true" theme="{{.Theme}}" toc="{{.Toc}}" heading_number="{{.HeadingNumber}}" style="display:none;">{{.Content}}</xmp>
-	<script src="http://{{.Host}}/strapdown/strapdown.min.js"></script>
-</html>
-		`)
+	// dont expand viewTemplate, adding a leading and trailing line to markdown to make it render as html is a feature!
+	viewTemplate, err = template.New("view").Parse("<!DOCTYPE html> <html> <title>{{.Title}}</title> <meta charset=\"utf-8\"> <xmp edit=\"true\" history=\"true\" theme=\"{{.Theme}}\" toc=\"{{.Toc}}\" heading_number=\"{{.HeadingNumber}}\" style=\"display:none;\">\n{{.Content}}\n</xmp> <script src=\"http://{{.Host}}/strapdown/strapdown.min.js\"></script> </html>\n")
 	if err != nil {
 		log.Fatalf("cannot parse view template")
 	}
