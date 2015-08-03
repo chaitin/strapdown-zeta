@@ -92,14 +92,14 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
                               '<span class="icon-bar"></span>'+
                               '<span class="icon-bar"></span>'+
                             '</button>'+
-                            '<div class="navbar-brand">Wiki</div>'+
+                            '<div class="navbar-brand" id="headline">Wiki</div>'+
                           '</div>'+
                           '<div class="collapse navbar-collapse">'+
                             '<ul class="nav navbar-nav navbar-right">'+
                               '<li class="history-link"><a href="?history">History</a></li>'+
                               '<li class="edit-link"><a href="?edit">Edit</a></li>'+
                               '<li class="dropdown">'+
-                                '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>'+
+                                '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Themes <span class="caret"></span></a>'+
                                 '<ul class="dropdown-menu" id="theme">'+
                                 '</ul>'+
                               '</li>'+
