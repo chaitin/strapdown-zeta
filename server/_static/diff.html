@@ -1,0 +1,28 @@
+<html>
+  <head>
+  <title>{{.Title}}</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <style type="text/css" media="screen">
+    #diff {
+        margin: 56px auto;
+        -webkit-box-sizing: border-box; /* Safari, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+    }
+  </style>
+  </head>
+  <body>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <div id="headline" class="navbar-brand"> {{.Title}} </div>
+        </div>
+      </div>
+    </div>
+    <div id="diff" class="container">
+    <div><pre>{{.Content}}</pre></div>
+    </div>
+  </body>
+</html>
