@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <style type="text/css" media="screen">
+        body {
+                margin: 70px auto;
+        }
+  </style>
+</head>
+<body>
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+                <div id="headline" class="navbar-brand"> History of {{.Title}} </div>
+            </div>
+        </div>
+  </div>
+  <div id="list" class="container">
+    <hr />
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Revision</th>
+          <th>Comment</th>
+          <th>Timestamp</th>
+          <th>Author</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $index, $element := .CommitEntries }}
+        <tr>
+          <td><input type="checkbox" ver="{{$element.ShortHash}}" class="ver_check" /><a href="?version={{$element.Id}}">{{ $element.ShortHash }}</a></td>
+          <td><span>{{$element.Message}}</span></td>
+          <td>{{$element.Timestamp.Format "2006-01-02 15:04:05"}}</td>
+          <td>{{$element.Author}}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+    <p><button class="btn btn-primary disabled" id="diff_btn" data-toggle="button">Diff</button></p>
+    <script>
+      document.getElementById("diff_btn").addEventListener("click",function(e){
+        var checkBoxs = document.getElementsByClassName("ver_check");
+        var length = checkBoxs.length;
+        var checkedCount = 0;
+        var selects = [];
+        for(var i = 0 ;i < length; i++){
+          if(checkBoxs[i].getAttribute("checked") || checkBoxs[i].checked){
+            selects.push(checkBoxs[i].getAttribute("ver"));
+          }
+        }
+        if(selects.length != 2){
+          alert("please select TWO versions!");
+        }else{
+          // old one first
+          window.open("?diff=" + selects[1] + "," + selects[0]);
+        }
+      });
+    </script>
+    <hr />
+  </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/strapdown.min.css" />
+  <style type="text/css" media="screen">
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      padding: 0px;
+      font-size: 15px;
+      line-height: 100%;
+    }
+    xmp, textarea {
+      display: block;
+    }
+        .navbar{
+            z-index: 10;
+        }
+    #editor {
+      margin: 0;
+      position: absolute;
+      top: 51px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    #preview-toggle {
+      margin-right: 10px;
+    }
+    .render-target{
+      margin-top: 60px;
+    }
+    @media (max-width: 768px){
+      .navbar .navbar-btn{
+        display: block;
+        width: 100%;
+      }
+    }
+    .navbar .navbar-btn{
+      margin-right: 14px;
+    }
+  </style>
+</head>
+<body>
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-nav" aria-expand="false">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="navbar-brand">Wiki</div>
+            </div>
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" id="preview-toggle">Instant Preview</a>
+                    </li>
+                    <li>
+                        <form method="POST" action="?edit" name="body" enctype="multipart/form-data" >
+                            <input id="savValue" type="hidden" name="body" value="" />
+                            <button class="btn btn-default navbar-btn" type="submit">Save</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+  <div class="render-target" style="display:none"></div>
+  <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
+  <script src="http://{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="http://{{.Host}}/strapdown/edit.min.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>

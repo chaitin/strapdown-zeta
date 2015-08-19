@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/cerulean.min.css" />
+  <link rel="stylesheet" href="http://{{.Host}}/strapdown/themes/bootstrap-responsive.min.css" />
+  <style type="text/css" media="screen">
+    body {
+        margin: 70px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+            <div class="navbar-header">
+        <div id="headline" class="navbar-brand"> Directory Listing of {{.Title}} </div>
+            </div>
+    </div>
+  </div>
+  <div id="list" class="container">
+    <hr />
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Size</th>
+          <th>Datetime</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $index, $element := .DirEntries }}
+        <tr>
+          <td><a href="{{$element.Urlpath}}">{{$element.Name}} {{ if $element.IsDir }} <span class="endslash">/</span> {{ end }} </a></td>
+          <td><a href="{{$element.Urlpath}}" title="{{$element.Size}}B">{{$element.ReadableSize true}}</a></td>
+          <td><a href="{{$element.Urlpath}}">{{$element.ModTime.Format "2006-01-02 15:04:05"}}</a></td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+    <hr />
+  </div>
+</body>
+</html>
