@@ -210,7 +210,6 @@ func (this *RequestContext) parsePath() {
 }
 
 func (this *RequestContext) parseAndDo(req *http.Request) error {
-	// todo: using the query string rather than the whole req
 	q := req.URL.Query()
 
 	version_ary, hasversion := q["version"]
@@ -221,7 +220,6 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			if this.hasFile {
 				this.Content = template.HTML(string(Read(this.path)))
 			}
-			log.Print(this.Content)
 			if _, history := q["history"]; history {
 				return this.History()
 			} else if _, edit := q["edit"]; edit {
@@ -229,6 +227,9 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			} else if diff_ary, diff := q["diff"]; diff {
 				return this.Diff(diff_ary)
 			} else {
+				if strings.HasSuffix("/"+this.path, "/.md") {
+					return this.Listdir()
+				}
 				if this.hasFile {
 					return this.View()
 				} else {
