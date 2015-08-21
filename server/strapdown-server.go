@@ -185,20 +185,33 @@ func bootstrap() {
 }
 
 // todo: rename
-func (this *RequestContext) parsePath() {
-	fp := this.req.URL.Path[1:]
-	if strings.Contains(fp, ".") {
+func (this *RequestContext) parseInfo() {
+	fp := this.req.URL.Path
+	if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
 		//suffixed file
-		this.isMarkdown = strings.HasSuffix(fp, ".md")
+		_, err := os.Stat(fp[1:])
+		this.hasFile = (err == nil)
+		if this.hasFile {
+			this.isMarkdown = false
+		} else {
+			this.isMarkdown = true
+			if strings.HasSuffix(fp, ".md") {
+				// NOTICE: if we have a .md and .md.md file , the .md file's raw content would returned
+				fp += ".md" // add the extra .md to simulate the original behavior
+				_, err := os.Stat(fp[1:])
+				this.hasFile = (err == nil)
+			}
+		}
+		// we want the page show the original .md if we have xxx.md in the url
+		// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
 	} else {
+		// for the urls with no .md and not existed, regards as markdown file and edit
 		fp += ".md"
 		this.isMarkdown = true
+		_, err := os.Stat(fp[1:])
+		this.hasFile = (err == nil)
 	}
-	this.path = fp
-
-	_, err := os.Stat(fp)
-
-	this.hasFile = (err == nil)
+	this.path = fp[1:]
 
 	i := strings.IndexByte(this.req.RemoteAddr, ':')
 	if i > -1 {
@@ -237,14 +250,16 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 				if this.hasFile {
 					return this.View()
 				} else {
-					if strings.HasSuffix(this.path, ".md") {
-						folder := path.Dir(this.path)
-						_, err := os.Stat(folder)
-						if err == nil {
-							return this.Edit()
-						} else {
-							return this.Listdir()
-						}
+					file := path.Base(this.path)
+					folder := path.Dir(this.path)
+					_, err := os.Stat(folder)
+					log.Print(file, " ", folder)
+
+					if err == nil && file == ".md" && !this.hasFile {
+						return this.Listdir()
+					}
+					if this.hasFile {
+						return this.View()
 					} else {
 						return this.Edit()
 					}
@@ -307,7 +322,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ctx.parsePath()
+	ctx.parseInfo()
 
 	if strings.HasSuffix(ctx.path, "_static") || strings.HasSuffix(ctx.path, "favicon.ico") {
 		w.Header().Set("Cache-Control", "max-age=86400, public")
