@@ -18,15 +18,6 @@ import (
 	"time"
 )
 
-func Read(path string) []byte {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return []byte("")
-	} else {
-		return data
-	}
-}
-
 func (this *RequestContext) Update() error {
 	var comment string
 	if this.hasFile {
@@ -76,9 +67,16 @@ func (this *RequestContext) View() error {
 	custom_view_tail, errt := ioutil.ReadFile(this.path + ".tail")
 	if errh == nil && errt == nil {
 		var w = *this.res
-		w.Write(custom_view_head)
-		w.Write(Read(this.path))
-		w.Write(custom_view_tail)
+		data, err := ioutil.ReadFile(this.path)
+		if err != nil {
+			w.Write(custom_view_head)
+			w.Write(data)
+			w.Write(custom_view_tail)
+		} else {
+			w.Write(custom_view_head)
+			w.Write(custom_view_tail)
+		}
+
 	} else {
 		custom_view_option, errv := ioutil.ReadFile(this.path + ".option.json")
 		if errv == nil {
@@ -160,7 +158,6 @@ func (this *RequestContext) Edit() error {
 	if err == nil {
 		json.Unmarshal(custom_option, &this)
 	}
-
 	return templates["edit"].Execute(*this.res, this)
 }
 func (this *RequestContext) Diff(diff_ary []string) error {

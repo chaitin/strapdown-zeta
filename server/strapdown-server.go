@@ -197,7 +197,8 @@ func (this *RequestContext) parsePath() {
 	this.path = fp
 
 	_, err := os.Stat(fp)
-	this.hasFile = err == nil
+
+	this.hasFile = (err == nil)
 
 	i := strings.IndexByte(this.req.RemoteAddr, ':')
 	if i > -1 {
@@ -220,8 +221,12 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 
 	if this.req.Method == "GET" {
 		if this.isMarkdown {
+
 			if this.hasFile {
-				this.Content = template.HTML(string(Read(this.path)))
+				data, err := ioutil.ReadFile(this.path)
+				if err == nil {
+					this.Content = template.HTML(string(data))
+				}
 			}
 			if _, history := q["history"]; history {
 				return this.History()
@@ -230,13 +235,20 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			} else if diff_ary, diff := q["diff"]; diff {
 				return this.Diff(diff_ary)
 			} else {
-				if strings.HasSuffix("/"+this.path, "/.md") {
-					return this.Listdir()
-				}
 				if this.hasFile {
 					return this.View()
 				} else {
-					return this.Edit()
+					if strings.HasSuffix(this.path, ".md") {
+						folder := path.Dir(this.path)
+						_, err := os.Stat(folder)
+						if err == nil {
+							return this.Listdir()
+						} else {
+							return this.Edit()
+						}
+					} else {
+						return this.Edit()
+					}
 				}
 			}
 		} else {
