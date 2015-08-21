@@ -47,6 +47,7 @@ type Config struct {
 	title          string
 	theme          string
 	histsize       int
+	toc            string
 }
 
 type RequestContext struct {
@@ -79,11 +80,12 @@ func parseConfig() {
 	flag.BoolVar(&wikiConfig.init, "init", false, "init git repository before running, just like `git init`")
 	flag.StringVar(&wikiConfig.root, "dir", "", "The root directory for the git/wiki")
 	flag.StringVar(&wikiConfig.auth, "auth", ".htpasswd", "Default auth file to use as authentication, authentication will be disabled if auth file not exist")
-	flag.StringVar(&wikiConfig.host, "host", "cdn.ztx.io", "Default host hosting the strapdown static files")
+	flag.StringVar(&wikiConfig.host, "host", "http://cdn.ztx.io/strapdown", "URL prefix where host hosting the strapdown static files")
 	flag.StringVar(&wikiConfig.heading_number, "heading_number", "false", "set default value for showing heading number")
 	flag.StringVar(&wikiConfig.title, "title", "Wiki", "default title for wiki pages")
 	flag.StringVar(&wikiConfig.theme, "theme", "cerulean", "default theme for strapdown")
 	flag.IntVar(&wikiConfig.histsize, "histsize", 30, "default history size")
+	flag.StringVar(&wikiConfig.toc, "toc", "false", "set default value for showing table of content")
 	flag.Parse()
 }
 
@@ -271,7 +273,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	ctx.statusCode = http.StatusOK
 	ctx.Title = wikiConfig.title
 	ctx.Theme = wikiConfig.theme
-	ctx.Toc = false
+	ctx.Toc = wikiConfig.toc
 	ctx.HeadingNumber = wikiConfig.heading_number
 	ctx.Host = wikiConfig.host
 
