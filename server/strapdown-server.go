@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -80,7 +81,7 @@ func parseConfig() {
 	flag.BoolVar(&wikiConfig.init, "init", false, "init git repository before running, just like `git init`")
 	flag.StringVar(&wikiConfig.root, "dir", "", "The root directory for the git/wiki")
 	flag.StringVar(&wikiConfig.auth, "auth", ".htpasswd", "Default auth file to use as authentication, authentication will be disabled if auth file not exist")
-	flag.StringVar(&wikiConfig.host, "host", "http://cdn.ztx.io/strapdown", "URL prefix where host hosting the strapdown static files")
+	flag.StringVar(&wikiConfig.host, "host", "/_static", "URL prefix where host hosting the strapdown static files")
 	flag.StringVar(&wikiConfig.heading_number, "heading_number", "false", "set default value for showing heading number")
 	flag.StringVar(&wikiConfig.title, "title", "Wiki", "default title for wiki pages")
 	flag.StringVar(&wikiConfig.theme, "theme", "cerulean", "default theme for strapdown")
@@ -246,10 +247,16 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 					w.Write(file)
 					return nil
 				} else {
-					//
-					file := Read(this.path)
-					w.Write(file)
-					return nil
+					var mimetype string = "application/octet-stream"
+					lastdot := strings.LastIndex(this.path, ".")
+					if lastdot > -1 {
+						mimetype = mime.TypeByExtension(this.path[lastdot:])
+					}
+					w.Header().Set("Content-Type", mimetype)
+
+					data, err := ioutil.ReadFile(this.path)
+					w.Write(data)
+					return err
 				}
 			} else {
 				http.NotFound(*this.res, this.req)
@@ -332,13 +339,27 @@ func main() {
 		log.Printf("authentication file not exist, disable http authentication")
 	}
 
-	if _, err := os.Stat("favicon.ico"); os.IsNotExist(err) {
-		ico, err := Asset("_static/fav.ico")
-		err = ioutil.WriteFile("favicon.ico", ico, 0644)
-		if err != nil {
-			log.Printf("[ WARN ] cannot write default favicon.ico: %v", err)
-		} else {
-			log.Printf("[ ctx ] not found favicon.ico, write a default one")
+	if _, err := os.Stat("_static"); os.IsNotExist(err) {
+		// release the files
+		log.Print("Seems you don't have `_static` folder, release one to hold the static file")
+		files := AssetNames()
+
+		for _, name := range files {
+			if strings.HasSuffix(name, ".html") {
+				continue
+			}
+			file, err := Asset(name)
+			if err != nil {
+				log.Printf("[ WARN ] fail to load: %s", name)
+			}
+			err = os.MkdirAll(path.Dir(name), 0700)
+			if err != nil {
+				log.Printf("[ WARN ] fail to create folder: %s", path.Dir(name))
+			}
+			err = ioutil.WriteFile(name, file, 0644)
+			if err != nil {
+				log.Printf("[ WARN ] cannot write default favicon.ico: %v", err)
+			}
 		}
 	}
 
