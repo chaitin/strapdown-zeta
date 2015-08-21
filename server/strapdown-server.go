@@ -345,7 +345,7 @@ func main() {
 		files := AssetNames()
 
 		for _, name := range files {
-			if strings.HasSuffix(name, ".html") {
+			if strings.HasSuffix(name, ".html") || name == "fav.ico" {
 				continue
 			}
 			file, err := Asset(name)
@@ -358,8 +358,22 @@ func main() {
 			}
 			err = ioutil.WriteFile(name, file, 0644)
 			if err != nil {
-				log.Printf("[ WARN ] cannot write default favicon.ico: %v", err)
+				log.Printf("[ WARN ] cannot write file: %v", err)
 			}
+		}
+	}
+
+	if _, err := os.Stat("favicon.ico"); os.IsNotExist(err) {
+		// release the files
+		log.Print("Release the favicon.ico")
+
+		file, err := Asset("_static/fav.ico")
+		if err != nil {
+			log.Printf("[ WARN ] fail to load favicon.ico")
+		}
+		err = ioutil.WriteFile("favicon.ico", file, 0644)
+		if err != nil {
+			log.Printf("[ WARN ] cannot write default favicon.ico: %v", err)
 		}
 	}
 
