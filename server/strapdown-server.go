@@ -221,7 +221,6 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 
 	if this.req.Method == "GET" {
 		if this.isMarkdown {
-
 			if this.hasFile {
 				data, err := ioutil.ReadFile(this.path)
 				if err == nil {
@@ -242,9 +241,9 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 						folder := path.Dir(this.path)
 						_, err := os.Stat(folder)
 						if err == nil {
-							return this.Listdir()
-						} else {
 							return this.Edit()
+						} else {
+							return this.Listdir()
 						}
 					} else {
 						return this.Edit()
