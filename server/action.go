@@ -192,7 +192,7 @@ func (this *RequestContext) Diff(diff_ary []string) error {
 func SaveAndCommit(fp string, content []byte, comment string, author string) error {
 	var err error
 
-	err = os.MkdirAll(path.Dir(fp), 0600)
+	err = os.MkdirAll(path.Dir(fp), 0700)
 	if err != nil {
 		return err
 	}
