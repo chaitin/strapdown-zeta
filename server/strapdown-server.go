@@ -357,7 +357,7 @@ func main() {
 		files := AssetNames()
 
 		for _, name := range files {
-			if strings.HasSuffix(name, ".html") || name == "fav.ico" {
+			if strings.HasSuffix(name, ".html") || strings.HasSuffix(name, "fav.ico") {
 				continue
 			}
 			file, err := Asset(name)
