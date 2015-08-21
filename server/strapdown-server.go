@@ -254,7 +254,9 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			if this.hasFile {
 				var w = *this.res
 				file, err := GetFileOfVersion(this.path, this.Version)
-				if err == nil {
+				// when the file is not in the git commit, the file would be []
+				// we should treat this as fail
+				if err == nil && len(file) != 0 {
 					w.Write(file)
 					return nil
 				} else {
@@ -283,8 +285,7 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 
 func handleFunc(w http.ResponseWriter, r *http.Request) {
 	// cache is evil
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
-	w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
+
 	var ctx RequestContext
 	ctx.req = r
 	ctx.res = &w
@@ -307,6 +308,13 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx.parsePath()
+
+	if strings.HasSuffix(ctx.path, "_static") || strings.HasSuffix(ctx.path, "favicon.ico") {
+		w.Header().Set("Cache-Control", "max-age=86400, public")
+	} else {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
+		w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
+	}
 
 	// forbidden any access of git related object
 	if strings.HasPrefix(ctx.path, ".git/") || ctx.path == ".git" || ctx.path == ".gitignore" || ctx.path == ".gitmodules" {
