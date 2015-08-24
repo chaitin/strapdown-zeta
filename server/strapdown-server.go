@@ -67,6 +67,7 @@ type RequestContext struct {
 	req        *http.Request
 	ip         string
 	isMarkdown bool
+	isFolder   bool
 	hasFile    bool
 	username   string
 	statusCode int
@@ -189,18 +190,25 @@ func (this *RequestContext) parseInfo() {
 	fp := this.req.URL.Path
 	if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
 		//suffixed file
-		_, err := os.Stat(fp[1:])
+		data, err := os.Stat(fp[1:])
 		this.hasFile = (err == nil)
 		if this.hasFile {
 			this.isMarkdown = false
+			this.isFolder = data.IsDir()
 		} else {
 			this.isMarkdown = true
-			if strings.HasSuffix(fp, ".md") {
-				// NOTICE: if we have a .md and .md.md file , the .md file's raw content would returned
-				fp += ".md" // add the extra .md to simulate the original behavior
-				_, err := os.Stat(fp[1:])
-				this.hasFile = (err == nil)
+			fp += ".md"
+			data, err := os.Stat(fp[1:])
+			if this.hasFile = (err == nil); this.hasFile {
+				this.isFolder = data.IsDir()
+				// we have a xx.xx.md
+			} else {
+				this.isFolder = false
 			}
+			// if strings.HasSuffix(fp, ".md.md") {
+			// NOTICE: if we have a .md and .md.md file , the .md file's raw content would returned
+			// fp = fp[:len(fp)-3]
+			// }
 		}
 		// we want the page show the original .md if we have xxx.md in the url
 		// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
@@ -208,8 +216,13 @@ func (this *RequestContext) parseInfo() {
 		// for the urls with no .md and not existed, regards as markdown file and edit
 		fp += ".md"
 		this.isMarkdown = true
-		_, err := os.Stat(fp[1:])
+		data, err := os.Stat(fp[1:])
 		this.hasFile = (err == nil)
+		if this.hasFile {
+			this.isFolder = data.IsDir()
+		} else {
+			this.isFolder = false
+		}
 	}
 	this.path = fp[1:]
 
@@ -229,10 +242,18 @@ func (this *RequestContext) parseInfo() {
 func (this *RequestContext) parseAndDo(req *http.Request) error {
 	q := req.URL.Query()
 
+	// disable log for static
+	if !strings.HasPrefix(this.path, "_static") && !strings.HasPrefix(this.path, "favicon.ico") {
+		log.Printf("[ DEBUG ] Path <%s> Markdown: %t Folder: %t Existed: %t", this.path, this.isMarkdown, this.isFolder, this.hasFile)
+	}
+
 	version_ary, hasversion := q["version"]
 	this.Version = getVersion(hasversion, version_ary)
 
 	if this.req.Method == "GET" {
+		if this.isFolder && this.hasFile {
+			return errors.New("Existed folder with .md extension.")
+		}
 		if this.isMarkdown {
 			if this.hasFile {
 				data, err := ioutil.ReadFile(this.path)
