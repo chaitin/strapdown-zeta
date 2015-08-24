@@ -251,6 +251,10 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 	this.Version = getVersion(hasversion, version_ary)
 
 	if this.req.Method == "GET" {
+		if this.isFolder && this.hasFile && this.path[len(this.path)-1] != '/' {
+			this.path += "/.md"
+			return this.Listdir()
+		}
 		if this.isFolder && this.hasFile {
 			return errors.New("Existed folder with .md extension.")
 		}
