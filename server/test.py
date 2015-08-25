@@ -1,10 +1,21 @@
 #!/usr/bin/env python2
 
-import os, sys, unittest, random, string
+import os
+import sys
+import unittest
+import random
+import string
 import tempfile
 import subprocess
+import socket
 import requests
 import time
+
+
+def check_port(p):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    return sock.connect_ex(('127.0.0.1', p)) == 0
+
 
 class Test(unittest.TestCase):
 
@@ -21,15 +32,23 @@ class Test(unittest.TestCase):
         if not os.path.exists("./server"):
             print './server not found'
             sys.exit(10)
-        args = ["./server", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" +  ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
-        print args
-        self.proc = subprocess.Popen(args)
 
-        time.sleep(2)
-        def check_port(p):
-            # TODO remove listen failed ports
-            return True
+        args = ["./server", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" + ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
+        print args
+        self.proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+
+        while True:
+            for i in ports:
+                if check_port(i):
+                    print("test port true")
+                    break
+            else:
+                continue
+            break
+        # wait other ports avaliable
+        time.sleep(0.5)
         self.ports = filter(check_port, self.ports)
+        assert len(self.ports) > 0
 
     def test_index(self):
         r = requests.get("http://127.0.0.1:%d/" % self.ports[0])
@@ -48,4 +67,3 @@ if __name__ == '__main__':
         sys.exit(10)
     else:
         sys.exit(0)
-
