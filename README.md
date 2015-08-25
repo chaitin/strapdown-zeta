@@ -1,6 +1,8 @@
 
 # Strapdown-Zeta - Git powered Wiki for Hackers!
 
+![](https://travis-ci.org/chaitin/strapdown-zeta.svg)
+
 Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown.js](http://strapdownjs.com/) project.
 
 Strapdown.js makes it embarrassingly simple to create elegant Markdown documents. No server-side compilation required.
