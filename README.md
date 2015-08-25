@@ -42,7 +42,7 @@ For more, please see:
 
 Open your favorite text editor, paste the following lines into the text, then type markdown content in the middle, save the file as test.html, and open it, here you go!
 
-```
+```html
 <!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cerulean" style="display:none;">
 
 # title
@@ -56,6 +56,7 @@ your awesome markdown content goes here...
 
 You can set your favorite theme in `xmp` tag. The following themes are built-in by default.
 
+ - Chaitin
  - Amelia
  - Bootstrap
  - Cerulean
@@ -73,7 +74,7 @@ You can set your favorite theme in `xmp` tag. The following themes are built-in 
 
 To use Cosmo, use the following line
 
-```
+```html
 <!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cosmo" style="display:none;">
 
 your awesome markdown content goes here...
@@ -85,7 +86,7 @@ your awesome markdown content goes here...
 
 To generate table of content, specify `toc="true"` in xmp tag.
 
-```
+```html
 <!DOCTYPE html> <html> <title>Hello, Strapdown</title> <meta charset="utf-8"> <xmp theme="cosmo" toc="true" style="display:none;">
 
 your awesome markdown content goes here...
@@ -121,7 +122,7 @@ You can hack this project any way you want. Please follow the following build in
 
 ### build strapdown.min.js and strapdown.min.css
 
-```
+```bash
 $ npm install
 $ grunt
 ```
@@ -138,7 +139,7 @@ First, clone and build [git2go](https://github.com/libgit2/git2go) following the
 
 Then do the following
 
-```
+```bash
 $ cd server
 $ go get
 $ go build
