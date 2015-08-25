@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 
         while True:
-            for i in ports:
+            for i in self.ports:
                 if check_port(i):
                     print("test port true")
                     break
