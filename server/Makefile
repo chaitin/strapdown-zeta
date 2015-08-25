@@ -1,7 +1,7 @@
 export GOPATH := $(shell pwd)
 export PATH := $(GOPATH)/bin:${PATH}
 export GOBIN := $(GOPATH)/bin
-.PHONY: all static_file
+.PHONY: all test clean
 
 all: server
 
@@ -11,14 +11,13 @@ deps:
 	cd src/github.com/libgit2/git2go && git checkout next && git submodule update --init &&	make install &&	go install
 	cd ../../../..
 
-server: static_file deps
+server: bindata.go deps
 	go build
 
-go-bindata:
+bin/go-bindata:
 	go get -u github.com/jteeuwen/go-bindata/...
 
-static_file: go-bindata
-	rm -rf go-bindata.go
+bindata.go: bin/go-bindata
 	./bin/go-bindata -nometadata _static/...
 
 clean:
@@ -26,6 +25,7 @@ clean:
 	rm -rf pkg
 	rm -rf src
 	rm -rf server
+	rm -rf bindata.go
 
 test:
 	python test.py
