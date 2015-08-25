@@ -49,6 +49,7 @@ type Config struct {
 	theme          string
 	histsize       int
 	toc            string
+	verbose        bool
 }
 
 type RequestContext struct {
@@ -88,6 +89,7 @@ func parseConfig() {
 	flag.StringVar(&wikiConfig.theme, "theme", "cerulean", "default theme for strapdown")
 	flag.IntVar(&wikiConfig.histsize, "histsize", 30, "default history size")
 	flag.StringVar(&wikiConfig.toc, "toc", "false", "set default value for showing table of content")
+	flag.BoolVar(&wikiConfig.verbose, "verbose", false, "be verbose")
 	flag.Parse()
 }
 
@@ -185,7 +187,6 @@ func bootstrap() {
 	}
 }
 
-// todo: rename
 func (this *RequestContext) parseInfo() {
 	fp := this.req.URL.Path
 	if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
@@ -201,14 +202,10 @@ func (this *RequestContext) parseInfo() {
 			data, err := os.Stat(fp[1:])
 			if this.hasFile = (err == nil); this.hasFile {
 				this.isFolder = data.IsDir()
-				// we have a xx.xx.md
+
 			} else {
 				this.isFolder = false
 			}
-			// if strings.HasSuffix(fp, ".md.md") {
-			// NOTICE: if we have a .md and .md.md file , the .md file's raw content would returned
-			// fp = fp[:len(fp)-3]
-			// }
 		}
 		// we want the page show the original .md if we have xxx.md in the url
 		// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
@@ -241,22 +238,19 @@ func (this *RequestContext) parseInfo() {
 
 func (this *RequestContext) parseAndDo(req *http.Request) error {
 	q := req.URL.Query()
+	w := *this.res
 
 	// disable log for static
-	if !strings.HasPrefix(this.path, "_static") && !strings.HasPrefix(this.path, "favicon.ico") {
+	if wikiConfig.verbose && !strings.HasPrefix(this.path, "_static") && !strings.HasPrefix(this.path, "favicon.ico") {
 		log.Printf("[ DEBUG ] Path <%s> Markdown: %t Folder: %t Existed: %t", this.path, this.isMarkdown, this.isFolder, this.hasFile)
 	}
 
 	version_ary, hasversion := q["version"]
 	this.Version = getVersion(hasversion, version_ary)
-
 	if this.req.Method == "GET" {
-		if this.isFolder && this.hasFile && this.path[len(this.path)-1] != '/' {
-			this.path += "/.md"
-			return this.Listdir()
-		}
 		if this.isFolder && this.hasFile {
-			return errors.New("Existed folder with .md extension.")
+			http.Redirect(w, req, this.path+"/", http.StatusTemporaryRedirect)
+			return nil
 		}
 		if this.isMarkdown {
 			if this.hasFile {
@@ -281,6 +275,7 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 					log.Print(file, " ", folder)
 
 					if err == nil && file == ".md" && !this.hasFile {
+						this.path = folder
 						return this.Listdir()
 					}
 					if this.hasFile {
@@ -292,7 +287,6 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			}
 		} else {
 			if this.hasFile {
-				var w = *this.res
 				file, err := GetFileOfVersion(this.path, this.Version)
 				// when the file is not in the git commit, the file would be []
 				// we should treat this as fail

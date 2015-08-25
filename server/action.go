@@ -90,9 +90,9 @@ func (this *RequestContext) View() error {
 	return nil
 }
 func (this *RequestContext) Listdir() error {
-	fp := this.path[:len(this.path)-3]
+
 	w := *this.res
-	dirfile, err := SafeOpen(fp, "")
+	dirfile, err := SafeOpen(this.path, "")
 	if err != nil {
 		this.statusCode = http.StatusBadRequest
 		return err
@@ -100,19 +100,19 @@ func (this *RequestContext) Listdir() error {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	custom_option, err := ioutil.ReadFile(fp + ".option.json")
+	custom_option, err := ioutil.ReadFile(this.path + ".option.json")
 	if err == nil {
 		json.Unmarshal(custom_option, &this)
 	}
 	if this.Title == wikiConfig.title {
-		this.Title = fp
+		this.Title = this.path
 	}
 	this.DirEntries = make([]DirEntry, 0, 16)
-	fpstat, err := os.Stat(fp)
+	fpstat, err := os.Stat(this.path)
 	if err != nil {
 		return err
 	}
-	fpurl := url.URL{Path: path.Join("/", fp, "..")}
+	fpurl := url.URL{Path: path.Join("/", this.path, "..")}
 	this.DirEntries = append(this.DirEntries, DirEntry{Name: "..", IsDir: true, Urlpath: fpurl.String(), Size: fpstat.Size(), ModTime: fpstat.ModTime()})
 
 	for {
@@ -121,7 +121,7 @@ func (this *RequestContext) Listdir() error {
 			break
 		}
 		for _, d := range dirs {
-			dirurl := url.URL{Path: path.Join("/", fp, d.Name())}
+			dirurl := url.URL{Path: path.Join("/", this.path, d.Name())}
 			dirurls := dirurl.String()
 			if strings.HasSuffix(dirurls, ".md") {
 				dirurls = strings.TrimSuffix(dirurls, ".md")
