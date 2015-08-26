@@ -419,6 +419,20 @@ func main() {
 		}
 	}
 
+	if _, err := os.Stat(".md"); os.IsNotExist(err) {
+		// release a default .md
+		log.Print("Release default .md")
+
+		file, err := Asset("_static/.md")
+		if err != nil {
+			log.Printf("[ WARN ] fail to load .md")
+		}
+		err = ioutil.WriteFile(".md", file, 0644)
+		if err != nil {
+			log.Printf("[ WARN ] cannot write default .md: %v", err)
+		}
+	}
+
 	if _, err := os.Stat("favicon.ico"); os.IsNotExist(err) {
 		// release the files
 		log.Print("Release the favicon.ico")

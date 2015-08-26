@@ -17,7 +17,7 @@ Strapdown-Zeta add more features including a standalone server providing a git p
  - Cross-browser compatible and responsive in mobile screens.
  - GitHub flavored Markdown syntax.
  - [MathJax](http://www.mathjax.org/) support. Feel free to type in your awesome math equations.
- - Theme switchable. 14 Bootstrap themes included by default, you can add more as you wish. And everybody can switch the theme thru one click.
+ - Theme switchable. 15 Bootstrap themes included by default, you can add more as you wish. And everybody can switch the theme thru one click.
  - `Table of Content` auto generation. Just specify `toc="true"` in the `xmp` tag
  - Heading numbering and anchor support, just one click will bring you to the section you are going to.
  - Use highlight.js for syntax highlighting, which provides more beautiful coloring and more powerful syntax parsing.
@@ -29,7 +29,7 @@ Strapdown-Zeta add more features including a standalone server providing a git p
  - File modification history and view by commit version(shortened sha hash).
  - Custom view options can be specified for different files.
  - Handle of static files. Directory listing can be turned on and off.
- - HTTP Authentication provided.
+ - HTTP Authentication.
 
 For more, please see:
 
