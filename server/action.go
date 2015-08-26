@@ -102,6 +102,15 @@ func (this *RequestContext) Update() error {
 		}
 		upload_content = buffer.Bytes()
 	}
+	if this.isMarkdown {
+		if bytes.Contains(upload_content, []byte("</xmp>")) {
+			this.statusCode = http.StatusBadRequest
+			w := *this.res
+			html := "<html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body><h1>You shouldn't include &lt;/xmp&gt; in the text</h1><p>This page will auto reload in 5 secs.</p></body></html>"
+			w.Write([]byte(html))
+			return nil
+		}
+	}
 	// save
 	err := SaveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
 	if err != nil {
