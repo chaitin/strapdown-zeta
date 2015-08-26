@@ -29,43 +29,41 @@ type CustomOption struct {
 func (this *RequestContext) SafelyUpdateConfig(path string) {
 	option, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Print(" [ WARN ] " + err.Error())
 		return
 	}
 	var custom_option = CustomOption{}
 	err = json.Unmarshal(option, &custom_option)
 	if err != nil {
-		log.Print(" [ WARN ] " + err.Error())
 		return
 	}
 	if custom_option.Title != "" {
 		this.Title = custom_option.Title
 		if wikiConfig.verbose {
-			log.Print("[ DEBUG ] update page title from config.json")
+			log.Print("[ DEBUG ] update page title from option.json")
 		}
 	}
 	if custom_option.HeadingNumber != "" {
 		this.HeadingNumber = custom_option.HeadingNumber
 		if wikiConfig.verbose {
-			log.Print("[ DEBUG ] update page heading number from config.json")
+			log.Print("[ DEBUG ] update page heading number from option.json")
 		}
 	}
 	if custom_option.Toc != "" {
 		this.Toc = custom_option.Toc
 		if wikiConfig.verbose {
-			log.Print("[ DEBUG ] update page toc from config.json")
+			log.Print("[ DEBUG ] update page toc from option.json")
 		}
 	}
 	if custom_option.Host != "" {
 		this.Host = custom_option.Host
 		if wikiConfig.verbose {
-			log.Print("[ DEBUG ] update page Host from config.json")
+			log.Print("[ DEBUG ] update page Host from option.json")
 		}
 	}
 	if custom_option.Theme != "" {
 		this.Theme = custom_option.Theme
 		if wikiConfig.verbose {
-			log.Print("[ DEBUG ] update page theme from config.json")
+			log.Print("[ DEBUG ] update page theme from option.json")
 		}
 	}
 	return

@@ -272,7 +272,6 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 					file := path.Base(this.path)
 					folder := path.Dir(this.path)
 					_, err := os.Stat(folder)
-					log.Print(file, " ", folder)
 
 					if err == nil && file == ".md" && !this.hasFile {
 						this.path = folder
@@ -312,6 +311,10 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			}
 		}
 	} else if this.req.Method == "POST" || this.req.Method == "PUT" {
+		if strings.HasSuffix(this.path, "option.json") {
+			this.statusCode = http.StatusForbidden
+			return errors.New("Uploading option.json is not allowed")
+		}
 		return this.Update()
 	}
 	return nil
