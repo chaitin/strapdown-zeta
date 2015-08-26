@@ -18,6 +18,59 @@ import (
 	"time"
 )
 
+type CustomOption struct {
+	Title         string
+	Theme         string
+	Toc           string
+	HeadingNumber string
+	Host          string
+}
+
+func (this *RequestContext) SafelyUpdateConfig(path string) {
+	option, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Print(" [ WARN ] " + err.Error())
+		return
+	}
+	var custom_option = CustomOption{}
+	err = json.Unmarshal(option, &custom_option)
+	if err != nil {
+		log.Print(" [ WARN ] " + err.Error())
+		return
+	}
+	if custom_option.Title != "" {
+		this.Title = custom_option.Title
+		if wikiConfig.verbose {
+			log.Print("[ DEBUG ] update page title from config.json")
+		}
+	}
+	if custom_option.HeadingNumber != "" {
+		this.HeadingNumber = custom_option.HeadingNumber
+		if wikiConfig.verbose {
+			log.Print("[ DEBUG ] update page heading number from config.json")
+		}
+	}
+	if custom_option.Toc != "" {
+		this.Toc = custom_option.Toc
+		if wikiConfig.verbose {
+			log.Print("[ DEBUG ] update page toc from config.json")
+		}
+	}
+	if custom_option.Host != "" {
+		this.Host = custom_option.Host
+		if wikiConfig.verbose {
+			log.Print("[ DEBUG ] update page Host from config.json")
+		}
+	}
+	if custom_option.Theme != "" {
+		this.Theme = custom_option.Theme
+		if wikiConfig.verbose {
+			log.Print("[ DEBUG ] update page theme from config.json")
+		}
+	}
+	return
+}
+
 func (this *RequestContext) Update() error {
 	var comment string
 	if this.hasFile {
@@ -78,10 +131,7 @@ func (this *RequestContext) View() error {
 		}
 
 	} else {
-		custom_view_option, errv := ioutil.ReadFile(this.path + ".option.json")
-		if errv == nil {
-			json.Unmarshal(custom_view_option, &this) // DANGER!!!!!
-		}
+		this.SafelyUpdateConfig(this.path + ".option.json")
 		err := templates["view"].Execute(*this.res, this)
 		if err != nil {
 			log.Printf("[ ERR ] fill view template error: %v", err)
@@ -100,10 +150,8 @@ func (this *RequestContext) Listdir() error {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	custom_option, err := ioutil.ReadFile(this.path + ".option.json")
-	if err == nil {
-		json.Unmarshal(custom_option, &this)
-	}
+	this.SafelyUpdateConfig(this.path + ".option.json")
+
 	if this.Title == wikiConfig.title {
 		this.Title = this.path
 	}
@@ -142,11 +190,7 @@ func (this *RequestContext) History() error {
 		}
 		return nil
 	}
-	custom_option, err := ioutil.ReadFile(this.path + ".option.json")
-	if err == nil {
-		json.Unmarshal(custom_option, &this)
-	}
-
+	this.SafelyUpdateConfig(this.path + ".option.json")
 	if this.Title == wikiConfig.title {
 		this.Title = this.path
 	}
@@ -154,10 +198,8 @@ func (this *RequestContext) History() error {
 	return templates["history"].Execute(*this.res, this)
 }
 func (this *RequestContext) Edit() error {
-	custom_option, err := ioutil.ReadFile(this.path + ".option.json")
-	if err == nil {
-		json.Unmarshal(custom_option, &this)
-	}
+	this.SafelyUpdateConfig(this.path + ".option.json")
+
 	return templates["edit"].Execute(*this.res, this)
 }
 func (this *RequestContext) Diff(diff_ary []string) error {
@@ -173,10 +215,8 @@ func (this *RequestContext) Diff(diff_ary []string) error {
 	}
 	w := *this.res
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	custom_option, err := ioutil.ReadFile(this.path + ".option.json")
-	if err == nil {
-		json.Unmarshal(custom_option, &this)
-	}
+	this.SafelyUpdateConfig(this.path + ".option.json")
+
 	content, err := GetFileDiff(this.path, diff_parts)
 	this.Content = template.HTML(*content)
 	if err != nil {
