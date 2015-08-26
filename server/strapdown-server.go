@@ -273,7 +273,7 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 					folder := path.Dir(this.path)
 					_, err := os.Stat(folder)
 
-					if err == nil && file == ".md" && !this.hasFile {
+					if err == nil && file == ".md" && !this.hasFile && folder != "." {
 						this.path = folder
 						return this.Listdir()
 					}
