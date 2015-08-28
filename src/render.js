@@ -26,15 +26,16 @@ function upsertTheme(base, theme){
       csses = document.getElementsByTagName("link")
   for(var i = csses.length - 1; i >= 0; i--){
     if(csses[i].rel == 'stylesheet' && csses[i].href.match(base + "/themes/")){
-      csses[i].href = base + '/themes/' + theme + '.min.css';
+      csses[i].setAttribute("href", base + '/themes/' + theme + '.min.css');
       found = true;
       break;
     }
   }
+  console.log(found)
   if(!found){
     var linkEl = document.createElement('link');
-    linkEl.href = base + '/themes/'+theme+'.min.css';
-    linkEl.rel = 'stylesheet';
+    linkEl.setAttribute("href", base + '/themes/'+theme+'.min.css');
+    linkEl.setAttribute("rel", "stylesheet");
     document.head.appendChild(linkEl);
   }
 }

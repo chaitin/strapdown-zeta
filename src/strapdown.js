@@ -1,16 +1,11 @@
 // here we init the view page
 (function(window, document) {
-var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
-
-  var theme = store.get('theme') || 'chaitin';
-
+  var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
+  document.head = document.getElementsByTagName('head')[0];
   //////////////////////////////////////////////////////////////////////
   //
   // Shims for IE < 9
   //
-
-  document.head = document.getElementsByTagName('head')[0];
-
   if (!('getElementsByClassName' in document)) {
     document.getElementsByClassName = function(name) {
       function getElementsByClassName(node, classname) {
@@ -30,7 +25,6 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
   //
   // Get user elements we need
   //
-
   var markdownEl = document.getElementsByTagName('xmp')[0] || document.getElementsByTagName('textarea')[0],
       titleEl = document.getElementsByTagName('title')[0],
       navbarEl = document.getElementsByClassName('navbar')[0];
@@ -58,7 +52,7 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
     document.head.appendChild(metaEl);
 
   // Get theme
-  theme = theme || markdownEl.getAttribute('theme') || 'chaitin';
+  var theme = store.get('theme') || markdownEl.getAttribute('theme') || 'chaitin';
   theme = theme.toLowerCase();
 
   var base = getScriptBase("strapdown");
@@ -128,8 +122,7 @@ var store = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
         a.setAttribute('href', '#');
         li.appendChild(a);
         addEvent(a, 'click', function () {
-          store.set('theme', val);
-          location.reload();
+          upsertTheme(base, val.toLowerCase())
         });
         themeEl.appendChild(li);
       });
