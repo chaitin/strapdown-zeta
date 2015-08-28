@@ -121,8 +121,16 @@
         setInnerText(a, val);
         a.setAttribute('href', '#');
         li.appendChild(a);
-        addEvent(a, 'click', function () {
-          upsertTheme(base, val.toLowerCase())
+        if(val.toLowerCase() == theme){
+            li.className = "active"
+        }
+        addEvent(a, 'click', function (e) {
+          upsertTheme(base, val.toLowerCase());
+          var actives = document.querySelectorAll("li.active");
+          [].forEach.call(actives, function(ele){
+            ele.className = "";
+          })
+          e.target.parentNode.className = "active";
         });
         themeEl.appendChild(li);
       });
