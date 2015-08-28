@@ -340,7 +340,8 @@ function render(newNode, markdown, theme, heading_number, show_toc){
           e = document.createElement('li');
           var a = document.createElement('a');
           a.setAttribute('href', list[i].target);
-          a.appendChild(document.createTextNode(list[i].title));
+          a.innerHTML = list[i].title;
+          // a.appendChild(document.createTextNode(list[i].title));
           e.appendChild(a);
         }
         ul.appendChild(e);
