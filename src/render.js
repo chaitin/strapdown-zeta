@@ -248,11 +248,11 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var counter_to_str = function (hc) {
     var i = 5;
-    var ret = "" + itoa(hc[1], 0);
-    for (; i >= 1; i--) {
+    var ret = "" + itoa(hc[0], 0);
+    for (; i >= 0; i--) {
       if (hc[i]) break;
     }
-    for (var j = 2; j <= i; j++) {
+    for (var j = 1; j <= i; j++) {
       ret += "." + itoa(hc[j], j);
     }
     return ret;
@@ -263,35 +263,43 @@ function render(newNode, markdown, theme, heading_number, show_toc){
   var renderer = new marked.Renderer();
   renderer.heading = function (text, level) {
     
-    heading_counter[level-1]++;
-    for (var i = level; i < 6; i++) {
-      heading_counter[i] = 0;
+    // treat h1 as title here
+
+    if (level > 1) {
+      heading_counter[level-2]++;
+      for (var i = level-1; i < 6; i++) {
+        heading_counter[i] = 0;
+      }
     }
 
-    var heading_number_str = counter_to_str(heading_counter);
-
-    var escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^-_.\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
+    var heading_number_str = '', escapedText;
+    if (level > 1) {
+      heading_number_str = counter_to_str(heading_counter);
+    }
+    escapedText = 'h' + heading_number_str + '_' + text.toLowerCase().replace(/[^-_.\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/g, '-');
 
     // generate heading
     var before_heading;
     if (!heading_number || heading_number == 'none' || heading_number == "false" || level == 1) {
       before_heading = '';
     } else {
-        before_heading = heading_number_str + ' ';
+      before_heading = heading_number_str + ' ';
     }
 
     // for table of content
-    var a = toc;
-    for (var i = 0; i < level-1; i++) {
-      if (a.length == 0 || !Array.isArray(a[a.length-1])) {
-        a.push([]);
+    if (level > 1) {
+      var a = toc;
+      for (var i = 0; i < level-2; i++) {
+        if (a.length == 0 || !Array.isArray(a[a.length-1])) {
+          a.push([]);
+        }
+        a = a[a.length-1];
       }
-      a = a[a.length-1];
+      a.push({
+        'target': '#' + escapedText,
+        'title': before_heading + text
+      });
     }
-    a.push({
-      'target': '#' + escapedText,
-      'title': before_heading + text
-    });
 
     return '<h' + level + ' style="position:relative;"><a name="' +
                 escapedText +
@@ -306,6 +314,14 @@ function render(newNode, markdown, theme, heading_number, show_toc){
   var html = marked(markdown_without_mathjax, { renderer: renderer } );
 
   var html_with_mathjax = replaceMath(html);
+
+  var content = document.getElementById('content');
+
+  content.innerHTML = html_with_mathjax;
+
+  if (content.childNodes.length > 0 && content.childNodes[0].tagName.toLowerCase() == "h1") {
+    content.insertBefore(document.createElement('hr'), content.childNodes[0].nextSibling);
+  }
 
   if (show_toc == 'true') {
     var toc_html = document.createElement('ul');
@@ -326,20 +342,23 @@ function render(newNode, markdown, theme, heading_number, show_toc){
         ul.appendChild(e);
       }
     }
-    traverse(toc[1], toc_html); // ignore the h1
+    traverse(toc, toc_html); // ignore the h1
 
-    var div = document.createElement('div');
-    div.className = 'container';
-    var title = document.createElement('h1');
-    title.appendChild(document.createTextNode('Table of Content'));
-    div.appendChild(title);
-    div.appendChild(document.createElement('hr'));
-    div.appendChild(toc_html);
-    div.appendChild(document.createElement('hr'));
-    document.body.insertBefore(div, document.getElementById('content'));
+    if (content.childNodes.length == 0 || content.childNodes[0].tagName.toLowerCase() != "h1") {
+      var div = document.createElement('div');
+      div.className = 'container';
+      var title = document.createElement('h1');
+      title.appendChild(document.createTextNode('Table of Content'));
+      div.appendChild(title);
+      div.appendChild(document.createElement('hr'));
+      div.appendChild(toc_html);
+      div.appendChild(document.createElement('hr'));
+      document.body.insertBefore(div, content);
+    } else {
+      content.insertBefore(toc_html, content.childNodes[1].nextSibling);
+      content.insertBefore(document.createElement('hr'), content.childNodes[2].nextSibling);
+    }
   }
-
-  document.getElementById('content').innerHTML = html_with_mathjax;
 
   if (html_with_mathjax != html) {
     if(!window.MathJax){
