@@ -226,6 +226,7 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var toc = [];
   var heading_counter = [0, 0, 0, 0, 0, 0];
+  // actually the first counter is just a placeholder, we don't render the h1 with number
 
   var hn_table = ['i', 'i', 'i', 'i', 'i', 'i'];
   if (heading_number && heading_number != 'none' && heading_number != "false" ) {
@@ -247,11 +248,11 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var counter_to_str = function (hc) {
     var i = 5;
-    var ret = "" + itoa(hc[0], 0);
-    for (; i >= 0; i--) {
+    var ret = "" + itoa(hc[1], 0);
+    for (; i >= 1; i--) {
       if (hc[i]) break;
     }
-    for (var j = 1; j <= i; j++) {
+    for (var j = 2; j <= i; j++) {
       ret += "." + itoa(hc[j], j);
     }
     return ret;
@@ -261,7 +262,7 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var renderer = new marked.Renderer();
   renderer.heading = function (text, level) {
-
+    
     heading_counter[level-1]++;
     for (var i = level; i < 6; i++) {
       heading_counter[i] = 0;
@@ -273,10 +274,10 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
     // generate heading
     var before_heading;
-    if (!heading_number || heading_number == 'none' || heading_number == "false") {
+    if (!heading_number || heading_number == 'none' || heading_number == "false" || level == 1) {
       before_heading = '';
     } else {
-      before_heading = heading_number_str + ' ';
+        before_heading = heading_number_str + ' ';
     }
 
     // for table of content
@@ -325,7 +326,7 @@ function render(newNode, markdown, theme, heading_number, show_toc){
         ul.appendChild(e);
       }
     }
-    traverse(toc, toc_html);
+    traverse(toc[1], toc_html); // ignore the h1
 
     var div = document.createElement('div');
     div.className = 'container';
