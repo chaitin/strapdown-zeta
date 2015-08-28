@@ -306,6 +306,27 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var html_with_mathjax = replaceMath(html);
 
+  var content = document.getElementById('content');
+  content.innerHTML = html_with_mathjax;
+
+  var content_title = '';
+  for (var ci = 0; ci < content.childNodes.length; ci++) {
+    if (content.childNodes[ci].tagName.toLowerCase() == 'title') {
+      content_title = content.childNodes[ci].textContent || content.childNodes[ci].innerText;
+      break;
+    }
+  }
+
+  var titleContainer = document.createElement('div');
+  titleContainer.className = 'container';
+
+  if (content_title) {
+    var titleEl = document.createElement('h1');
+    titleEl.appendChild(document.createTextNode(content_title));
+    titleContainer.appendChild(titleEl);
+    titleContainer.appendChild(document.createElement('hr'));
+  }
+
   if (show_toc == 'true') {
     var toc_html = document.createElement('ul');
 
@@ -327,18 +348,16 @@ function render(newNode, markdown, theme, heading_number, show_toc){
     }
     traverse(toc, toc_html);
 
-    var div = document.createElement('div');
-    div.className = 'container';
-    var title = document.createElement('h1');
-    title.appendChild(document.createTextNode('Table of Content'));
-    div.appendChild(title);
-    div.appendChild(document.createElement('hr'));
-    div.appendChild(toc_html);
-    div.appendChild(document.createElement('hr'));
-    document.body.insertBefore(div, document.getElementById('content'));
+    if (!content_title) {
+      var title = document.createElement('h1');
+      title.appendChild(document.createTextNode('Table of Content'));
+      titleContainer.appendChild(title);
+      titleContainer.appendChild(document.createElement('hr'));
+    }
+    titleContainer.appendChild(toc_html);
+    titleContainer.appendChild(document.createElement('hr'));
   }
-
-  document.getElementById('content').innerHTML = html_with_mathjax;
+  document.body.insertBefore(titleContainer, content);
 
   if (html_with_mathjax != html) {
     if(!window.MathJax){
