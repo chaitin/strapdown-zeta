@@ -311,7 +311,7 @@ function render(newNode, markdown, theme, heading_number, show_toc){
 
   var content_title = '';
   for (var ci = 0; ci < content.childNodes.length; ci++) {
-    if (content.childNodes[ci].tagName.toLowerCase() == 'title') {
+    if (content.childNodes[ci].tagName && content.childNodes[ci].tagName.toLowerCase() == 'title') {
       content_title = content.childNodes[ci].textContent || content.childNodes[ci].innerText;
       break;
     }
