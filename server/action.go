@@ -127,7 +127,7 @@ func (this *RequestContext) Update() error {
 	}
 	// save
 	if wikiConfig.verbose {
-		log.Print("[ DEBUG ] try write to %s, %d bytes", this.path, len(upload_content))
+		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
 	}
 	err := SaveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
 	if err != nil {
