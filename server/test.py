@@ -10,11 +10,16 @@ import subprocess
 import socket
 import requests
 import time
+import shutil
 
 
 def check_port(p):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     return sock.connect_ex(('127.0.0.1', p)) == 0
+
+
+def random_name(length=10):
+    return ''.join([random.choice(string.ascii_letters) for i in xrange(length)])
 
 
 class Test(unittest.TestCase):
@@ -33,7 +38,7 @@ class Test(unittest.TestCase):
             print './server not found'
             sys.exit(10)
 
-        args = ["./server", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" + ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
+        args = ["./server", "-verbose", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" + ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
         print args
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -54,9 +59,30 @@ class Test(unittest.TestCase):
         r = requests.get("http://127.0.0.1:%d/" % self.ports[0])
         assert self.title in r.text
 
+    def test_upload(self):
+        randomFile = os.urandom(20)
+        filename = random_name() + '.file'
+        r = requests.post("http://127.0.0.1:%d/%s" % (self.ports[0], filename), files={
+            "body": (filename, randomFile)
+        })
+        assert r.content == randomFile
+        assert open(os.path.join(self.cwd, filename), 'rb').read() == randomFile
+
+    def test_upload_without_ext(self):
+        randomFile = os.urandom(20)
+        filename = random_name()
+        r = requests.post("http://127.0.0.1:%d/%s" % (self.ports[0], filename), files={
+            "body": (filename, randomFile)
+        })
+        # print(repr(r.content), repr(randomFile))
+        assert r.content == randomFile
+        assert open(os.path.join(self.cwd, filename), 'rb').read() == randomFile
+
     def tearDown(self):
         self.proc.terminate()
         self.proc.wait()
+        shutil.rmtree(self.cwd)
+
 
 if __name__ == '__main__':
     if os.path.dirname(sys.argv[0]):

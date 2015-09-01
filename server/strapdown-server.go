@@ -189,38 +189,51 @@ func bootstrap() {
 
 func (this *RequestContext) parseInfo() {
 	fp := this.req.URL.Path
-	if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
-		//suffixed file
-		data, err := os.Stat(fp[1:])
-		this.hasFile = (err == nil)
-		if this.hasFile {
-			this.isMarkdown = false
-			this.isFolder = data.IsDir()
-		} else {
-			this.isMarkdown = true
-			fp += ".md"
+	if this.req.Method == "GET" {
+		if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
+			//suffixed file
 			data, err := os.Stat(fp[1:])
-			if this.hasFile = (err == nil); this.hasFile {
+			this.hasFile = (err == nil)
+			if this.hasFile {
+				this.isMarkdown = false
 				this.isFolder = data.IsDir()
-
 			} else {
+				this.isMarkdown = true
+				fp += ".md"
+				data, err := os.Stat(fp[1:])
+				if this.hasFile = (err == nil); this.hasFile {
+					this.isFolder = data.IsDir()
+				} else {
+					this.isFolder = false
+				}
+			}
+			// we want the page show the original .md if we have xxx.md in the url
+			// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
+		} else {
+			// for the urls with no .md and not existed, regards as markdown file and edit
+			_, err := os.Stat(fp[1:])
+			this.hasFile = (err == nil)
+			log.Print(this.hasFile)
+			if this.hasFile {
+				this.isMarkdown = false
 				this.isFolder = false
+			} else {
+				fp += ".md"
+				this.isMarkdown = true
+				data, err := os.Stat(fp[1:])
+				this.hasFile = (err == nil)
+				if this.hasFile {
+					this.isFolder = data.IsDir()
+				} else {
+					this.isFolder = false
+				}
 			}
 		}
-		// we want the page show the original .md if we have xxx.md in the url
-		// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
 	} else {
-		// for the urls with no .md and not existed, regards as markdown file and edit
-		fp += ".md"
-		this.isMarkdown = true
-		data, err := os.Stat(fp[1:])
-		this.hasFile = (err == nil)
-		if this.hasFile {
-			this.isFolder = data.IsDir()
-		} else {
-			this.isFolder = false
-		}
+		this.isMarkdown = false
+		this.isFolder = false
 	}
+
 	this.path = fp[1:]
 
 	i := strings.IndexByte(this.req.RemoteAddr, ':')
