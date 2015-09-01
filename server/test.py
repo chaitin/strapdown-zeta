@@ -61,12 +61,13 @@ class Test(unittest.TestCase):
 
     def test_upload(self):
         randomFile = os.urandom(20)
-        filename = random_name() + '.file'
+        filename = random_name() + '.mp4'
         r = requests.post("http://127.0.0.1:%d/%s" % (self.ports[0], filename), files={
             "body": (filename, randomFile)
         })
         assert r.content == randomFile
         assert open(os.path.join(self.cwd, filename), 'rb').read() == randomFile
+        assert r.headers['Content-Type'] == "video/mp4"
 
     def test_upload_without_ext(self):
         randomFile = os.urandom(20)
@@ -77,6 +78,7 @@ class Test(unittest.TestCase):
         # print(repr(r.content), repr(randomFile))
         assert r.content == randomFile
         assert open(os.path.join(self.cwd, filename), 'rb').read() == randomFile
+        assert r.headers['Content-Type'] == "application/octet-stream"
 
     def tearDown(self):
         self.proc.terminate()

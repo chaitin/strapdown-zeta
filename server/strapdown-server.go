@@ -304,24 +304,23 @@ func (this *RequestContext) parseAndDo(req *http.Request) error {
 			}
 		} else {
 			if this.hasFile {
-				file, err := GetFileOfVersion(this.path, this.Version)
+				var file []byte
+				var err error
+				file, err = GetFileOfVersion(this.path, this.Version)
 				// when the file is not in the git commit, the file would be []
 				// we should treat this as fail
-				if err == nil && len(file) != 0 {
-					w.Write(file)
-					return nil
-				} else {
-					var mimetype string = "application/octet-stream"
-					lastdot := strings.LastIndex(this.path, ".")
-					if lastdot > -1 {
-						mimetype = mime.TypeByExtension(this.path[lastdot:])
-					}
-					w.Header().Set("Content-Type", mimetype)
-
-					data, err := ioutil.ReadFile(this.path)
-					w.Write(data)
-					return err
+				if err != nil || len(file) != 0 {
+					file, err = ioutil.ReadFile(this.path)
 				}
+				var mimetype string = "application/octet-stream"
+				lastdot := strings.LastIndex(this.path, ".")
+				if lastdot > -1 {
+					mimetype = mime.TypeByExtension(this.path[lastdot:])
+				}
+
+				w.Header().Set("Content-Type", mimetype)
+				w.Write(file)
+				return err
 			} else {
 				http.NotFound(*this.res, this.req)
 				this.statusCode = http.StatusNotFound
