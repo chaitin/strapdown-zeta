@@ -79,8 +79,8 @@ var wikiConfig Config // the global config file
 var templates map[string]*template.Template
 var authenticator *auth.BasicAuth
 
-const VERSION = "v0.4"
-const POWERED_BY = "Strapdown Server(" + VERSION + ")"
+const VERSION = "0.4.1" // major.minor.patch
+const POWERED_BY = "Strapdown Server (v" + VERSION + ")"
 
 func parseConfig() {
 	flag.StringVar(&wikiConfig.addr, "addr", ":8080", "Listening `host:port`, you can specify multiple listening address separated by comma, e.g. (127.0.0.1:8080,192.168.1.2:8080)")
@@ -90,7 +90,7 @@ func parseConfig() {
 	flag.StringVar(&wikiConfig.host, "host", "/_static", "URL prefix where host hosting the strapdown static files")
 	flag.StringVar(&wikiConfig.heading_number, "heading_number", "false", "set default value for showing heading number")
 	flag.StringVar(&wikiConfig.title, "title", "Wiki", "default title for wiki pages")
-	flag.StringVar(&wikiConfig.theme, "theme", "cerulean", "default theme for strapdown")
+	flag.StringVar(&wikiConfig.theme, "theme", "chaitin", "default theme for strapdown")
 	flag.IntVar(&wikiConfig.histsize, "histsize", 30, "default history size")
 	flag.StringVar(&wikiConfig.toc, "toc", "false", "set default value for showing table of content")
 	flag.BoolVar(&wikiConfig.verbose, "verbose", false, "be verbose")
@@ -398,7 +398,7 @@ func main() {
 	bootstrap()
 
 	if wikiConfig.version {
-		fmt.Println("Strapdown Wiki Server -", VERSION)
+		fmt.Printf("Strapdown Wiki Server - v%s\n", VERSION)
 		os.Exit(0)
 	}
 
