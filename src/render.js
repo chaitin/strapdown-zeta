@@ -358,7 +358,8 @@ function render(newNode, markdown, theme, heading_number, show_toc){
     titleContainer.appendChild(toc_html);
     titleContainer.appendChild(document.createElement('hr'));
   }
-  document.body.insertBefore(titleContainer, content);
+
+  content.parentNode.insertBefore(titleContainer, content);
 
   if (html_with_mathjax != html) {
     if(!window.MathJax){
