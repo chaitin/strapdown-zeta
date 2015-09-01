@@ -125,12 +125,14 @@
             li.className = "active"
         }
         addEvent(a, 'click', function (e) {
-          upsertTheme(base, val.toLowerCase());
+          var new_theme = val.toLowerCase()
+          upsertTheme(base, new_theme);
           var actives = document.querySelectorAll("li.active");
           [].forEach.call(actives, function(ele){
             ele.className = "";
           })
           e.target.parentNode.className = "active";
+          store.set("theme", new_theme);
         });
         themeEl.appendChild(li);
       });

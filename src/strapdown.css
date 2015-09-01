@@ -333,3 +333,8 @@ Make the edit and history button switchable
 .edit li.edit-link, .history li.history-link{
   display: block !important;
 }
+
+.navbar-fixed-top .navbar-collapse, .navbar-fixed-bottom .navbar-collapse {
+    max-height: initial !important;
+    /*fix for the responsive viewport */
+}
