@@ -68,7 +68,7 @@ type RequestContext struct {
 	res        *http.ResponseWriter
 	req        *http.Request
 	ip         string
-	isMarkdown bool
+	action     string
 	isFolder   bool
 	hasFile    bool
 	username   string
@@ -192,55 +192,7 @@ func bootstrap() {
 	}
 }
 
-func (this *RequestContext) parseInfo() {
-	fp := this.req.URL.Path
-	if this.req.Method == "GET" {
-		if fp[len(fp)-1] != '/' && strings.Contains(path.Base(fp), ".") {
-			//suffixed file
-			data, err := os.Stat(fp[1:])
-			this.hasFile = (err == nil)
-			if this.hasFile {
-				this.isMarkdown = false
-				this.isFolder = data.IsDir()
-			} else {
-				this.isMarkdown = true
-				fp += ".md"
-				data, err := os.Stat(fp[1:])
-				if this.hasFile = (err == nil); this.hasFile {
-					this.isFolder = data.IsDir()
-				} else {
-					this.isFolder = false
-				}
-			}
-			// we want the page show the original .md if we have xxx.md in the url
-			// and treat any other unnormal urls as the the markdown, so we can edit it, eg /xxx.dsd/ss.dd style url
-		} else {
-			// for the urls with no .md and not existed, regards as markdown file and edit
-			_, err := os.Stat(fp[1:])
-			this.hasFile = (err == nil)
-			log.Print(this.hasFile)
-			if this.hasFile {
-				this.isMarkdown = false
-				this.isFolder = false
-			} else {
-				fp += ".md"
-				this.isMarkdown = true
-				data, err := os.Stat(fp[1:])
-				this.hasFile = (err == nil)
-				if this.hasFile {
-					this.isFolder = data.IsDir()
-				} else {
-					this.isFolder = false
-				}
-			}
-		}
-	} else {
-		this.isMarkdown = false
-		this.isFolder = false
-	}
-
-	this.path = fp[1:]
-
+func (this *RequestContext) parseIp() {
 	i := strings.IndexByte(this.req.RemoteAddr, ':')
 	if i > -1 {
 		this.ip = this.req.RemoteAddr[:i]
@@ -254,85 +206,137 @@ func (this *RequestContext) parseInfo() {
 	}
 }
 
-func (this *RequestContext) parseAndDo(req *http.Request) error {
-	q := req.URL.Query()
-	w := *this.res
-
-	// disable log for static
-	if wikiConfig.verbose && !strings.HasPrefix(this.path, "_static") && !strings.HasPrefix(this.path, "favicon.ico") {
-		log.Printf("[ DEBUG ] Path <%s> Markdown: %t Folder: %t Existed: %t", this.path, this.isMarkdown, this.isFolder, this.hasFile)
-	}
-
+func (this *RequestContext) parseInfo() {
+	fp := this.req.URL.Path[1:]
+	r := *this.req
+	q := r.URL.Query()
 	version_ary, hasversion := q["version"]
 	this.Version = getVersion(hasversion, version_ary)
-	if this.req.Method == "GET" {
-		if this.isFolder && this.hasFile {
-			http.Redirect(w, req, this.path+"/", http.StatusTemporaryRedirect)
-			return nil
-		}
-		if this.isMarkdown {
-			if this.hasFile {
-				data, err := ioutil.ReadFile(this.path)
-				if err == nil {
-					this.Content = template.HTML(string(data))
-				}
-			}
-			if _, history := q["history"]; history {
-				return this.History()
-			} else if _, edit := q["edit"]; edit {
-				return this.Edit()
-			} else if diff_ary, diff := q["diff"]; diff {
-				return this.Diff(diff_ary)
-			} else {
-				if this.hasFile {
-					return this.View()
-				} else {
-					file := path.Base(this.path)
-					folder := path.Dir(this.path)
-					_, err := os.Stat(folder)
 
-					if err == nil && file == ".md" && !this.hasFile && folder != "." {
-						this.path = folder
-						return this.Listdir()
-					}
-					if this.hasFile {
-						return this.View()
-					} else {
-						return this.Edit()
-					}
+	judge_action_for_markdown := func() {
+		if _, history := q["history"]; history {
+			this.action = "history"
+		} else if _, edit := q["edit"]; edit {
+			this.action = "edit"
+		} else if _, diff := q["diff"]; diff {
+			this.action = "diff"
+		} else {
+			this.action = "view"
+		}
+	}
+
+	if r.Method == "POST" || r.Method == "PUT" {
+		if strings.HasSuffix(fp, ".option.json") {
+			this.path = fp
+			this.action = "redirect"
+			return
+		}
+		if _, edit := q["edit"]; edit {
+			this.path = fp + ".md"
+		} else {
+			this.path = fp
+		}
+		this.action = "update"
+	}
+	if r.Method == "GET" {
+		if len(fp) == 0 { //deal with the /
+			this.path = ".md"
+			judge_action_for_markdown()
+			return
+		}
+		data, err := os.Stat(fp)
+		hasFile := err == nil
+		if hasFile {
+			if data.IsDir() {
+				if fp[len(fp)-1] != '/' {
+					this.action = "redirect"
+					this.path = fp + "/"
+					return // redirect the folder to the correct url
 				}
+				_, err := os.Stat(fp + ".md")
+				if os.IsNotExist(err) {
+					this.path = fp
+					this.action = "listdir" // when there is no .md show the content of folder
+					return
+				} else {
+					this.path = fp + ".md" // create the .md
+					judge_action_for_markdown()
+					return
+				}
+			} else {
+				this.action = "direct"
+				this.path = fp
 			}
 		} else {
-			if this.hasFile {
-				var file []byte
-				var err error
-				file, err = GetFileOfVersion(this.path, this.Version)
-				// when the file is not in the git commit, the file would be []
-				// we should treat this as fail
-				if err != nil || len(file) != 0 {
-					file, err = ioutil.ReadFile(this.path)
+			if data, err_ := os.Stat(fp + ".md"); !os.IsNotExist(err_) {
+				if data.IsDir() {
+					this.action = "redirect"
+					this.path = fp + ".md/"
+					return
+				} else {
+					this.path = fp + ".md"
+					judge_action_for_markdown()
+					return
 				}
-				var mimetype string = "application/octet-stream"
-				lastdot := strings.LastIndex(this.path, ".")
-				if lastdot > -1 {
-					mimetype = mime.TypeByExtension(this.path[lastdot:])
-				}
-
-				w.Header().Set("Content-Type", mimetype)
-				w.Write(file)
-				return err
 			} else {
-				http.NotFound(*this.res, this.req)
-				this.statusCode = http.StatusNotFound
-				return nil
+				this.action = "edit"
+				this.path = fp + ".md"
 			}
 		}
-	} else if this.req.Method == "POST" || this.req.Method == "PUT" {
-		if strings.HasSuffix(this.path, "option.json") {
-			this.statusCode = http.StatusForbidden
-			return errors.New("Uploading option.json is not allowed")
-		}
+	}
+}
+
+func (this *RequestContext) Dispatch() error {
+	r := this.req
+	q := r.URL.Query()
+	w := *this.res
+	if this.action == "update" {
 		return this.Update()
+	}
+	if this.action == "listdir" {
+		return this.Listdir()
+	}
+	if this.action == "edit" {
+		return this.Edit()
+	}
+	if this.action == "history" {
+		return this.History()
+	}
+	if this.action == "diff" {
+		diff_ary, _ := q["diff"]
+		return this.Diff(diff_ary)
+	}
+	if this.action == "view" {
+		return this.View()
+	}
+	if this.action == "redirect" {
+		http.Redirect(w, r, this.path, http.StatusTemporaryRedirect)
+		return nil
+	}
+	if this.action == "direct" {
+		_, err := os.Stat(this.path)
+		if err != nil {
+			this.statusCode = http.StatusNotFound
+			http.NotFound(w, r)
+			return nil
+		}
+		var file []byte
+		file, err = GetFileOfVersion(this.path, this.Version) //TODO: move the ioutils part into the GetFileOfVersion
+		// when the file is not in the git commit, the file would be []
+		// we should treat this as fail
+		if err != nil || len(file) != 0 {
+			file, err = ioutil.ReadFile(this.path)
+		}
+		var mimetype string = "application/octet-stream"
+		lastdot := strings.LastIndex(this.path, ".")
+		if lastdot > -1 {
+			mimetype = mime.TypeByExtension(this.path[lastdot:])
+			// what if the mimetype is empty? the browser could handle it well
+		}
+
+		w.Header().Set("Content-Type", mimetype)
+		w.Write(file)
+		return err
 	}
 	return nil
 }
@@ -353,7 +357,12 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Powered-By", POWERED_BY)
 
 	defer func() {
-		log.Printf("[ %s ] - %d %s", r.Method, ctx.statusCode, r.URL.String())
+		if !wikiConfig.verbose {
+			log.Printf("[ %s ] - %d %s", r.Method, ctx.statusCode, r.URL.String())
+		} else {
+			log.Printf("[ %s ] - %d %s (%s,%s,%s)", r.Method, ctx.statusCode, r.URL.String(), ctx.path, ctx.action, ctx.Version)
+		}
+
 	}()
 
 	if authenticator != nil { // check http auth
@@ -362,7 +371,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
+	ctx.parseIp()
 	ctx.parseInfo()
 
 	if strings.HasSuffix(ctx.path, "_static") || strings.HasSuffix(ctx.path, "favicon.ico") {
@@ -384,7 +393,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := ctx.parseAndDo(r)
+	err := ctx.Dispatch()
 	if err != nil {
 		http.Error(w, err.Error(), ctx.statusCode)
 		log.Printf("Failed: %v", err)
