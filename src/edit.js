@@ -12,6 +12,7 @@
 
     editor.setTheme("ace/theme/monokai");
     session.setMode("ace/mode/markdown");
+    session.setOption("wrap", true);
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
