@@ -50,6 +50,7 @@ type Config struct {
 	histsize       int
 	toc            string
 	verbose        bool
+	version        bool
 }
 
 type RequestContext struct {
@@ -78,6 +79,9 @@ var wikiConfig Config // the global config file
 var templates map[string]*template.Template
 var authenticator *auth.BasicAuth
 
+const VERSION = "v0.4"
+const POWERED_BY = "Strapdown Server(" + VERSION + ")"
+
 func parseConfig() {
 	flag.StringVar(&wikiConfig.addr, "addr", ":8080", "Listening `host:port`, you can specify multiple listening address separated by comma, e.g. (127.0.0.1:8080,192.168.1.2:8080)")
 	flag.BoolVar(&wikiConfig.init, "init", false, "init git repository before running, just like `git init`")
@@ -90,6 +94,7 @@ func parseConfig() {
 	flag.IntVar(&wikiConfig.histsize, "histsize", 30, "default history size")
 	flag.StringVar(&wikiConfig.toc, "toc", "false", "set default value for showing table of content")
 	flag.BoolVar(&wikiConfig.verbose, "verbose", false, "be verbose")
+	flag.BoolVar(&wikiConfig.version, "v", false, "show version")
 	flag.Parse()
 }
 
@@ -346,6 +351,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	ctx.HeadingNumber = wikiConfig.heading_number
 	ctx.Host = wikiConfig.host
 
+	w.Header().Set("X-Powered-By", POWERED_BY)
+
 	defer func() {
 		log.Printf("[ %s ] - %d %s", r.Method, ctx.statusCode, r.URL.String())
 	}()
@@ -389,6 +396,11 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 func main() {
 	parseConfig()
 	bootstrap()
+
+	if wikiConfig.version {
+		fmt.Println("Strapdown Wiki Server -", VERSION)
+		os.Exit(0)
+	}
 
 	// try open the repo
 	repo, err := git.OpenRepository(".")
