@@ -26,6 +26,20 @@ type CustomOption struct {
 	Host          string
 }
 
+func getFile(path string, version string) template.HTML {
+	content, err := GetFileOfVersion(path, version)
+	if err != nil || len(content) == 0 {
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			return template.HTML("")
+		} else {
+			return template.HTML(content)
+		}
+	} else {
+		return template.HTML(content)
+	}
+}
+
 func (this *RequestContext) SafelyUpdateConfig(path string) {
 	option, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -102,7 +116,7 @@ func (this *RequestContext) Update() error {
 		}
 		upload_content = buffer.Bytes()
 	}
-	if this.isMarkdown {
+	if strings.HasSuffix(this.path, ".md") {
 		if bytes.Contains(upload_content, []byte("</xmp>")) {
 			this.statusCode = http.StatusBadRequest
 			w := *this.res
@@ -112,6 +126,9 @@ func (this *RequestContext) Update() error {
 		}
 	}
 	// save
+	if wikiConfig.verbose {
+		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
+	}
 	err := SaveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
 	if err != nil {
 		this.statusCode = http.StatusInternalServerError
@@ -123,6 +140,7 @@ func (this *RequestContext) Update() error {
 }
 
 func (this *RequestContext) View() error {
+	this.Content = getFile(this.path, this.Version)
 	custom_view_head, errh := ioutil.ReadFile(this.path + ".head")
 	custom_view_tail, errt := ioutil.ReadFile(this.path + ".tail")
 	if errh == nil && errt == nil {
@@ -195,7 +213,6 @@ func (this *RequestContext) History() error {
 		} else {
 			return errors.New("No commit history found for " + this.path)
 		}
-		return nil
 	}
 	this.SafelyUpdateConfig(this.path + ".option.json")
 	if this.Title == wikiConfig.title {
@@ -205,8 +222,8 @@ func (this *RequestContext) History() error {
 	return templates["history"].Execute(*this.res, this)
 }
 func (this *RequestContext) Edit() error {
+	this.Content = getFile(this.path, this.Version)
 	this.SafelyUpdateConfig(this.path + ".option.json")
-
 	return templates["edit"].Execute(*this.res, this)
 }
 func (this *RequestContext) Diff(diff_ary []string) error {
