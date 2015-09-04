@@ -9,11 +9,11 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"mime"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -51,6 +51,7 @@ type Config struct {
 	toc            string
 	verbose        bool
 	version        bool
+	optext         string
 }
 
 type RequestContext struct {
@@ -68,9 +69,7 @@ type RequestContext struct {
 	res        *http.ResponseWriter
 	req        *http.Request
 	ip         string
-	action     string
 	isFolder   bool
-	hasFile    bool
 	username   string
 	statusCode int
 }
@@ -95,6 +94,7 @@ func parseConfig() {
 	flag.BoolVar(&wikiConfig.verbose, "verbose", false, "be verbose")
 	flag.BoolVar(&wikiConfig.version, "v", false, "show version")
 	flag.BoolVar(&wikiConfig.version, "version", false, "show version")
+	flag.StringVar(&wikiConfig.optext, "optext", ".option.json", "set the option filename extension")
 	flag.Parse()
 }
 
@@ -134,21 +134,16 @@ func SafeOpen(base string, name string) (*os.File, error) {
 	return f, nil
 }
 
-func getVersion(doversion bool, version_ary []string) string {
-	if doversion {
-		if len(version_ary) > 0 && len(version_ary[0]) > 0 {
-			return version_ary[0]
-		}
-	}
+func getHeadVersion() string {
 	repo, err := git.OpenRepository(".")
 	if err != nil {
 		return ""
 	}
 	head, err := repo.Head()
+	repo.Free() // no matter err is or isnot nil, free repo
 	if err != nil {
 		return ""
 	}
-	repo.Free()
 	return head.Target().String()
 }
 
@@ -199,9 +194,10 @@ func bootstrap() {
 }
 
 func (this *RequestContext) parseIp() {
-	i := strings.IndexByte(this.req.RemoteAddr, ':')
+	this.ip = this.req.RemoteAddr
+	i := strings.IndexByte(this.ip, ':')
 	if i > -1 {
-		this.ip = this.req.RemoteAddr[:i]
+		this.ip = this.ip[:i]
 	}
 	if this.req.Header.Get("X-FORWARDED-FOR") != "" {
 		if strings.Index(this.ip, "127.0.0.1") == 0 {
@@ -212,147 +208,14 @@ func (this *RequestContext) parseIp() {
 	}
 }
 
-func (this *RequestContext) parseInfo() {
-	fp := this.req.URL.Path[1:]
-	r := *this.req
-	q := r.URL.Query()
-	version_ary, hasversion := q["version"]
-	this.Version = getVersion(hasversion, version_ary)
-
-	judge_action_for_markdown := func() {
-		if _, history := q["history"]; history {
-			this.action = "history"
-		} else if _, edit := q["edit"]; edit {
-			this.action = "edit"
-		} else if _, diff := q["diff"]; diff {
-			this.action = "diff"
-		} else {
-			this.action = "view"
-		}
-	}
-
-	if r.Method == "POST" || r.Method == "PUT" {
-		if strings.HasSuffix(fp, ".option.json") {
-			this.path = fp
-			this.action = "redirect"
-			return
-		}
-		if _, edit := q["edit"]; edit {
-			this.path = fp + ".md"
-		} else {
-			this.path = fp
-		}
-		this.action = "update"
-	}
-	if r.Method == "GET" {
-		if len(fp) == 0 { //deal with the /
-			this.path = ".md"
-			judge_action_for_markdown()
-			return
-		}
-		data, err := os.Stat(fp)
-		hasFile := err == nil
-		if hasFile {
-			if data.IsDir() {
-				if fp[len(fp)-1] != '/' {
-					this.action = "redirect"
-					this.path = fp + "/"
-					return // redirect the folder to the correct url
-				}
-				_, err := os.Stat(fp + ".md")
-				if os.IsNotExist(err) {
-					this.path = fp
-					this.action = "listdir" // when there is no .md show the content of folder
-					return
-				} else {
-					this.path = fp + ".md" // create the .md
-					judge_action_for_markdown()
-					return
-				}
-			} else {
-				this.action = "direct"
-				this.path = fp
-			}
-		} else {
-			if data, err_ := os.Stat(fp + ".md"); !os.IsNotExist(err_) {
-				if data.IsDir() {
-					this.action = "redirect"
-					this.path = fp + ".md/"
-					return
-				} else {
-					this.path = fp + ".md"
-					judge_action_for_markdown()
-					return
-				}
-			} else {
-				this.action = "edit"
-				this.path = fp + ".md"
-			}
-		}
-	}
-}
-
-func (this *RequestContext) Dispatch() error {
-	r := this.req
-	q := r.URL.Query()
-	w := *this.res
-	if this.action == "update" {
-		return this.Update()
-	}
-	if this.action == "listdir" {
-		return this.Listdir()
-	}
-	if this.action == "edit" {
-		return this.Edit()
-	}
-	if this.action == "history" {
-		return this.History()
-	}
-	if this.action == "diff" {
-		diff_ary, _ := q["diff"]
-		return this.Diff(diff_ary)
-	}
-	if this.action == "view" {
-		return this.View()
-	}
-	if this.action == "redirect" {
-		http.Redirect(w, r, this.path, http.StatusTemporaryRedirect)
-		return nil
-	}
-	if this.action == "direct" {
-		_, err := os.Stat(this.path)
-		if err != nil {
-			this.statusCode = http.StatusNotFound
-			http.NotFound(w, r)
-			return nil
-		}
-		var file []byte
-		file, err = GetFileOfVersion(this.path, this.Version) //TODO: move the ioutils part into the GetFileOfVersion
-		// when the file is not in the git commit, the file would be []
-		// we should treat this as fail
-		if err != nil || len(file) != 0 {
-			file, err = ioutil.ReadFile(this.path)
-		}
-		var mimetype string = "application/octet-stream"
-		lastdot := strings.LastIndex(this.path, ".")
-		if lastdot > -1 {
-			mimetype = mime.TypeByExtension(this.path[lastdot:])
-			// what if the mimetype is empty? the browser could handle it well
-		}
-
-		w.Header().Set("Content-Type", mimetype)
-		w.Write(file)
-		return err
-	}
-	return nil
-}
-
+// this handleFunc parse request and parameters, then dispatch the action to action.go
 func handleFunc(w http.ResponseWriter, r *http.Request) {
-	// cache is evil
+	var err error
 
 	var ctx RequestContext
 	ctx.req = r
 	ctx.res = &w
+	// init to 200 OK, if no error happens, then 200 will be printed by log
 	ctx.statusCode = http.StatusOK
 	ctx.Title = wikiConfig.title
 	ctx.Theme = wikiConfig.theme
@@ -366,44 +229,244 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		if !wikiConfig.verbose {
 			log.Printf("[ %s ] - %d %s", r.Method, ctx.statusCode, r.URL.String())
 		} else {
-			log.Printf("[ %s ] - %d %s (%s,%s,%s)", r.Method, ctx.statusCode, r.URL.String(), ctx.path, ctx.action, ctx.Version)
+			log.Printf("[ %s ] - %d %s (%s)", r.Method, ctx.statusCode, r.URL.String(), ctx.path)
 		}
-
 	}()
 
+	// check auth first
 	if authenticator != nil { // check http auth
 		if ctx.username = authenticator.CheckAuth(r); ctx.username == "" {
+			ctx.statusCode = http.StatusUnauthorized // we need to setup statuscode every return to enable defered log to work
 			authenticator.RequireAuth(w, r)
 			return
 		}
 	}
-	ctx.parseIp()
-	ctx.parseInfo()
 
-	if strings.HasSuffix(ctx.path, "_static") || strings.HasSuffix(ctx.path, "favicon.ico") {
-		w.Header().Set("Cache-Control", "max-age=86400, public")
+	// parse info from parameter first
+	ctx.parseIp()
+
+	var param_version string = ""
+
+	fp := r.URL.Path[1:]
+	fpmd := fp + ".md"
+	fpstat, fperr := os.Stat(fp)
+	fpmdstat, fpmderr := os.Stat(fpmd)
+
+	// consider the situation that, the xx.md file does not exist, but does exist in some history version
+	// the following `if` will fail, but luckily, we can still use xx.md?history to view the history
+	// so the following logic works
+	if fpmderr == nil && !fpmdstat.IsDir() {
+		ctx.path = fpmd
 	} else {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
-		w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
+		ctx.path = fp
 	}
 
 	// forbidden any access of git related object
-	if strings.HasPrefix(ctx.path, ".git/") || ctx.path == ".git" || ctx.path == ".gitignore" || ctx.path == ".gitmodules" {
+	if strings.HasPrefix(fp, ".git/") || fp == ".git" || fp == ".gitignore" || fp == ".gitmodules" {
 		ctx.statusCode = http.StatusForbidden
 		http.Error(w, "access of .git related files/directory not allowed", ctx.statusCode)
 		return
 	}
-	if len(wikiConfig.auth) > 0 && ctx.path == wikiConfig.auth || ctx.path == wikiConfig.auth {
+	// forbidden any access of auth related object
+	if len(wikiConfig.auth) > 0 && fp == wikiConfig.auth {
 		ctx.statusCode = http.StatusForbidden
 		http.Error(w, "access of password file not allowed", ctx.statusCode)
 		return
 	}
 
-	err := ctx.Dispatch()
-	if err != nil {
-		http.Error(w, err.Error(), ctx.statusCode)
-		log.Printf("Failed: %v", err)
+	// cache is evil
+	if r.Method == "GET" {
+		if strings.HasSuffix(fp, "_static") || strings.HasSuffix(fp, "favicon.ico") {
+			w.Header().Set("Cache-Control", "max-age=86400, public")
+		} else {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
+			w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
+		}
+	}
+
+	q := r.URL.Query()
+
+	histsize_ary, dohistory := q["history"]
+	diff_ary, dodiff := q["diff"]
+	_, dooption := q["option"]
+	_, dodelete := q["delete"]
+
+	edit_ary, doedit := q["edit"]
+	version_ary, doversion := q["version"]
+
+	// version is not a standalone action
+	// it can be bound to edit or view actions, but history, diff, option just ignore version param
+	// so we parse versions first
+	ctx.Version = getHeadVersion()
+	if doversion {
+		if len(version_ary) > 0 && len(version_ary[0]) > 0 {
+			// note that
+			// this.Version is for View/Edit template
+			// param_version is the param user requested
+			param_version = version_ary[0]
+			ctx.Version = param_version
+		} else {
+			// default to latest
+			// that is, if the URL is http://wiki/xxx?version it is the same as http://wiki/xxx
+			param_version = ""
+		}
+	}
+
+	if dohistory {
+		if r.Method != "GET" {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, r.Method+" method not allowed for history", ctx.statusCode)
+			return
+		}
+		histsize := wikiConfig.histsize
+		if len(histsize_ary) > 0 {
+			histsize, err = strconv.Atoi(histsize_ary[0])
+			if err != nil {
+				histsize = wikiConfig.histsize
+			}
+		}
+
+		err = ctx.History(histsize)
+		if err != nil {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), ctx.statusCode)
+		}
 		return
+	}
+
+	if dodiff {
+		if r.Method != "GET" {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, r.Method+" method not allowed for diff", ctx.statusCode)
+			return
+		}
+		if len(diff_ary) == 0 {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, "params required for diff", ctx.statusCode)
+			return
+		}
+		diff_param := diff_ary[0]
+		diff_parts := strings.Split(diff_param, ",")
+
+		err = ctx.Diff(diff_parts)
+		if err != nil {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), ctx.statusCode)
+		}
+		return
+	}
+
+	if dooption {
+		if r.Method == "GET" {
+			// TODO: return option template
+		} else if r.Method == "POST" {
+			// TODO: update option
+		} else {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, r.Method+" method not allowed for option", ctx.statusCode)
+			return
+		}
+		return
+	}
+
+	if dodelete {
+		if r.Method == "GET" {
+			// TODO: return delete template, confirm for delete operation
+		} else if r.Method == "POST" || r.Method == "DELETE" {
+			// TODO: delete operation
+			// if the file is in git, delete and commit
+			// else, just delete that file
+			// but, _static/ folder and favicon.ico should not be deleted
+		} else {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, r.Method+" method not allowed for option", ctx.statusCode)
+			return
+		}
+		return
+	}
+
+	if doedit {
+		// this edit function is just for edit of .md files
+		// so set path to fpmd
+		ctx.path = fpmd
+		if r.Method == "GET" {
+			if fperr == nil && !fpstat.IsDir() {
+				if len(edit_ary) > 0 && edit_ary[0] == "raw" {
+					// if the user set edit=raw
+					// then use the original fp
+					ctx.path = fp
+				} else {
+					ctx.statusCode = http.StatusBadRequest
+					http.Error(w, fmt.Sprintf("file %s exists, use ?edit=raw", fp), ctx.statusCode)
+					return
+				}
+			}
+			// will return edit template
+			err = ctx.Edit(param_version)
+		} else if r.Method == "POST" || r.Method == "PUT" {
+			err = ctx.Update()
+		} else {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, r.Method+" method not allowed for edit", ctx.statusCode)
+			return
+		}
+		if err != nil {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), ctx.statusCode)
+		}
+		return
+	}
+
+	// finally, when no option provided
+	// View/Update/ListDir according to http method and fs state
+
+	err = nil
+
+	if r.Method == "POST" || r.Method == "PUT" {
+		// no edit, so upload to fp
+		ctx.path = fp
+		err = ctx.Update()
+	} else if r.Method == "GET" {
+		if fperr == nil { // fp exists
+			if fpstat.IsDir() { // fp is a dir
+				if !strings.HasSuffix(fp, "/") { // redirect
+					err = ctx.Redirect(r.URL.Path + "/")
+				} else if fpmderr == nil && !fpmdstat.IsDir() { // .md exists, dont list dir
+					ctx.path = fpmd
+					err = ctx.View(param_version)
+				} else if len(fp) == 0 { // root directory, dont list, just goto edit (cuz fpmd does not exists)
+					ctx.path = fpmd
+					err = ctx.Edit(param_version)
+				} else { // now we can listdir
+					err = ctx.Listdir()
+				}
+			} else { // host static file
+				ctx.path = fp
+				ctx.Static(param_version)
+			}
+		} else if fpmderr == nil { // fpmd exists, just view
+			if fpmdstat.IsDir() { // sadly, fpmd is a directory, show error
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, fmt.Sprintf("%s already exists and is a directory, please choose another path\n", fpmd), ctx.statusCode)
+				return
+			} else {
+				ctx.path = fpmd
+				err = ctx.View(param_version)
+			}
+		} else { // both fp and fpmd does not exists
+			ctx.path = fpmd
+			err = ctx.Edit(param_version)
+		}
+	} else {
+		// method not allowed
+		ctx.statusCode = http.StatusBadRequest
+		http.Error(w, r.Method+" method not allowed for view", ctx.statusCode)
+		return
+	}
+
+	if err != nil {
+		ctx.statusCode = http.StatusBadRequest
+		http.Error(w, err.Error(), ctx.statusCode)
 	}
 }
 

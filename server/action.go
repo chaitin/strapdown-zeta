@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,21 +27,12 @@ type CustomOption struct {
 	Host          string
 }
 
-func getFile(path string, version string) template.HTML {
-	content, err := GetFileOfVersion(path, version)
-	if err != nil || len(content) == 0 {
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			return template.HTML("")
-		} else {
-			return template.HTML(content)
-		}
+func (this *RequestContext) safelyUpdateConfig(path string) {
+	if len(wikiConfig.optext) == 0 {
+		path = path + ".option.json"
 	} else {
-		return template.HTML(content)
+		path = path + wikiConfig.optext
 	}
-}
-
-func (this *RequestContext) SafelyUpdateConfig(path string) {
 	option, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
@@ -85,10 +77,11 @@ func (this *RequestContext) SafelyUpdateConfig(path string) {
 
 func (this *RequestContext) Update() error {
 	var comment string
-	if this.hasFile {
+	if _, err := os.Stat(this.path); err == nil {
+		// file exists
 		comment = "update " + this.path
 	} else {
-		comment = "upload " + this.path
+		comment = "upload to " + this.path
 	}
 	// extract the content from post
 	upload_content := []byte(this.req.FormValue("body"))
@@ -129,7 +122,7 @@ func (this *RequestContext) Update() error {
 	if wikiConfig.verbose {
 		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
 	}
-	err := SaveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
+	err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
 	if err != nil {
 		this.statusCode = http.StatusInternalServerError
 		return err
@@ -139,27 +132,36 @@ func (this *RequestContext) Update() error {
 	return nil
 }
 
-func (this *RequestContext) View() error {
-	this.Content = getFile(this.path, this.Version)
+func (this *RequestContext) View(version string) error {
+	var err error
+	var content []byte
+	if len(version) > 0 {
+		content, err = getFileOfVersion(this.path, version)
+	} else {
+		if _, err = os.Stat(this.path); err == nil {
+			content, err = ioutil.ReadFile(this.path)
+		} else {
+			// file not exist, but never mind, set err = nil to just continue edit a new file
+			err = nil
+		}
+	}
+	if err != nil {
+		return err
+	}
+	this.Content = template.HTML(content)
+
 	custom_view_head, errh := ioutil.ReadFile(this.path + ".head")
 	custom_view_tail, errt := ioutil.ReadFile(this.path + ".tail")
 	if errh == nil && errt == nil {
 		var w = *this.res
-		data, err := ioutil.ReadFile(this.path)
-		if err != nil {
-			w.Write(custom_view_head)
-			w.Write(data)
-			w.Write(custom_view_tail)
-		} else {
-			w.Write(custom_view_head)
-			w.Write(custom_view_tail)
-		}
-
+		w.Write(custom_view_head)
+		w.Write(content)
+		w.Write(custom_view_tail)
 	} else {
-		this.SafelyUpdateConfig(this.path + ".option.json")
+		this.safelyUpdateConfig(this.path)
 		err := templates["view"].Execute(*this.res, this)
 		if err != nil {
-			log.Printf("[ ERR ] fill view template error: %v", err)
+			return err
 		}
 	}
 	return nil
@@ -175,7 +177,7 @@ func (this *RequestContext) Listdir() error {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	this.SafelyUpdateConfig(this.path + ".option.json")
+	this.safelyUpdateConfig(this.path)
 
 	if this.Title == wikiConfig.title {
 		this.Title = this.path
@@ -204,53 +206,60 @@ func (this *RequestContext) Listdir() error {
 	}
 	return templates["listdir"].Execute(w, this)
 }
-func (this *RequestContext) History() error {
-	commit_history, err := GetHistory(this.path, wikiConfig.histsize)
+func (this *RequestContext) History(histsize int) error {
+	commit_history, err := getHistory(this.path, histsize)
 	if err != nil || commit_history == nil || len(commit_history) == 0 {
-		this.statusCode = http.StatusBadRequest
 		if err != nil {
 			return err
 		} else {
 			return errors.New("No commit history found for " + this.path)
 		}
 	}
-	this.SafelyUpdateConfig(this.path + ".option.json")
+	this.safelyUpdateConfig(this.path)
 	if this.Title == wikiConfig.title {
 		this.Title = this.path
 	}
 	this.CommitEntries = commit_history
 	return templates["history"].Execute(*this.res, this)
 }
-func (this *RequestContext) Edit() error {
-	this.Content = getFile(this.path, this.Version)
-	this.SafelyUpdateConfig(this.path + ".option.json")
+func (this *RequestContext) Edit(version string) error {
+	var content []byte
+	var err error
+
+	if len(version) > 0 {
+		content, err = getFileOfVersion(this.path, version)
+	} else {
+		if _, err = os.Stat(this.path); err == nil {
+			content, err = ioutil.ReadFile(this.path)
+		} else {
+			// file not exist, but never mind, set err = nil to just continue edit a new file
+			err = nil
+		}
+	}
+	if err != nil {
+		return err
+	}
+	this.Content = template.HTML(content)
+	this.safelyUpdateConfig(this.path)
 	return templates["edit"].Execute(*this.res, this)
 }
-func (this *RequestContext) Diff(diff_ary []string) error {
-	// need beatifuy
-	var diff string
-	var diff_parts []string
-	if len(diff_ary) > 0 {
-		diff = diff_ary[0]
-		diff_parts = strings.Split(diff, ",")
-		if len(diff_parts) != 2 {
-			return errors.New("Bad Parameter,please select TWO versions!")
-		}
+func (this *RequestContext) Diff(versions []string) error {
+	if len(versions) != 2 {
+		return errors.New("Bad params for diff, please select exactly TWO versions!")
 	}
 	w := *this.res
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	this.SafelyUpdateConfig(this.path + ".option.json")
+	this.safelyUpdateConfig(this.path)
 
-	content, err := GetFileDiff(this.path, diff_parts)
+	content, err := getFileDiff(this.path, versions)
 	this.Content = template.HTML(*content)
 	if err != nil {
-		this.statusCode = http.StatusBadRequest
 		return err
 	}
-	this.Title = "diff for file from " + diff_parts[0] + " to " + diff_parts[1]
-	return templates["diff"].Execute(*this.res, this)
+	this.Title = "Diff for file from " + versions[0] + " to " + versions[1]
+	return templates["diff"].Execute(w, this)
 }
-func SaveAndCommit(fp string, content []byte, comment string, author string) error {
+func saveAndCommit(fp string, content []byte, comment string, author string) error {
 	var err error
 
 	err = os.MkdirAll(path.Dir(fp), 0700)
@@ -317,7 +326,7 @@ func SaveAndCommit(fp string, content []byte, comment string, author string) err
 	}
 	return nil
 }
-func GetFileOfVersion(fileName string, version string) ([]byte, error) {
+func getFileOfVersion(fileName string, version string) ([]byte, error) {
 	var err error
 	var commit *git.Commit
 
@@ -339,7 +348,7 @@ func GetFileOfVersion(fileName string, version string) ([]byte, error) {
 		commit, err = repo.LookupCommit(oid)
 
 		if err == nil && commit != nil {
-			str, err := GetFile(repo, commit, fileName)
+			str, err := getCommitFile(repo, commit, fileName)
 			if err != nil {
 				return nil, err
 			}
@@ -366,7 +375,7 @@ func GetFileOfVersion(fileName string, version string) ([]byte, error) {
 
 	for commit != nil {
 		if commit.Id().String()[0:len(version)] == version {
-			str, err := GetFile(repo, commit, fileName)
+			str, err := getCommitFile(repo, commit, fileName)
 			if err != nil {
 				return nil, err
 			}
@@ -381,7 +390,9 @@ func GetFileOfVersion(fileName string, version string) ([]byte, error) {
 	}
 	return nil, nil
 }
-func GetFileDiff(fileName string, diff_versions []string) (*string, error) {
+
+// private implementation, starts with lower case
+func getFileDiff(fileName string, diff_versions []string) (*string, error) {
 	// only diff .md file
 	// diff folder is not supported  or TODO?
 	var err error
@@ -474,7 +485,7 @@ func GetFileDiff(fileName string, diff_versions []string) (*string, error) {
 
 	return &diffResult, nil
 }
-func GetFile(repo *git.Repository, commit *git.Commit, fileName string) (*string, error) {
+func getCommitFile(repo *git.Repository, commit *git.Commit, fileName string) (*string, error) {
 	var err error
 	tree, err := commit.Tree()
 	if err != nil {
@@ -503,7 +514,7 @@ func GetFile(repo *git.Repository, commit *git.Commit, fileName string) (*string
 	ret := string(blb.Contents())
 	return &ret, nil
 }
-func GetHistory(fp string, size int) ([]CommitEntry, error) {
+func getHistory(fp string, size int) ([]CommitEntry, error) {
 	if len(fp) == 0 {
 		return nil, nil
 	}
@@ -561,4 +572,36 @@ func GetHistory(fp string, size int) ([]CommitEntry, error) {
 	})
 
 	return filehistory, nil
+}
+
+func (this *RequestContext) Redirect(target string) error {
+	http.Redirect(*this.res, this.req, target, http.StatusTemporaryRedirect)
+	return nil
+}
+
+func (this *RequestContext) Static(version string) error { // host static files
+	var mimetype string = "application/octet-stream"
+	lastdot := strings.LastIndex(this.path, ".")
+	if lastdot > -1 {
+		mimetype = mime.TypeByExtension(this.path[lastdot:])
+	}
+	if len(mimetype) == 0 {
+		mimetype = "application/octet-stream"
+	}
+	w := *this.res
+	w.Header().Set("Content-Type", mimetype)
+
+	var content []byte
+	var err error
+
+	if len(version) > 0 {
+		content, err = getFileOfVersion(this.path, version)
+	} else {
+		content, err = ioutil.ReadFile(this.path)
+	}
+	if err == nil {
+		w.Write(content)
+	}
+
+	return err
 }

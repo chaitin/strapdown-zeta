@@ -11,6 +11,7 @@ import socket
 import requests
 import time
 import shutil
+import json
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -30,6 +31,12 @@ class Test(unittest.TestCase):
         f = open(os.path.join(self.cwd, fp), 'w')
         f.write(s)
         f.close()
+
+    def readfile(self, fp):
+        f = open(os.path.join(self.cwd, fp), 'r')
+        ret = f.read()
+        f.close()
+        return ret
 
     def url(self, urlpath):
         ret = "http://127.0.0.1:%d" % random.choice(self.ports)
@@ -74,9 +81,9 @@ class Test(unittest.TestCase):
         text = u"This is a test"
         self.writefile(".md", text)
         r = requests.get(self.url('/'))
-        self.assertIn(self.title, r.text)
-        self.assertIn(unicode(text), r.text)
-        self.assertGreater(len(r.text), len(text))
+        self.assertIn(self.title, r.text, repr(r.text))
+        self.assertIn(unicode(text), r.text, repr(r.text))
+        self.assertGreater(len(r.text), len(text), repr(r.text))
 
         r = requests.get(self.url("/_static/version"))
         self.assertEqual(r.text, open(os.path.join(self.cwd, "_static", "version")).read())
@@ -84,6 +91,35 @@ class Test(unittest.TestCase):
 
         stdout = subprocess.check_output(['./' + self.binary, "-v"])
         self.assertRegexpMatches(stdout.strip(), r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
+
+        hn = '.'.join([random.choice('ia') for _ in range(5)])
+        r = requests.post(self.url("/.md.option.json"), data={
+            "body": json.dumps({
+                "HeadingNumber": hn
+            })
+        }, allow_redirects=False)
+        self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
+
+        r = requests.get(self.url("/"))
+        self.assertIn(hn, r.text, repr(r.text))
+
+        rc = random_name(50)
+        r = requests.post(self.url("/version?edit"), data={
+            "body": rc
+        }, allow_redirects=False)
+
+        r = requests.get(self.url("/version"))
+        head = self.readfile(".git/refs/heads/master").strip()
+        self.assertIn('version="%s"' % head, r.text, repr(r.text))
+        self.assertIn(rc, r.text, repr(r.text))
+
+        for i in range(10):
+            requests.post(self.url("/version?edit"), data={
+                "body": random_name(10)
+            }, allow_redirects=False)
+
+        r = requests.get(self.url("/version?version=%s" % head))
+        self.assertIn(rc, r.text, repr(r.text))
 
     def test_raw_index(self):
         text = u"This is a test"
@@ -110,7 +146,7 @@ class Test(unittest.TestCase):
         self.assertEqual(u'No commit history found for test.md\n', r.text)
 
         r = requests.get(url + "?diff")
-        self.assertEqual(u'Bad Parameter,please select TWO versions!\n', r.text)
+        self.assertEqual(u'Bad params for diff, please select exactly TWO versions!\n', r.text)
 
         text = u"this is not a text"
         r = requests.post(url + "?edit", data={
@@ -124,11 +160,14 @@ class Test(unittest.TestCase):
         url = self.url("/")
 
         r = requests.get(url+folder1_name+"/")
-        self.assertIn("edit.min.js", r.text)
+        self.assertIn("edit.min.js", r.text, repr(r.text))
 
         os.makedirs(folder1)
+        r = requests.get(url+folder1_name, allow_redirects=False)
+        self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
+        
         r = requests.get(url+folder1_name)
-        self.assertIn('id="list"', r.text)
+        self.assertIn('id="list"', r.text, repr(r.text))    # listdir
 
         text = 'This is some text'
         self.writefile(os.path.join(folder1, ".md"), text)
@@ -140,9 +179,11 @@ class Test(unittest.TestCase):
         os.makedirs(os.path.join(self.cwd, folder2))
         r = requests.get(url+folder2)
         self.assertIn('id="list"', r.text)
+
         r = requests.get(url+folder2[:-3])
-        self.assertIn(url+folder2, r.url)
-        self.assertIn('id="list"', r.text)
+        self.assertIn(r.status_code, [400, 404], r.status_code)
+        self.assertIn(folder2, r.text, repr(r.text))
+        self.assertIn("already exists and is a directory", r.text, repr(r.text))
 
     def test_upload(self):
         randomFile = os.urandom(20)
@@ -169,12 +210,25 @@ class Test(unittest.TestCase):
         r = requests.get(self.url("/www.css"))
         self.assertEqual(r.headers['Content-Type'], "text/css; charset=utf-8")
 
-    def test_upload_option_json(self):
-        r = requests.post(self.url("/test.option.json"), data={
-            "body": "some words"
-        }, allow_redirects=False)
-        self.assertGreater(r.status_code, 300)
-        self.assertLess(r.status_code, 400)
+    def test_uncommited_file(self):
+        # make a history first
+        r = requests.post(self.url("/?edit"), data={
+            "body": "# awesome strapdown-server\n\n"
+        })
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+
+        r = requests.get(self.url("/?history"))
+        self.assertRegexpMatches(r.text, r'<a href="\?version=[0-9a-f]{40}">')
+
+        content = "var a = 1;\n"
+        self.writefile("b.js", content)
+        r = requests.get(self.url("/b.js"))
+        self.assertEqual(r.text, content)
+
+        r = requests.get(self.url("/.md?edit"))
+        self.assertIn('?edit=raw', r.text)
+        self.assertEqual(r.status_code, 400)
 
 if __name__ == '__main__':
     os.chdir(CWD)
