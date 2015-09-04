@@ -36,11 +36,13 @@ class Test(unittest.TestCase):
         self.title = ''.join([random.choice(string.printable[:62]) for x in range(20)])
         self.ports = [random.randint(60000, 65535) for x in range(4)]
         self.writefile(".md", "# Wiki Index Page\n\nStrapdown Rocks!\n\n")
-        if not os.path.exists("./server"):
-            print './server not found'
+        BIN = "strapdown-server"
+        self.binary = BIN
+        if not os.path.exists("./" + BIN):
+            print './%s not found' % BIN
             sys.exit(10)
 
-        args = ["./server", "-verbose", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" + ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
+        args = ["./" + BIN, "-verbose", "-dir=" + self.cwd, "-toc=true", "-title=" + self.title, "-init", "-heading_number=i", "-addr=" + ','.join(map(lambda x: '127.0.0.1:%d' % x, self.ports))]
         print args
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -57,13 +59,24 @@ class Test(unittest.TestCase):
         self.ports = filter(check_port, self.ports)
         self.assertGreater(len(self.ports), 0)
 
-    def test_index(self):
+    def tearDown(self):
+        self.proc.terminate()
+        self.proc.wait()
+
+    def test_basic(self):
         text = u"This is a test"
         self.writefile(".md", text)
         r = requests.get("http://127.0.0.1:%d/" % self.ports[0])
         self.assertIn(self.title, r.text)
         self.assertIn(unicode(text), r.text)
         self.assertGreater(len(r.text), len(text))
+
+        r = requests.get("http://127.0.0.1:%d/_static/version" % self.ports[1])
+        self.assertEqual(r.text, open(os.path.join(self.cwd, "_static", "version")).read())
+        self.assertRegexpMatches(r.text, r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
+
+        stdout = subprocess.check_output(['./' + self.binary, "-v"])
+        self.assertRegexpMatches(stdout.strip(), r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
 
     def test_raw_index(self):
         text = u"This is a test"
@@ -155,10 +168,6 @@ class Test(unittest.TestCase):
         }, allow_redirects=False)
         self.assertGreater(r.status_code, 300)
         self.assertLess(r.status_code, 400)
-
-    def tearDown(self):
-        self.proc.terminate()
-        self.proc.wait()
 
 
 if __name__ == '__main__':

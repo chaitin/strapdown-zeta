@@ -79,8 +79,7 @@ var wikiConfig Config // the global config file
 var templates map[string]*template.Template
 var authenticator *auth.BasicAuth
 
-const VERSION = "0.4.1" // major.minor.patch
-const POWERED_BY = "Strapdown Server (v" + VERSION + ")"
+var SERVER_VERSION string
 
 func parseConfig() {
 	flag.StringVar(&wikiConfig.addr, "addr", ":8080", "Listening `host:port`, you can specify multiple listening address separated by comma, e.g. (127.0.0.1:8080,192.168.1.2:8080)")
@@ -95,6 +94,7 @@ func parseConfig() {
 	flag.StringVar(&wikiConfig.toc, "toc", "false", "set default value for showing table of content")
 	flag.BoolVar(&wikiConfig.verbose, "verbose", false, "be verbose")
 	flag.BoolVar(&wikiConfig.version, "v", false, "show version")
+	flag.BoolVar(&wikiConfig.version, "version", false, "show version")
 	flag.Parse()
 }
 
@@ -153,6 +153,12 @@ func getVersion(doversion bool, version_ary []string) string {
 }
 
 func bootstrap() {
+	v, err := Asset("_static/version")
+	if err != nil {
+		log.Printf("[ WARN ] server version not found, wrong build")
+	} else {
+		SERVER_VERSION = strings.TrimSpace(string(v))
+	}
 
 	templates = make(map[string]*template.Template)
 
@@ -354,7 +360,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	ctx.HeadingNumber = wikiConfig.heading_number
 	ctx.Host = wikiConfig.host
 
-	w.Header().Set("X-Powered-By", POWERED_BY)
+	w.Header().Set("X-Powered-By", "Strapdown Server (v"+SERVER_VERSION+")")
 
 	defer func() {
 		if !wikiConfig.verbose {
@@ -406,7 +412,7 @@ func main() {
 	bootstrap()
 
 	if wikiConfig.version {
-		fmt.Printf("Strapdown Wiki Server - v%s\n", VERSION)
+		fmt.Printf("Strapdown Wiki Server - v%s\n", SERVER_VERSION)
 		os.Exit(0)
 	}
 
