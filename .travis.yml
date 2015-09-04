@@ -5,5 +5,4 @@ python:
   - "2.7"
 install: 
   - "sudo pip install requests"
-  - "make -C server server"
-script: make -C deps all test
+script: make -C server deps all test
