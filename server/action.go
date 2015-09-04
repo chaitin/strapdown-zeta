@@ -585,6 +585,9 @@ func (this *RequestContext) Static(version string) error { // host static files
 	if lastdot > -1 {
 		mimetype = mime.TypeByExtension(this.path[lastdot:])
 	}
+	if this.path == "_static/version" {
+		mimetype = "text/plain"
+	}
 	if len(mimetype) == 0 {
 		mimetype = "application/octet-stream"
 	}
