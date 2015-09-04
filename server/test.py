@@ -88,6 +88,7 @@ class Test(unittest.TestCase):
         r = requests.get(self.url("/_static/version"))
         self.assertEqual(r.text, open(os.path.join(self.cwd, "_static", "version")).read())
         self.assertRegexpMatches(r.text, r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
+        self.assertIn("text/plain", r.headers['Content-Type'], r.headers['Content-Type'])
 
         stdout = subprocess.check_output(['./' + self.binary, "-v"])
         self.assertRegexpMatches(stdout.strip(), r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
@@ -196,14 +197,14 @@ class Test(unittest.TestCase):
         self.assertEqual(r.headers['Content-Type'], "video/mp4")
 
     def test_upload_without_ext(self):
-        randomFile = os.urandom(20)
+        randomFile = os.urandom(40)
         filename = random_name()
         r = requests.post(self.url(filename), files={
             "body": (filename, randomFile)
         })
         self.assertEqual(r.content, randomFile)
         self.assertEqual(open(os.path.join(self.cwd, filename), 'rb').read(), randomFile)
-        self.assertEqual(r.headers['Content-Type'], "application/octet-stream")
+        self.assertEqual(r.headers['Content-Type'], "application/octet-stream", r.headers['Content-Type'])
 
     def test_content_type_for_static(self):
         self.writefile("www.css", "xxx")

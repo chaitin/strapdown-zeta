@@ -111,10 +111,11 @@ func (this *RequestContext) Update() error {
 	}
 	if strings.HasSuffix(this.path, ".md") {
 		if bytes.Contains(upload_content, []byte("</xmp>")) {
-			this.statusCode = http.StatusBadRequest
 			w := *this.res
-			html := "<html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body><h1>You shouldn't include &lt;/xmp&gt; in the text</h1><p>This page will auto reload in 5 secs.</p></body></html>"
-			w.Write([]byte(html))
+			this.statusCode = http.StatusBadRequest
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte("the content just posted contains `</xmp>`, which will break strapdown system, please edit again and make sure `</xmp>` does not exists in the content\n----------------------------------------------- content posted below, copy and edit again -----------------------------------------------------------\n\n"))
+			w.Write(upload_content)
 			return nil
 		}
 	}
@@ -580,19 +581,12 @@ func (this *RequestContext) Redirect(target string) error {
 }
 
 func (this *RequestContext) Static(version string) error { // host static files
-	var mimetype string = "application/octet-stream"
+	var mimetype string
 	lastdot := strings.LastIndex(this.path, ".")
 	if lastdot > -1 {
 		mimetype = mime.TypeByExtension(this.path[lastdot:])
 	}
-	if this.path == "_static/version" {
-		mimetype = "text/plain"
-	}
-	if len(mimetype) == 0 {
-		mimetype = "application/octet-stream"
-	}
 	w := *this.res
-	w.Header().Set("Content-Type", mimetype)
 
 	var content []byte
 	var err error
@@ -602,9 +596,19 @@ func (this *RequestContext) Static(version string) error { // host static files
 	} else {
 		content, err = ioutil.ReadFile(this.path)
 	}
-	if err == nil {
-		w.Write(content)
+	if mimetype == "" {
+		if len(content) == 0 {
+			mimetype = "text/plain"
+		} else {
+			mimetype = http.DetectContentType(content)
+		}
 	}
 
-	return err
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", mimetype)
+	w.Write(content)
+
+	return nil
 }
