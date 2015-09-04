@@ -6,4 +6,4 @@ python:
 install: 
   - "sudo pip install requests"
   - "make -C server server"
-script: make -C server test
+script: make -C deps all test

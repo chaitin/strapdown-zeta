@@ -47,4 +47,4 @@ cleanall: clean
 	rm -rf src
 
 test:
-	python test.py
+	$(PYTHON2) test.py
