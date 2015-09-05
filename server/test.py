@@ -196,6 +196,10 @@ class Test(unittest.TestCase):
         self.assertEqual(open(os.path.join(self.cwd, filename), 'rb').read(), randomFile)
         self.assertEqual(r.headers['Content-Type'], "video/mp4")
 
+        self.writefile("another.mp3", os.urandom(20))
+        r = requests.get(self.url("another.mp3"))
+        self.assertEqual(r.headers['Content-Type'], "audio/mpeg")
+
     def test_upload_without_ext(self):
         randomFile = os.urandom(40)
         filename = random_name()

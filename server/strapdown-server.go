@@ -229,7 +229,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		if !wikiConfig.verbose {
 			log.Printf("[ %s ] - %d %s", r.Method, ctx.statusCode, r.URL.String())
 		} else {
-			log.Printf("[ %s ] - %d %s (%s)", r.Method, ctx.statusCode, r.URL.String(), ctx.path)
+			log.Printf("[ %s ] - %d %s (%s,%s)", r.Method, ctx.statusCode, r.URL.String(), ctx.path, w.Header().Get("Content-Type"))
 		}
 	}()
 
