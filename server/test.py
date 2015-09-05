@@ -200,6 +200,10 @@ class Test(unittest.TestCase):
         r = requests.get(self.url("another.mp3"))
         self.assertEqual(r.headers['Content-Type'], "audio/mpeg")
 
+        self.writefile("hereis.md", random_name(20))
+        r = requests.get(self.url("hereis.md"))
+        self.assertIn("text/markdown", r.headers['Content-Type'], r.headers['Content-Type'])
+
     def test_upload_without_ext(self):
         randomFile = os.urandom(40)
         filename = random_name()

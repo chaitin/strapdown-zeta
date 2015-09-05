@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -148,6 +149,9 @@ func getHeadVersion() string {
 }
 
 func bootstrap() {
+
+	mime.AddExtensionType(".md", "text/markdown")
+
 	v, err := Asset("_static/version")
 	if err != nil {
 		log.Printf("[ WARN ] server version not found, wrong build")

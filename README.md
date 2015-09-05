@@ -112,7 +112,7 @@ The server supports the following parameters.
 
 ### For normal users
 
-Standalone downloadable binary will be released soon...
+Standalone downloadable binary can be downloaded at https://github.com/chaitin/strapdown-zeta/releases
 
 ### For hackers
 
@@ -135,17 +135,42 @@ The server can be built into a single standalone binary.
 
 The server is written using [go programming language](http://golang.org).
 
-First, clone and build [git2go](https://github.com/libgit2/git2go) following the [instructions](https://github.com/libgit2/git2go#installing).
-
-Then do the following
+First, you need to install go dependency libraries.
 
 ```bash
-$ cd server
-$ go get
-$ go build
+$ make -C server deps
+```
+
+After that, just run `make` in server directory.
+
+```bash
+$ make -C server all
 ```
 
 To run this server using [systemd](https://wiki.archlinux.org/index.php/systemd), copy the [strapdown.service](server/strapdown.service) file into your /etc/systemd/system/ directory and `systemctl start strapdown`
+
+## Usage
+
+Just copy the `strapdown-server` binary to anywhere you want and run the server with proper parameters.
+
+examples here:
+
+```
+$ mkdir -p /home/wiki
+$ strapdown-server -dir /home/wiki -init -addr 127.0.0.1:8080
+```
+
+### Note
+
+The server relies on /etc/mime.types to correctly detect file mime types. So make sure /etc/mime.types exists.
+
+for Mac OSX users, the file is builtin.
+
+For Archlinux users, install `mime-types`
+
+```
+$ pacman -S mime-types
+```
 
 ## License
 
