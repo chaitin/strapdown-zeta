@@ -147,8 +147,6 @@ After that, just run `make` in server directory.
 $ make -C server all
 ```
 
-To run this server using [systemd](https://wiki.archlinux.org/index.php/systemd), copy the [strapdown.service](server/strapdown.service) file into your /etc/systemd/system/ directory and `systemctl start strapdown`
-
 ## Usage
 
 Just copy the `strapdown-server` binary to anywhere you want and run the server with proper parameters.
@@ -171,6 +169,12 @@ For Archlinux users, install `mime-types`
 ```
 $ pacman -S mime-types
 ```
+
+For other Linux distributions, install apache server will also help.
+
+### Systemd script
+
+To run this server using [systemd](https://wiki.archlinux.org/index.php/systemd), copy the [strapdown.service](server/strapdown.service) file into your /etc/systemd/system/ directory and `systemctl start strapdown`
 
 ## License
 
