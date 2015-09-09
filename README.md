@@ -143,6 +143,13 @@ $ make -C server deps
 
 After that, just run `make` in server directory.
 
+```
+$ cd server
+$ make
+```
+
+or just do following in project root directory, both will work!
+
 ```bash
 $ make -C server all
 ```
