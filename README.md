@@ -141,7 +141,7 @@ First, you need to install go dependency libraries.
 $ make -C server deps
 ```
 
-After that, just run `make` in server directory.
+After that, just run `make` in project root directory.
 
 ```bash
 $ make -C server all
