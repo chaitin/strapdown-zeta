@@ -205,7 +205,7 @@ class Test(unittest.TestCase):
         self.assertIn("text/markdown", r.headers['Content-Type'], r.headers['Content-Type'])
 
     def test_upload_without_ext(self):
-        randomFile = os.urandom(40)
+        randomFile = '\x00\xff\xf7' + os.urandom(60)
         filename = random_name()
         r = requests.post(self.url(filename), files={
             "body": (filename, randomFile)
