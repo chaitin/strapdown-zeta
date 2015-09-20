@@ -338,3 +338,9 @@ Make the edit and history button switchable
     max-height: initial !important;
     /*fix for the responsive viewport */
 }
+#content img{
+    display: block;
+    max-width: 100%;
+    height: auto;
+    /*Copy the img-responsive class here*/
+}
