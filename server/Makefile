@@ -21,7 +21,7 @@ deps:
 		git submodule update --init;\
 		sed -i '17i\ \ \ \ \ \ -DUSE_SSH=OFF -DCURL=OFF \\' script/build-libgit2-static.sh; \
 		make install;\
-		go install -ldflags='-extldflags "-static"'
+		go install
 
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
