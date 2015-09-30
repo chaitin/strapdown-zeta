@@ -16,12 +16,16 @@ all: $(TARGET)
 deps:
 	go get -u github.com/abbot/go-http-auth
 	go get -d github.com/libgit2/git2go
-	cd src/github.com/libgit2/git2go && git checkout next && git submodule update --init &&	make install &&	go install
-	cd ../../../..
+	cd src/github.com/libgit2/git2go; \
+		git checkout next ;\
+		git submodule update --init;\
+		sed -i '17i\ \ \ \ \ \ -DUSE_SSH=OFF -DCURL=OFF \\' script/build-libgit2-static.sh; \
+		make install;\
+		go install -ldflags='-extldflags "-static"'
 
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
-	go build -o $@
+	go build -ldflags="-s" -o $@
 
 bin/go-bindata:
 	go get -u github.com/jteeuwen/go-bindata/...
