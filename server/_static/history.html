@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
   <link rel="stylesheet" href="{{.Host}}/themes/bootstrap-responsive.min.css" />
   <style type="text/css" media="screen">
-        body {
-                margin: 70px auto;
-        }
+    body {
+      margin: 70px auto;
+    }
   </style>
 </head>
 <body>
   <div class="navbar navbar-default navbar-fixed-top">
     <div class="container">
       <div class="navbar-header">
-                <div id="headline" class="navbar-brand"> History of {{.Title}} </div>
-            </div>
-        </div>
+        <div id="headline" class="navbar-brand"> History of {{.Title}} </div>
+      </div>
+    </div>
   </div>
   <div id="list" class="container">
     <hr />
@@ -34,33 +34,48 @@
       <tbody>
         {{ range $index, $element := .CommitEntries }}
         <tr>
-          <td><input type="checkbox" ver="{{$element.ShortHash}}" class="ver_check" /><a href="?version={{$element.Id}}">{{ $element.ShortHash }}</a></td>
-          <td><span>{{$element.Message}}</span></td>
-          <td>{{$element.Timestamp.Format "2006-01-02 15:04:05"}}</td>
-          <td>{{$element.Author}}</td>
+          <td><input type="checkbox" ver="{{$element.ShortHash}}" class="ver_check" onchange="update()" />&nbsp;<a href="?version={{$element.Id}}">{{ $element.ShortHash }}</a></td>
+          <td><span>{{ $element.Message }}</span></td>
+          <td>{{ $element.Timestamp.Format "2006-01-02 15:04:05" }}</td>
+          <td>{{ $element.Author }}</td>
         </tr>
         {{ end }}
       </tbody>
     </table>
-    <p><button class="btn btn-primary disabled" id="diff_btn" data-toggle="button">Diff</button></p>
+    <p><button class="btn btn-primary disabled" id="diff_btn" data-toggle="button" onclick="diff()">Diff</button></p>
     <script>
-      document.getElementById("diff_btn").addEventListener("click",function(e){
+      var update = function() {
         var checkBoxs = document.getElementsByClassName("ver_check");
+        var diffBtn = document.getElementById("diff_btn");
         var length = checkBoxs.length;
         var checkedCount = 0;
+        for (var i = 0; i < length; i++) {
+          if (checkBoxs[i].getAttribute("checked") || checkBoxs[i].checked) {
+            checkedCount++;
+          }
+        }
+        if (checkedCount == 2) {
+          diffBtn.className = "btn btn-primary";
+        } else {
+          diffBtn.className = "btn btn-primary disabled";
+        }
+      };
+      var diff = function() {
+        var checkBoxs = document.getElementsByClassName("ver_check");
+        var length = checkBoxs.length;
         var selects = [];
-        for(var i = 0 ;i < length; i++){
-          if(checkBoxs[i].getAttribute("checked") || checkBoxs[i].checked){
+        for (var i = 0; i < length; i++) {
+          if (checkBoxs[i].getAttribute("checked") || checkBoxs[i].checked) {
             selects.push(checkBoxs[i].getAttribute("ver"));
           }
         }
-        if(selects.length != 2){
-          alert("please select TWO versions!");
-        }else{
+        if (selects.length != 2) {
+          alert("Please select " + (selects.length > 2 ? "ONLY " : "") + "TWO versions!");
+        } else {
           // old one first
           window.open("?diff=" + selects[1] + "," + selects[0]);
         }
-      });
+      };
     </script>
     <hr />
   </div>
