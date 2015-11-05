@@ -85,7 +85,8 @@ func (this *RequestContext) Update() error {
 	}
 	// extract the content from post
 	upload_content := []byte(this.req.FormValue("body"))
-	if len(upload_content) == 0 && this.req.ContentLength > 0 {
+
+	if vs := this.req.Form["body"]; len(vs) == 0 {
 		err := this.req.ParseMultipartForm(1048576 * 100)
 		if err != nil {
 			this.statusCode = http.StatusInternalServerError

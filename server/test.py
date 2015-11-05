@@ -204,6 +204,20 @@ class Test(unittest.TestCase):
         r = requests.get(self.url("hereis.md"))
         self.assertIn("text/markdown", r.headers['Content-Type'], r.headers['Content-Type'])
 
+        filename = random_name()
+
+        r = requests.post(self.url(filename) + '?edit', data={
+            "body": 'blahblah'
+        }, allow_redirects=False)
+        self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
+        self.assertEqual(open(os.path.join(self.cwd, filename+'.md'), 'rb').read(), 'blahblah')
+
+        r = requests.post(self.url(filename) + '?edit', data={
+            "body": ''
+        }, allow_redirects=False)
+        self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
+        self.assertEqual(open(os.path.join(self.cwd, filename+'.md'), 'rb').read(), '')
+
     def test_upload_without_ext(self):
         randomFile = '\x00\xff\xf7' + os.urandom(60)
         filename = random_name()
