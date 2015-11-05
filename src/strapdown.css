@@ -102,6 +102,21 @@ td[align=left] { text-align: left; }
   outline:none;
 }
 
+.backtop {
+  display: none;
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  cursor: pointer;
+}
+
+.backtop-icon {
+  display: inline-block;
+  height: 40px;
+  width: 40px;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAQAAAAm93DmAAAC0klEQVR4Aa3TA7ArSRiG4Wdt24W1bdu2bdu2bdu2bdtKJsfGPZf/+lRqqid7Lt6v1N3Tb74/k6jJLLZxmJu86iMfedv9TrarRYwSW7lNnfg3ww0X/2awpx1kJgPH9r4QQo9KIq1CaHGyiQ2A2TwvhDqZSkEymT7hVxtSm/V1Cg3KeUlCWhbCqWqwtxB+VxlgStqFWxWwuzBIKXm1Xn1yv6xJuEOClQt1JU1C6PR7UtkonCnHVNoKhi3pEgsesNzWBokCZZvIv56HRUG7brHy/rDFGqLwQ4drNZHqcTXJ0rql9wXYalVhREHLcIF+3hZKad1i+6ti41XGSisznYabDVhJaEroesSi+8mxcVHLsnA8cJlQTrVbdH+Au8bi7ImBDdPKzDCfG4/xfW1oXqdTLLAfcOkOS5178lhseeiuZwDrrCYMk1c2CGuyhtCQO2oUy+wPPLyYmONW2HIfsevuwIarjdOpXb5jOJo9hUouser1wCOL6hOrHw97bSbEfjsB2x2duucezkgdrHYvvLasPiFWOhV230roEwftBVudmxS+we2Jg3qDpr1xhVPGaRN+Vy3M9IpVzpz3fC2JX8Zwn/BkQlhWqfr3Vgvr+//ZTYlf7hBf8UxemEtOmDjPCe8adWF65LPGoDC8yd5jVPgg6wgNY0SYCScwsR8MHiPCemFduFoojwHhUN+YANYUGkdbWBZOA/hIKI+WMNMuzAWwbs2OsfTxsONGNYQl4VpVvCCUioS7nwLnbinUFYw7RK8pVTGTwYYWKLvm+3b/NQ5YbsW39BbomoXt5NhQ6Eoqf9cjDDXE74nTTL1wuQRHFiozTZplyXb1whMKOE4U9EinrKWWDnYwQqjI/leWKRmRHzbFAj4QRshqSDNlXUKTXQyI/f0ihLaENNMghEEuMZ0BM6m9PW6Q6M8I0Z+3nGwuo8BC9nC+x73qXe973XOucZDV1eAPQrYZz64Af40AAAAASUVORK5CYII=);
+}
+
 /*******************************************************************
 
 This chunk is for Google's Code Prettify:

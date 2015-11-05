@@ -64,6 +64,46 @@
   linkEl.rel = 'stylesheet';
   document.head.appendChild(linkEl);
 
+  var scrollTo = function(element, to, duration) {
+    var start = element.scrollTop,
+        change = to - start,
+        currentTime = 0,
+        increment = 20;
+
+    var easeInOut = function(t, b, c, d) {
+      t /= d / 2;
+      if (t < 1) return c / 2 * t * t + b;
+      t--;
+      return -c / 2 * (t * (t - 2) - 1) + b;
+    };
+
+    var animateScroll = function() {
+      currentTime += increment;
+      element.scrollTop = easeInOut(currentTime, start, change, duration);
+      if(currentTime < duration) {
+        setTimeout(animateScroll, increment);
+      }
+    };
+
+    animateScroll();
+  };
+
+  var backtopNode = document.createElement('div');
+  backtopNode.className = 'backtop';
+  backtopNode.innerHTML = '<i class="backtop-icon"></i>';
+  backtopNode.onclick = function() {
+     scrollTo(document.body, 0, 800);
+  };
+  document.body.appendChild(backtopNode);
+
+  document.onscroll = function() {
+    if (document.body.scrollTop > document.body.offsetHeight / 4) {
+      backtopNode.style.display = 'inline-block';
+    } else {
+      backtopNode.style.display = 'none';
+    }
+  };
+
   //////////////////////////////////////////////////////////////////////
   //
   // <body> stuff
