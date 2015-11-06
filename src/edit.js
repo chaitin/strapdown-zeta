@@ -16,6 +16,12 @@
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
+    window.onbeforeunload = function() {
+      if (value && value != editor.getValue()) {
+        return "Document unsaved, discard changes and close window?";
+      }
+    };
+
     var title = document.getElementsByTagName('title')[0].innerText;
     var headlineEl = document.getElementById('headline');
     if (headlineEl) {
