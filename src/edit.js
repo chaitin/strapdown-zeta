@@ -16,12 +16,6 @@
     session.setTabSize(2);
     session.setUseSoftTabs(true);
 
-    window.onbeforeunload = function() {
-      if (value && value != editor.getValue()) {
-        return "Document unsaved, discard changes and close window?";
-      }
-    };
-
     var title = document.getElementsByTagName('title')[0].innerText;
     var headlineEl = document.getElementById('headline');
     if (headlineEl) {
@@ -45,6 +39,7 @@
         menus = document.getElementsByClassName('navbar-collapse')[0];
 
     addEvent(form, "submit", function(){
+      isEditted = false;
       sav.value = editor.getValue();
       store.set(filename, session.getValue());
     });
@@ -56,6 +51,7 @@
     });
 
     var lastmodify = Date.now() - 2000;
+    var isEditted = false;
 
     editor.on('change', function(e){
       var now = Date.now();
@@ -64,10 +60,16 @@
         // update the saved value
         lastmodify = now;
       }
-    })
-    addEvent(document.getElementsByTagName('body')[0], 'unload',function(){
-        store.set(filename, session.getValue());
-    })
+    });
+
+    session.on('change', function(e) {
+      isEditted = isEditted || true;
+    });
+
+    window.onbeforeunload = function() {
+      store.set(filename, session.getValue());
+      return isEditted ? "Document unsaved, discard changes and close window?" : void 0;
+    };
 
     var renderedContainer = document.getElementsByClassName('render-target')[0];
     var store_of_theme = new Persist.Store('strapdown', { swf_path: '/persist.swf' });
