@@ -254,6 +254,9 @@ func (this *RequestContext) Diff(versions []string) error {
 	this.safelyUpdateConfig(this.path)
 
 	content, err := getFileDiff(this.path, versions)
+	if err != nil {
+		return err
+	}
 	this.Content = template.HTML(*content)
 	if err != nil {
 		return err

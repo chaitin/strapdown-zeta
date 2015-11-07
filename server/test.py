@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 import unittest
 import random
 import string
@@ -252,6 +253,41 @@ class Test(unittest.TestCase):
         r = requests.get(self.url("/.md?edit"))
         self.assertIn('?edit=raw', r.text)
         self.assertEqual(r.status_code, 400)
+
+    def test_diff(self):
+        r = requests.post(self.url("/test_diff?edit"), data={
+            "body": "# test diff\n\n"
+        })
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+
+        r = requests.post(self.url("/test_diff?edit"), data={
+            "body": "# test diff\n\nadd an newline here \n"
+        })
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+        
+        r = requests.get(self.url("/test_diff?history"))
+        self.assertRegexpMatches(r.text, r'<a href="\?version=[0-9a-f]{40}">')
+
+        version_re = re.compile(r'<a href="\?version=([0-9a-f]{40})">')
+        versions = version_re.findall(r.text)
+
+        self.assertEqual(len(versions), 2)
+
+        r = requests.get(self.url("/test_diff?diff=%s,%s" % (versions[0], versions[1])))
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+        self.assertIn(r'Diff for file from %s to %s' % (versions[0], versions[1]), r.text)
+
+        r = requests.get(self.url("/test_diff?diff=%s,%s" % (versions[0][:13], versions[1][:13])))
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+        self.assertIn(r'Diff for file from %s to %s' % (versions[0][:13], versions[1][:13]), r.text)
+        
+        r = requests.get(self.url("/test_diff?diff=%syyyy,xxxx%s" % (versions[0][:13], versions[1][:13])))
+        self.assertGreaterEqual(r.status_code, 400)
+        self.assertLess(r.status_code, 500)
 
 if __name__ == '__main__':
     os.chdir(CWD)
