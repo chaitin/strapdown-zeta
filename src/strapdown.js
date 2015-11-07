@@ -130,6 +130,7 @@
                           '</div>'+
                           '<div class="collapse navbar-collapse">'+
                             '<ul class="nav navbar-nav navbar-right">'+
+                              (window.location.pathname != "/" ? '<li class="gohome-link"><a href="/">Go Home</a></li>' : '')+
                               '<li class="history-link"><a href="?history">History</a></li>'+
                               '<li class="edit-link"><a href="?edit">Edit</a></li>'+
                               '<li class="dropdown">'+
