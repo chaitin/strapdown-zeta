@@ -209,4 +209,5 @@ All credit goes to the projects below that make up most of Strapdown.js:
  - [arturadib](https://github.com/arturadib)
  - [zyaboutblank](https://github.com/zyaboutblank)
  - [pandada8](https://github.com/pandada8)
+ - [jamesliu96](https://github.com/jamesliu96)
 
