@@ -1,4 +1,22 @@
-@import url("https://fonts.googleapis.com/css?family=Lato:300,400,700");/*!
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Lato Light'), local('Lato-Light'), url(font/KT3KS9Aol4WfR6Vas8kNcg.woff) format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Lato Regular'), local('Lato-Regular'), url(font/9k-RPmcnxYEPm8CNFsH2gg.woff) format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Lato Bold'), local('Lato-Bold'), url(font/wkfQbvfT_02e2IWO3yYueQ.woff) format('woff');
+}
+/*!
  * bootswatch v3.3.5
  * Homepage: http://bootswatch.com
  * Copyright 2012-2015 Thomas Park
