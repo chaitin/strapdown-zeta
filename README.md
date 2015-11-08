@@ -1,6 +1,8 @@
 
 # Strapdown-Zeta - Git powered Wiki for Hackers!
 
+[![Join the chat at https://gitter.im/chaitin/strapdown-zeta](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chaitin/strapdown-zeta?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/chaitin/strapdown-zeta.svg?branch=master)](https://travis-ci.org/chaitin/strapdown-zeta)
 
 Strapdown-Zeta is a git-powered wiki system for hackers, derived from [strapdown.js](http://strapdownjs.com/) project.
