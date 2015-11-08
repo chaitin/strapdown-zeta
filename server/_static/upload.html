@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Upload file</title>
+    <style>
+        iframe {
+            display: none;
+            width: 0;
+            height: 0;
+            tab-index: -1;
+        }
+    </style>
+    <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css">
+</head>
+<body class="row">
+<div class="col-lg-6 col-lg-offset-3">
+    <h1>Upload file page</h1>
+
+    <form id="upload-form" name="upload-form" action="" method="post"
+          enctype="multipart/form-data">
+
+        <div>
+            <p id="file-path"></p>
+        </div>
+        <div class="form-group">
+            <label>Choose file</label>
+            <input name="body" id="file-body" type="file">
+        </div>
+        <div class="form-group">
+            <button id="upload-btn" class="btn btn-primary">upload</button>
+        </div>
+        <iframe id="upload-iframe" name="upload-iframe" src="">
+        </iframe>
+    </form>
+    <script>
+        var uploadPath = document.getElementById("upload-path");
+        var uploadIframe = document.getElementById("upload-iframe");
+        var uploadBtn = document.getElementById("upload-btn");
+
+        uploadBtn.addEventListener("click", upload, false);
+
+        function iframeOnload(){
+            if(uploadIframe.contentDocument.body.innerText == "success") {
+                document.getElementById("file-path").innerText = "File uploaded to: " + location.pathname;
+                alert("Upload completed");
+            }
+            else{
+                alert("Failed to upload");
+            }
+            uploadBtn.innerText = "Upload";
+            uploadIframe.removeEventListener("load", iframeOnload);
+        }
+
+        function upload() {
+            uploadBtn.innerText = "Uploading";
+            uploadIframe.addEventListener("load", iframeOnload, false);
+            document.getElementById("upload-form").target = "upload-iframe";
+            document.getElementById("upload-form").submit();
+        }
+    </script>
+</div>
+</body>
+</html>
