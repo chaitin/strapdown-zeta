@@ -381,6 +381,14 @@ footer.footer{
   -webkit-transition: all 0.5s;
   -o-transition: all 0.5s;
   -moz-transition: all 0.5s;
+  font-family: monospace;
+  font-size: .8em;
+}
+footer.footer .info span{
+  margin-right: 1em; 
+}
+footer.footer .info span b:after{
+  content: ":";
 }
 footer.footer:hover{
   opacity: 1;
