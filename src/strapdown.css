@@ -359,3 +359,29 @@ Make the edit and history button switchable
     height: auto;
     /*Copy the img-responsive class here*/
 }
+
+/*Footer*/
+footer{
+  display: none;
+}
+footer.footer{
+  display: block;
+}
+footer.footer::before{
+  content: "";
+  display: block;
+  width: 100%;
+  border-top: solid 1px rgba(0, 0, 0, 0.5);
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+footer.footer{
+  opacity: 0.6;
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  -o-transition: all 0.5s;
+  -moz-transition: all 0.5s;
+}
+footer.footer:hover{
+  opacity: 1;
+}
