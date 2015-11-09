@@ -161,7 +161,7 @@ func bootstrap() {
 
 	templates = make(map[string]*template.Template)
 
-	pages := []string{"view", "listdir", "history", "diff", "edit"}
+	pages := []string{"view", "listdir", "history", "diff", "edit", "upload"}
 	for _, element := range pages {
 		data, err := Asset("_static/" + element + ".html")
 		if err != nil {
@@ -298,6 +298,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	edit_ary, doedit := q["edit"]
 	version_ary, doversion := q["version"]
 
+	_, doupload := q["upload"]
+
 	// version is not a standalone action
 	// it can be bound to edit or view actions, but history, diff, option just ignore version param
 	// so we parse versions first
@@ -419,6 +421,17 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), ctx.statusCode)
 		}
 		return
+	}
+
+	if doupload {
+		if r.Method == "GET" {
+			err = ctx.Upload()
+			if err != nil {
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, err.Error(), ctx.statusCode)
+			}
+			return
+		}
 	}
 
 	// finally, when no option provided
