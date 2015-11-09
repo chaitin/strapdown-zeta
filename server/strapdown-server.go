@@ -161,7 +161,7 @@ func bootstrap() {
 
 	templates = make(map[string]*template.Template)
 
-	pages := []string{"view", "listdir", "history", "diff", "edit"}
+	pages := []string{"view", "listdir", "history", "diff", "edit", "upload"}
 	for _, element := range pages {
 		data, err := Asset("_static/" + element + ".html")
 		if err != nil {
@@ -298,6 +298,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	edit_ary, doedit := q["edit"]
 	version_ary, doversion := q["version"]
 
+	_, doupload := q["upload"]
+
 	// version is not a standalone action
 	// it can be bound to edit or view actions, but history, diff, option just ignore version param
 	// so we parse versions first
@@ -408,7 +410,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			// will return edit template
 			err = ctx.Edit(param_version)
 		} else if r.Method == "POST" || r.Method == "PUT" {
-			err = ctx.Update()
+			err = ctx.Update("redirect")
 		} else {
 			ctx.statusCode = http.StatusBadRequest
 			http.Error(w, r.Method+" method not allowed for edit", ctx.statusCode)
@@ -421,6 +423,17 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if doupload {
+		if r.Method == "GET" {
+			err = ctx.Upload()
+			if err != nil {
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, err.Error(), ctx.statusCode)
+			}
+			return
+		}
+	}
+
 	// finally, when no option provided
 	// View/Update/ListDir according to http method and fs state
 
@@ -429,7 +442,11 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" || r.Method == "PUT" {
 		// no edit, so upload to fp
 		ctx.path = fp
-		err = ctx.Update()
+		if doupload {
+			err = ctx.Update("show_result")
+		} else {
+			err = ctx.Update("redirect")
+		}
 	} else if r.Method == "GET" {
 		if fperr == nil { // fp exists
 			if fpstat.IsDir() { // fp is a dir

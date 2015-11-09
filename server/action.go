@@ -75,7 +75,7 @@ func (this *RequestContext) safelyUpdateConfig(path string) {
 	return
 }
 
-func (this *RequestContext) Update() error {
+func (this *RequestContext) Update(action string) error {
 	var comment string
 	if _, err := os.Stat(this.path); err == nil {
 		// file exists
@@ -129,8 +129,15 @@ func (this *RequestContext) Update() error {
 		this.statusCode = http.StatusInternalServerError
 		return err
 	}
-	this.statusCode = http.StatusFound
-	http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
+	if action == "redirect" {
+		this.statusCode = http.StatusFound
+		http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
+    } else {
+ 		w := *this.res
+		this.statusCode = http.StatusBadRequest
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("success"))
+    }
 	return nil
 }
 
@@ -248,6 +255,12 @@ func (this *RequestContext) Edit(version string) error {
 	this.safelyUpdateConfig(this.path)
 	return templates["edit"].Execute(*this.res, this)
 }
+func (this *RequestContext) Upload() error {
+	w := *this.res;
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	this.safelyUpdateConfig(this.path)
+	return templates["upload"].Execute(w, this)
+}
 func (this *RequestContext) Diff(versions []string) error {
 	if len(versions) != 2 {
 		return errors.New("Bad params for diff, please select exactly TWO versions!")
@@ -267,6 +280,7 @@ func (this *RequestContext) Diff(versions []string) error {
 	this.Title = "Diff for file from " + versions[0] + " to " + versions[1]
 	return templates["diff"].Execute(w, this)
 }
+//save md file and git commit, for .md
 func saveAndCommit(fp string, content []byte, comment string, author string) error {
 	var err error
 

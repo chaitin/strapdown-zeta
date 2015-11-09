@@ -197,6 +197,16 @@ class Test(unittest.TestCase):
         self.assertEqual(open(os.path.join(self.cwd, filename), 'rb').read(), randomFile)
         self.assertEqual(r.headers['Content-Type'], "video/mp4")
 
+        # if file is uploaded via url?upload, server will response success/failed string instead of redirection
+        randomFile = os.urandom(20)
+        filename = random_name() + '.mp4'
+        r = requests.post(self.url(filename) + "?upload", files={
+            "body": (filename, randomFile)
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.content, "success")
+        self.assertEqual(r.headers['Content-Type'], "text/plain")
+
         self.writefile("another.mp3", os.urandom(20))
         r = requests.get(self.url("another.mp3"))
         self.assertEqual(r.headers['Content-Type'], "audio/mpeg")
