@@ -110,7 +110,11 @@ func (this *RequestContext) Update() error {
 		}
 		upload_content = buffer.Bytes()
 	}
-	if strings.HasSuffix(this.path, ".md") {
+	if wikiConfig.verbose {
+		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
+	}
+	// save md file
+	if strings.HasSuffix(this.path, ".md") || strings.HasSuffix(this.path, ".json"){
 		if bytes.Contains(upload_content, []byte("</xmp>")) {
 			w := *this.res
 			this.statusCode = http.StatusBadRequest
@@ -119,19 +123,27 @@ func (this *RequestContext) Update() error {
 			w.Write(upload_content)
 			return nil
 		}
+		err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
+		if err != nil {
+			this.statusCode = http.StatusInternalServerError
+			return err
+		}
+		this.statusCode = http.StatusFound
+		http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
+		return nil
+	// save other kinds of file
+	} else {
+		err := save(this.path, upload_content)
+		w := *this.res
+		w.Header().Set("Content-Type", "text/plain")
+		if err != nil {
+			this.statusCode = http.StatusInternalServerError
+			w.Write([]byte("failed"))
+		} else {
+			w.Write([]byte("success"))
+		}
+		return nil
 	}
-	// save
-	if wikiConfig.verbose {
-		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
-	}
-	err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
-	if err != nil {
-		this.statusCode = http.StatusInternalServerError
-		return err
-	}
-	this.statusCode = http.StatusFound
-	http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
-	return nil
 }
 
 func (this *RequestContext) View(version string) error {
@@ -245,6 +257,12 @@ func (this *RequestContext) Edit(version string) error {
 	this.safelyUpdateConfig(this.path)
 	return templates["edit"].Execute(*this.res, this)
 }
+func (this *RequestContext) Upload() error {
+	w := *this.res;
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	this.safelyUpdateConfig(this.path)
+	return templates["upload"].Execute(w, this)
+}
 func (this *RequestContext) Diff(versions []string) error {
 	if len(versions) != 2 {
 		return errors.New("Bad params for diff, please select exactly TWO versions!")
@@ -264,6 +282,22 @@ func (this *RequestContext) Diff(versions []string) error {
 	this.Title = "Diff for file from " + versions[0] + " to " + versions[1]
 	return templates["diff"].Execute(w, this)
 }
+// only save file, for files like image and doc
+func save(fp string, content []byte) error {
+	var err error
+
+	err = os.MkdirAll(path.Dir(fp), 0700)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(fp, content, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+//save md file and git commit, for .md
 func saveAndCommit(fp string, content []byte, comment string, author string) error {
 	var err error
 
