@@ -193,9 +193,9 @@ class Test(unittest.TestCase):
         r = requests.post(self.url(filename), files={
             "body": (filename, randomFile)
         })
-        self.assertEqual(r.content, randomFile)
+        self.assertEqual(r.content, "success")
         self.assertEqual(open(os.path.join(self.cwd, filename), 'rb').read(), randomFile)
-        self.assertEqual(r.headers['Content-Type'], "video/mp4")
+        self.assertEqual(r.headers['Content-Type'], "text/plain")
 
         self.writefile("another.mp3", os.urandom(20))
         r = requests.get(self.url("another.mp3"))
@@ -225,9 +225,8 @@ class Test(unittest.TestCase):
         r = requests.post(self.url(filename), files={
             "body": (filename, randomFile)
         })
-        self.assertEqual(r.content, randomFile)
+        self.assertEqual(r.content, "success")
         self.assertEqual(open(os.path.join(self.cwd, filename), 'rb').read(), randomFile)
-        self.assertEqual(r.headers['Content-Type'], "application/octet-stream", r.headers['Content-Type'])
 
     def test_content_type_for_static(self):
         self.writefile("www.css", "xxx")
