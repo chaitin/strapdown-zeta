@@ -95,4 +95,54 @@
         document.getElementsByTagName('textarea')[0].focus();
       }
     });
+
+  var uploadIframe, fileBody, fileName;
+  var uploadBtn = document.getElementById("upload-btn");
+  var uploadArea = document.getElementById("upload-area");
+
+  function isImage(fileName){
+    var splitedName = fileName.split(".");
+    if (splitedName.length > 1 && ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(splitedName[splitedName.length - 1].toLowerCase()) > -1){
+        return true;
+    }
+    return false;
+  }
+
+  function iframeOnload(){
+    if(uploadIframe.contentDocument.body.innerText == "success") {
+      alert("Upload completed");
+      if(isImage(fileName)) {
+        // image
+        editor.insert("\n\n![" + fileName + "](" + "/upload/" + fileName + ")\n\n");
+      }
+      else{
+        editor.insert("\n\n[" + fileName + "](" + "/upload/" + fileName + ")\n\n");
+      }
+    }
+    else{
+      alert("Failed to upload");
+    }
+    uploadBtn.innerText = "Upload";
+    uploadIframe.removeEventListener("load", iframeOnload);
+  }
+
+  uploadBtn.addEventListener("click", function () {
+    uploadArea.innerHTML = '<form action="" method="post" id="upload-form" enctype="multipart/form-data">' +
+        '<input type="file" id="file-body" name="body"></form>' +
+        '<iframe id="upload-iframe" name="upload-iframe" style="display: none;width: 0;height: 0;tab-index: -1">';
+    fileBody = document.getElementById("file-body");
+    uploadIframe = document.getElementById("upload-iframe");
+    fileBody.click();
+    fileBody.addEventListener("change", function () {
+      // auto upload
+      var uploadForm = document.getElementById("upload-form");
+      fileName = fileBody.value.split(/(\\|\/)/g).pop();
+      uploadForm.action = "/upload/" + fileName + "?upload";
+      uploadIframe.src = "/upload/" + fileName + "?upload";
+      uploadForm.target = "upload-iframe";
+      uploadIframe.addEventListener("load", iframeOnload, false);
+      uploadForm.submit();
+      uploadBtn.innerText = "Uploading"
+    }, false);
+  }, false);
 })(window, document);
