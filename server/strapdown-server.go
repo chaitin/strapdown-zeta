@@ -169,7 +169,7 @@ func bootstrap() {
 		}
 		templates[element], err = template.New(element).Parse(string(data))
 		if err != nil {
-			log.Fatalf("cannot parse %s template", element)
+			log.Fatalf("cannot parse %s template, %s", element, err)
 		}
 	}
 

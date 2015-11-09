@@ -173,6 +173,9 @@ func (this *RequestContext) View(version string) error {
 		w.Write(custom_view_tail)
 	} else {
 		this.safelyUpdateConfig(this.path)
+
+		this.CommitEntries, _ = getHistory(this.path, 1);
+
 		err := templates["view"].Execute(*this.res, this)
 		if err != nil {
 			return err

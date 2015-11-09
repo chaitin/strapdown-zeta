@@ -201,6 +201,19 @@
       show_toc = markdownEl.getAttribute("toc");
   render(newNode, markdown, theme, heading_number, show_toc);
 
+
+  var footer = document.getElementsByTagName("footer")[0];
+  if(footer){
+    if (footer.className.indexOf("footer") < 0){
+      footer.innerHTML += '<div>Powered By: <a href="//github.com/chaitin/strapdown-zeta">Strapdown-Zeta</a></div>';
+      footer.className = "footer container"
+    }
+  }else{
+    footer = document.createElement("footer")
+    footer.innerHTML = '<div>Powered By: <a href="//github.com/chaitin/strapdown-zeta">Strapdown-Zeta</a></div>';
+    footer.className = "footer container";
+    document.body.appendChild(footer)
+  }
   // All done - show body
   document.body.style.display = '';
 })(window, document);
