@@ -280,21 +280,6 @@ func (this *RequestContext) Diff(versions []string) error {
 	this.Title = "Diff for file from " + versions[0] + " to " + versions[1]
 	return templates["diff"].Execute(w, this)
 }
-// only save file, for files like image and doc
-func save(fp string, content []byte) error {
-	var err error
-
-	err = os.MkdirAll(path.Dir(fp), 0700)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(fp, content, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 //save md file and git commit, for .md
 func saveAndCommit(fp string, content []byte, comment string, author string) error {
 	var err error
