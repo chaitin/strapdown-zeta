@@ -87,7 +87,8 @@ class Test(unittest.TestCase):
         self.assertGreater(len(r.text), len(text), repr(r.text))
 
         r = requests.get(self.url("/_static/version"))
-        self.assertEqual(r.text, open(os.path.join(self.cwd, "_static", "version")).read())
+        self.assertEqual(r.headers.get('cache-control'), "max-age=86400, public", r.headers.get('cache-control'))
+        # self.assertEqual(r.text, open(os.path.join(self.cwd, "_static", "version")).read())
         self.assertRegexpMatches(r.text, r'\d+\.\d+\.\d+(-\w+)?(\+[0-9A-Fa-f]{7,20})?')
         self.assertIn("text/plain", r.headers['Content-Type'], r.headers['Content-Type'])
 
@@ -122,6 +123,11 @@ class Test(unittest.TestCase):
 
         r = requests.get(self.url("/version?version=%s" % head))
         self.assertIn(rc, r.text, repr(r.text))
+
+        r = requests.post(self.url("/_static/version"), data={
+            "body": "blah"
+        }, allow_redirects=False)
+        self.assertEqual(r.status_code, 405)
 
     def test_raw_index(self):
         text = u"This is a test"
@@ -167,7 +173,7 @@ class Test(unittest.TestCase):
         os.makedirs(folder1)
         r = requests.get(url+folder1_name, allow_redirects=False)
         self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
-        
+
         r = requests.get(url+folder1_name)
         self.assertIn('id="list"', r.text, repr(r.text))    # listdir
 
@@ -266,7 +272,7 @@ class Test(unittest.TestCase):
         })
         self.assertGreaterEqual(r.status_code, 200)
         self.assertLess(r.status_code, 300)
-        
+
         r = requests.get(self.url("/test_diff?history"))
         self.assertRegexpMatches(r.text, r'<a href="\?version=[0-9a-f]{40}">')
 
@@ -284,7 +290,7 @@ class Test(unittest.TestCase):
         self.assertGreaterEqual(r.status_code, 200)
         self.assertLess(r.status_code, 300)
         self.assertIn(r'Diff for file from %s to %s' % (versions[0][:13], versions[1][:13]), r.text)
-        
+
         r = requests.get(self.url("/test_diff?diff=%syyyy,xxxx%s" % (versions[0][:13], versions[1][:13])))
         self.assertGreaterEqual(r.status_code, 400)
         self.assertLess(r.status_code, 500)

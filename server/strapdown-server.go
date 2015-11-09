@@ -53,6 +53,8 @@ type Config struct {
 	verbose        bool
 	version        bool
 	optext         string
+	extract        bool
+	prefix         string
 }
 
 type RequestContext struct {
@@ -96,6 +98,8 @@ func parseConfig() {
 	flag.BoolVar(&wikiConfig.version, "v", false, "show version")
 	flag.BoolVar(&wikiConfig.version, "version", false, "show version")
 	flag.StringVar(&wikiConfig.optext, "optext", ".option.json", "set the option filename extension")
+	flag.BoolVar(&wikiConfig.extract, "extract", false, "Extract assets to current working directory")
+	flag.StringVar(&wikiConfig.prefix, "prefix", "", "Use your own static files. Unless you know what you are doing, don't use this option with -host.")
 	flag.Parse()
 }
 
@@ -159,20 +163,6 @@ func bootstrap() {
 		SERVER_VERSION = strings.TrimSpace(string(v))
 	}
 
-	templates = make(map[string]*template.Template)
-
-	pages := []string{"view", "listdir", "history", "diff", "edit"}
-	for _, element := range pages {
-		data, err := Asset("_static/" + element + ".html")
-		if err != nil {
-			log.Fatalf("fail to load the %s.html", element)
-		}
-		templates[element], err = template.New(element).Parse(string(data))
-		if err != nil {
-			log.Fatalf("cannot parse %s template, %s", element, err)
-		}
-	}
-
 	if len(wikiConfig.root) > 0 {
 		// we should chdir to the root
 		err := os.Chdir(wikiConfig.root)
@@ -182,6 +172,7 @@ func bootstrap() {
 		}
 		log.Printf("chdir to the '%s'", wikiConfig.root)
 	}
+
 	if wikiConfig.init {
 		if repo, err := git.OpenRepository("."); err != nil {
 			_, err := git.InitRepository(".", false)
@@ -194,6 +185,69 @@ func bootstrap() {
 			log.Printf("git repository already found, skip git init")
 			repo.Free()
 		}
+	}
+
+	if wikiConfig.version {
+		fmt.Printf("Strapdown Wiki Server - v%s\n", SERVER_VERSION)
+		os.Exit(0)
+	}
+
+	pages := []string{"view", "listdir", "history", "diff", "edit"}
+	templates = make(map[string]*template.Template)
+
+	if len(wikiConfig.prefix) > 0 {
+		var data []byte
+		for _, element := range pages {
+			data, err = ioutil.ReadFile(filepath.Join(wikiConfig.prefix, element+".html"))
+			if err != nil {
+				log.Fatalf("fail to load the %s.html", element)
+			}
+			templates[element], err = template.New(element).Parse(string(data))
+			if err != nil {
+				log.Fatalf("cannot parse %s template, %s", element, err)
+			}
+		}
+	} else {
+		// load template from assets
+		for _, element := range pages {
+			data, err := Asset("_static/" + element + ".html")
+			if err != nil {
+				log.Fatalf("fail to load the %s.html", element)
+			}
+			templates[element], err = template.New(element).Parse(string(data))
+			if err != nil {
+				log.Fatalf("cannot parse %s template, %s", element, err)
+			}
+		}
+	}
+
+	if wikiConfig.extract {
+		// extract and exit
+		files := AssetNames()
+
+		for _, name := range files {
+			if strings.EqualFold(name, "_static/.md") {
+				// not to release the default markdown
+				continue
+			}
+			file, err := Asset(name)
+			if err != nil {
+				log.Printf("[ WARN ] fail to load: %s", name)
+			}
+			err = os.MkdirAll(path.Dir(name), 0700)
+			if err != nil {
+				log.Printf("[ WARN ] fail to create folder: %s", path.Dir(name))
+			}
+			err = ioutil.WriteFile(name, file, 0644)
+			if wikiConfig.verbose {
+				log.Printf("[ DEBUG ] create: %s", name)
+			}
+			if err != nil {
+				log.Printf("[ WARN ] cannot write file: %v", err)
+			}
+		}
+		log.Printf("[ INFO ] Assets Extracted, exited.")
+		os.Exit(0)
 	}
 }
 
@@ -280,12 +334,59 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 
 	// cache is evil
 	if r.Method == "GET" {
-		if strings.HasSuffix(fp, "_static") || strings.HasSuffix(fp, "favicon.ico") {
+		if strings.HasPrefix(fp, "_static") || strings.HasSuffix(fp, "favicon.ico") {
 			w.Header().Set("Cache-Control", "max-age=86400, public")
 		} else {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
 			w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
 		}
+	}
+	if strings.HasPrefix(fp, "_static") {
+		// when deal with _static, only get is allowed.
+		if r.Method != "GET" {
+			ctx.statusCode = http.StatusMethodNotAllowed
+			http.Error(w, "Only GET to _static is allowed", ctx.statusCode)
+			return
+		}
+
+		var mimetype string
+		var asset []byte
+		if len(wikiConfig.prefix) == 0 {
+			// assets prefered
+			asset, err = Asset(fp)
+			if err != nil && fperr == nil && !fpstat.IsDir() {
+				asset, err = ioutil.ReadFile(fp)
+			}
+		} else {
+			var f *os.File
+			f, err = SafeOpen(wikiConfig.prefix, fp[7:]) // without the _static
+			f.Close()
+			if err == nil {
+				asset, err = ioutil.ReadFile(f.Name())
+			}
+		}
+		if err != nil {
+			ctx.statusCode = http.StatusInternalServerError
+			http.Error(w, "http: "+err.Error(), ctx.statusCode)
+			return
+		}
+
+		lastdot := strings.LastIndex(fp, ".")
+		if lastdot > -1 {
+			mimetype = mime.TypeByExtension(fp[lastdot:])
+		}
+
+		if mimetype == "" {
+			if len(asset) == 0 {
+				mimetype = "text/plain"
+			} else {
+				mimetype = http.DetectContentType(asset)
+			}
+		}
+		w.Header().Set("Content-Type", mimetype)
+
+		w.Write(asset)
+		return
 	}
 
 	q := r.URL.Query()
@@ -478,11 +579,6 @@ func main() {
 	parseConfig()
 	bootstrap()
 
-	if wikiConfig.version {
-		fmt.Printf("Strapdown Wiki Server - v%s\n", SERVER_VERSION)
-		os.Exit(0)
-	}
-
 	// try open the repo
 	repo, err := git.OpenRepository(".")
 	if err != nil {
@@ -499,30 +595,6 @@ func main() {
 		log.Printf("use authentication file: %s", wikiConfig.auth)
 	} else {
 		log.Printf("authentication file not exist, disable http authentication")
-	}
-
-	if _, err := os.Stat("_static"); os.IsNotExist(err) {
-		// release the files
-		log.Print("Seems you don't have `_static` folder, release one to hold the static file")
-		files := AssetNames()
-
-		for _, name := range files {
-			if strings.HasSuffix(name, ".html") || strings.HasSuffix(name, "fav.ico") {
-				continue
-			}
-			file, err := Asset(name)
-			if err != nil {
-				log.Printf("[ WARN ] fail to load: %s", name)
-			}
-			err = os.MkdirAll(path.Dir(name), 0700)
-			if err != nil {
-				log.Printf("[ WARN ] fail to create folder: %s", path.Dir(name))
-			}
-			err = ioutil.WriteFile(name, file, 0644)
-			if err != nil {
-				log.Printf("[ WARN ] cannot write file: %v", err)
-			}
-		}
 	}
 
 	if _, err := os.Stat(".md"); os.IsNotExist(err) {
