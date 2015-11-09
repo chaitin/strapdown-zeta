@@ -96,7 +96,7 @@
         }
     });
 
-    var uploadIframe, fileBody, fileName;
+    var uploadIframe, fileBody, fileName, uploadPath;
     var uploadBtn = document.getElementById("upload-btn");
     var uploadArea = document.getElementById("upload-area");
 
@@ -108,25 +108,34 @@
         return false;
     }
 
-    function insertContent(fileName){
-        if (isImage(fileName)) {
+    function insertContent(uploadPath){
+        if (isImage(uploadPath)) {
             // image
-            editor.insert("\n\n![" + fileName + "](" + "/upload/" + fileName + ")\n\n");
+            editor.insert("\n\n![" + uploadPath + "](" + uploadPath + ")\n\n");
         }
         else {
-            editor.insert("\n\n[" + fileName + "](" + "/upload/" + fileName + ")\n\n");
+            editor.insert("\n\n[" + uploadPath + "](" + uploadPath + ")\n\n");
         }
     }
 
     function iframeOnload() {
         if (uploadIframe.contentDocument.body.innerText == "success") {
-            insertContent(fileName);
+            insertContent(uploadPath);
         }
         else {
             alert("Failed to upload");
         }
-        uploadBtn.innerText = "Upload";
+        uploadBtn.innerText = "Attach File";
         uploadIframe.removeEventListener("load", iframeOnload);
+    }
+
+    function getUploadPath(fileName){
+        var dir = location.pathname;
+        if (!dir.endsWith("/")){
+            dir += "/";
+        }
+        dir += fileName;
+        return dir;
     }
 
     uploadBtn.addEventListener("click", function () {
@@ -140,8 +149,9 @@
             // auto upload
             var uploadForm = document.getElementById("upload-form");
             fileName = fileBody.value.split(/(\\|\/)/g).pop();
-            uploadForm.action = "/upload/" + fileName + "?upload";
-            uploadIframe.src = "/upload/" + fileName + "?upload";
+            uploadPath = getUploadPath(fileName);
+            uploadForm.action = uploadPath + "?upload";
+            uploadIframe.src = uploadPath + "?upload";
             uploadForm.target = "upload-iframe";
             uploadIframe.addEventListener("load", iframeOnload, false);
             uploadForm.submit();
@@ -162,17 +172,18 @@
         dragOver(e);
         var fileList = e.target.files || e.dataTransfer.files;
         var xhr = new XMLHttpRequest();
+        var uploadPath = getUploadPath(fileList[0].name);
         xhr.onreadystatechange = function(e){
             if(xhr.readyState == 4) {
                 if (xhr.responseText == "success") {
-                    insertContent(fileList[0].name);
+                    insertContent(uploadPath);
                 }
                 else {
                     alert("Failed to upload");
                 }
             }
         };
-        xhr.open("post", "/upload/" + fileList[0].name + "?upload", true);
+        xhr.open("post", uploadPath + "?upload", true);
         xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         var formData = new FormData();
         formData.append("body", fileList[0]);
