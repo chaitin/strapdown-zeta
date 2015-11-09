@@ -75,7 +75,7 @@ func (this *RequestContext) safelyUpdateConfig(path string) {
 	return
 }
 
-func (this *RequestContext) Update() error {
+func (this *RequestContext) Update(action string) error {
 	var comment string
 	if _, err := os.Stat(this.path); err == nil {
 		// file exists
@@ -110,11 +110,7 @@ func (this *RequestContext) Update() error {
 		}
 		upload_content = buffer.Bytes()
 	}
-	if wikiConfig.verbose {
-		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
-	}
-	// save md file
-	if strings.HasSuffix(this.path, ".md") || strings.HasSuffix(this.path, ".json"){
+	if strings.HasSuffix(this.path, ".md") {
 		if bytes.Contains(upload_content, []byte("</xmp>")) {
 			w := *this.res
 			this.statusCode = http.StatusBadRequest
@@ -123,27 +119,26 @@ func (this *RequestContext) Update() error {
 			w.Write(upload_content)
 			return nil
 		}
-		err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
-		if err != nil {
-			this.statusCode = http.StatusInternalServerError
-			return err
-		}
-		this.statusCode = http.StatusFound
-		http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
-		return nil
-	// save other kinds of file
-	} else {
-		err := save(this.path, upload_content)
-		w := *this.res
-		w.Header().Set("Content-Type", "text/plain")
-		if err != nil {
-			this.statusCode = http.StatusInternalServerError
-			w.Write([]byte("failed"))
-		} else {
-			w.Write([]byte("success"))
-		}
-		return nil
 	}
+	// save
+	if wikiConfig.verbose {
+		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
+	}
+	err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
+	if err != nil {
+		this.statusCode = http.StatusInternalServerError
+		return err
+	}
+	if action == "redirect" {
+	    this.statusCode = http.StatusFound
+	    http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
+    } else {
+    	w := *this.res
+		this.statusCode = http.StatusBadRequest
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("success"))
+    }
+	return nil
 }
 
 func (this *RequestContext) View(version string) error {

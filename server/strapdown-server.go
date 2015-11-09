@@ -410,7 +410,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			// will return edit template
 			err = ctx.Edit(param_version)
 		} else if r.Method == "POST" || r.Method == "PUT" {
-			err = ctx.Update()
+			err = ctx.Update("redirect")
 		} else {
 			ctx.statusCode = http.StatusBadRequest
 			http.Error(w, r.Method+" method not allowed for edit", ctx.statusCode)
@@ -442,7 +442,11 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" || r.Method == "PUT" {
 		// no edit, so upload to fp
 		ctx.path = fp
-		err = ctx.Update()
+		if doupload {
+		    err = ctx.Update("show_result")
+	    } else {
+	    	err = ctx.Update("redirect")
+	    }
 	} else if r.Method == "GET" {
 		if fperr == nil { // fp exists
 			if fpstat.IsDir() { // fp is a dir
