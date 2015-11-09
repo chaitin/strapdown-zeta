@@ -130,10 +130,10 @@ func (this *RequestContext) Update(action string) error {
 		return err
 	}
 	if action == "redirect" {
-	    this.statusCode = http.StatusFound
-	    http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
+		this.statusCode = http.StatusFound
+		http.Redirect(*this.res, this.req, this.req.URL.Path, this.statusCode)
     } else {
-    	w := *this.res
+ 		w := *this.res
 		this.statusCode = http.StatusBadRequest
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("success"))

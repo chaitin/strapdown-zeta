@@ -443,10 +443,10 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		// no edit, so upload to fp
 		ctx.path = fp
 		if doupload {
-		    err = ctx.Update("show_result")
-	    } else {
-	    	err = ctx.Update("redirect")
-	    }
+			err = ctx.Update("show_result")
+		} else {
+			err = ctx.Update("redirect")
+		}
 	} else if r.Method == "GET" {
 		if fperr == nil { // fp exists
 			if fpstat.IsDir() { // fp is a dir
