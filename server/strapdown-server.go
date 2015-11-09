@@ -334,19 +334,19 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 
 	// cache is evil
 	if r.Method == "GET" {
-		if strings.HasSuffix(fp, "_static") || strings.HasSuffix(fp, "favicon.ico") {
+		if strings.HasPrefix(fp, "_static") || strings.HasSuffix(fp, "favicon.ico") {
 			w.Header().Set("Cache-Control", "max-age=86400, public")
 		} else {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, post-check=0, pre-check=0, max-age=0")
 			w.Header().Set("Expires", "Sun, 19 Nov 1978 05:00:00 GMT")
 		}
 	}
-
-	if strings.HasSuffix(fp, "_static") {
+	if strings.HasPrefix(fp, "_static") {
 		// when deal with _static, only get is allowed.
 		if r.Method != "GET" {
 			ctx.statusCode = http.StatusMethodNotAllowed
 			http.Error(w, "Only GET to _static is allowed", ctx.statusCode)
+			return
 		}
 
 		var mimetype string
