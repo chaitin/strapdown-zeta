@@ -115,6 +115,7 @@ func (this *RequestContext) Update(action string) error {
 			w := *this.res
 			this.statusCode = http.StatusBadRequest
 			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(this.statusCode)
 			w.Write([]byte("the content just posted contains `</xmp>`, which will break strapdown system, please edit again and make sure `</xmp>` does not exists in the content\n----------------------------------------------- content posted below, copy and edit again -----------------------------------------------------------\n\n"))
 			w.Write(upload_content)
 			return nil

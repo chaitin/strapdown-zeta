@@ -587,7 +587,9 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		ctx.statusCode = http.StatusBadRequest
+		if ctx.statusCode == http.StatusOK {
+			ctx.statusCode = http.StatusBadRequest
+		}
 		http.Error(w, err.Error(), ctx.statusCode)
 	}
 }

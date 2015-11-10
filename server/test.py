@@ -305,6 +305,14 @@ class Test(unittest.TestCase):
         self.assertGreaterEqual(r.status_code, 400)
         self.assertLess(r.status_code, 500)
 
+    def test_update_with_xmp_tag(self):
+        xmp = "I Have XMP </xmp>"
+        r = requests.post(self.url("/xmp?edit"), data={
+            "body": xmp
+        })
+        self.assertEqual(r.status_code, 400)
+        self.assertIn(xmp, r.text)
+
 if __name__ == '__main__':
     os.chdir(CWD)
     suite = unittest.TestLoader().loadTestsFromTestCase(Test)
