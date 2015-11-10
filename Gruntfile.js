@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                     'build/strapdown-src.min.js': ['src/strapdown.js'],
                     'build/edit-src.min.js': ['src/edit.js'],
                     'build/render-src.min.js': ['src/render.js'],
-                    'build/modal.min.js': ['src/modal.js'],
+                    'build/modals.min.js': ['src/modals.js'],
                 }
             }
         },
@@ -44,7 +44,7 @@ module.exports = function (grunt) {
                 dest: 'build/strapdown.min.js'
             },
             editor: {
-                src: ['vendor/marked.min.js', 'vendor/highlight.pack.js', 'vendor/persist-min.js', 'build/render-src.min.js', 'build/modal.min.js', 'build/edit-src.min.js'],
+                src: ['build/modals.min.js', 'vendor/marked.min.js', 'vendor/highlight.pack.js', 'vendor/persist-min.js', 'build/render-src.min.js', 'build/edit-src.min.js'],
                 dest: 'build/edit.min.js',
                 options: {
                     separator: '\n',
