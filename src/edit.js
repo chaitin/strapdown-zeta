@@ -131,11 +131,7 @@
 
     function getUploadPath(fileName){
         var dir = location.pathname;
-        if (!dir.endsWith("/")){
-            dir += "/";
-        }
-        dir += fileName;
-        return dir;
+        return dir.slice(0, dir.lastIndexOf("/") + 1) + fileName;
     }
 
     uploadBtn.addEventListener("click", function () {
