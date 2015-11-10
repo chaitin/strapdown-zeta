@@ -388,7 +388,7 @@ footer.footer .info span{
   margin-right: 1em;
 }
 footer.footer .info span b:after{
-  content: ":";
+  content: ": ";
 }
 footer.footer:hover{
   opacity: 1;
