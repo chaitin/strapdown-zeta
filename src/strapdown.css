@@ -405,7 +405,7 @@ footer.footer:hover{
  * Hide modal window by default
  */
 /* line 4, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-.modal {
+.option-modal {
     background-color: #ffffff;
     border: 0.0725em solid #e5e5e5;
     border-radius: 0.0725em;
@@ -415,11 +415,12 @@ footer.footer:hover{
     padding: 0.5em 1em;
     visibility: hidden;
     z-index: 9999;
+    bottom: initial;
 }
 
 @media (min-width: 40em) {
     /* line 4, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-    .modal {
+    .option-modal {
         max-width: 98%;
     }
 }
@@ -428,7 +429,7 @@ footer.footer:hover{
  * Show active modal
  */
 /* line 23, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-.modal.active {
+.option-modal.active {
     display: block;
     height: 100%;
     left: 0;
@@ -443,28 +444,28 @@ footer.footer:hover{
 
 @media (min-width: 30em) {
     /* line 23, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-    .modal.active {
+    .option-modal.active {
         height: auto;
         left: 3%;
         margin-left: auto;
         margin-right: auto;
         right: 3%;
-        top: 50px;
+        top: 70px;
     }
 }
 
 @media (min-width: 40em) {
     /* line 23, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-    .modal.active {
-        left: 8%;
-        right: 8%;
+    .option-modal.active {
+        left: 20%;
+        right: 20%;
     }
     /* line 48, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-    .modal.active.modal-medium {
+    .option-modal.active.option-modal-medium {
         width: 35em;
     }
     /* line 52, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-    .modal.active.modal-small {
+    .option-modal.active.modal-small {
         width: 25em;
     }
 }
@@ -473,7 +474,7 @@ footer.footer:hover{
  * Modal background
  */
 /* line 61, /Users/cferdinandi/Sites/modals/src/sass/components/_modals.scss */
-.modal-bg {
+.option-modal-bg {
     background-color: #272727;
     bottom: 0;
     position: fixed;
@@ -502,3 +503,4 @@ footer.footer:hover{
     cursor: pointer;
     text-decoration: none;
 }
+
