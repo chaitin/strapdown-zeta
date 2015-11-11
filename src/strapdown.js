@@ -216,6 +216,7 @@
   }
   // All done - show body
   document.body.style.display = '';
+  document.getElementsByTagName('footer')[0].style.display = '';
 })(window, document);
 
 // vim: ai:ts=2:sts=2:sw=2:
