@@ -235,6 +235,33 @@ class Test(unittest.TestCase):
         self.assertIn(r.status_code, [301, 302, 303, 307, 308], r.status_code)
         self.assertEqual(open(os.path.join(self.cwd, filename+'.md'), 'rb').read(), '')
 
+    def test_save_option(self):
+        data = {"Title": "title", "Toc": "false", "HeadingNumber": "i.a.a.i"}
+        # dir does not exists
+        r = requests.post(self.url("test.md") + "/test_dir_not_exists?option", data=json.dumps(data))
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(json.loads(r.content), {"code": 1})
+
+        # missing Title field
+        r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Toc": "false", "HeadingNumber": "i.a.a.i"}))
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(json.loads(r.content), {"code": 1})
+
+        # Toc show be either `true` or `false`
+        r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Title": "test", "Toc": "falsexxx", "HeadingNumber": "i.a.a.i"}))
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(json.loads(r.content), {"code": 1})
+
+        # HeadingNumber format shoule be `i.a.a.i`
+        r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.iiii"}))
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(json.loads(r.content), {"code": 1})
+
+        # succeeded
+        r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.i"}))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(json.loads(r.content), {"code": 0})
+
     def test_upload_without_ext(self):
         randomFile = '\x00\xff\xf7' + os.urandom(60)
         filename = random_name()
