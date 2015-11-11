@@ -260,6 +260,7 @@ class Test(unittest.TestCase):
         # succeeded
         r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.i"}))
         self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers["Content-Type"], "application/json")
         self.assertEqual(json.loads(r.content), {"code": 0})
 
     def test_upload_without_ext(self):

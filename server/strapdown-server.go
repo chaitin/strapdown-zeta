@@ -481,8 +481,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			err := decoder.Decode(&option)
 
 			if err != nil || option.Title == "" || (option.Toc != "true" && option.Toc != "false") {
-				ctx.statusCode = http.StatusBadRequest
-				http.Error(w, "{\"code\": 1}", ctx.statusCode)
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("{\"code\": 1}"))
 				return
 			}
 
@@ -490,17 +490,17 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 				s := strings.Split(option.HeadingNumber, ".")
 				for i:=0; i<len(s); i++ {
 					if s[i] != "a" && s[i] != "i" {
-						ctx.statusCode = http.StatusBadRequest
-						http.Error(w, "{\"code\": 1}", ctx.statusCode)
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("{\"code\": 1}"))
 						return
 					}
 				}
 			}
 			if ctx.saveOption(option) != nil {
-				ctx.statusCode = http.StatusBadRequest
-				http.Error(w, "{\"code\": 1}", ctx.statusCode)
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("{\"code\": 1}"))
 			} else {
-				http.Error(w, "{\"code\": 0}", ctx.statusCode)
+				w.Write([]byte("{\"code\": 0}"))
 			}
 		} else {
 			ctx.statusCode = http.StatusBadRequest
