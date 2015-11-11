@@ -19,14 +19,6 @@ import (
 	"time"
 )
 
-type CustomOption struct {
-	Title         string
-	Theme         string
-	Toc           string
-	HeadingNumber string
-	Host          string
-}
-
 func (this *RequestContext) safelyUpdateConfig(path string) {
 	if len(wikiConfig.optext) == 0 {
 		path = path + ".option.json"
@@ -73,6 +65,21 @@ func (this *RequestContext) safelyUpdateConfig(path string) {
 		}
 	}
 	return
+}
+
+func (this *RequestContext) saveOption(option CustomOption) error {
+	w := *this.res
+	w.Header().Set("Content-Type", "application/json")
+
+	var filePath string
+	if len(wikiConfig.optext) == 0 {
+		filePath = this.path + ".option.json"
+	} else {
+		filePath = this.path + wikiConfig.optext
+	}
+	content, err := json.Marshal(option)
+	err = ioutil.WriteFile(filePath, content, 0600)
+	return err
 }
 
 func (this *RequestContext) Update(action string) error {

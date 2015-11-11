@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"encoding/json"
 )
 
 type DirEntry struct {
@@ -75,6 +76,14 @@ type RequestContext struct {
 	isFolder   bool
 	username   string
 	statusCode int
+}
+
+type CustomOption struct {
+	Title         string
+	Theme         string
+	Toc           string
+	HeadingNumber string
+	Host          string
 }
 
 var wikiConfig Config // the global config file
@@ -464,14 +473,38 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dooption {
-		if r.Method == "GET" {
-			// TODO: return option template
-		} else if r.Method == "POST" {
-			// TODO: update option
+		if r.Method == "POST" {
+			w.Header().Set("Content-Type", "application/json")
+
+			decoder := json.NewDecoder(ctx.req.Body)
+			var option CustomOption
+			err := decoder.Decode(&option)
+
+			if err != nil || option.Title == "" || (option.Toc != "true" && option.Toc != "false") {
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, "{\"code\": 1}", ctx.statusCode)
+				return
+			}
+
+			if option.HeadingNumber != "false" {
+				s := strings.Split(option.HeadingNumber, ".")
+				for i:=0; i<len(s); i++ {
+					if s[i] != "a" && s[i] != "i" {
+						ctx.statusCode = http.StatusBadRequest
+						http.Error(w, "{\"code\": 1}", ctx.statusCode)
+						return
+					}
+				}
+			}
+			if ctx.saveOption(option) != nil {
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, "{\"code\": 1}", ctx.statusCode)
+			} else {
+				http.Error(w, "{\"code\": 0}", ctx.statusCode)
+			}
 		} else {
 			ctx.statusCode = http.StatusBadRequest
 			http.Error(w, r.Method+" method not allowed for option", ctx.statusCode)
-			return
 		}
 		return
 	}
