@@ -25,7 +25,9 @@ func (this *RequestContext) safelyUpdateConfig(path string) {
 	} else {
 		path = path + wikiConfig.optext
 	}
-	log.Print("[ DEBUG ] Read option, file path " + path)
+	if wikiConfig.verbose {
+		log.Print("[ DEBUG ] Read option, file path " + path)
+	}
 	option, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
