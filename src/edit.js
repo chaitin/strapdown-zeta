@@ -108,7 +108,7 @@
         return false;
     }
 
-    function insertContent(uploadPath){
+    function insertContent(uploadPath) {
         if (isImage(uploadPath)) {
             // image
             editor.insert("\n\n![" + uploadPath + "](" + uploadPath + ")\n\n");
@@ -129,7 +129,7 @@
         uploadIframe.removeEventListener("load", iframeOnload);
     }
 
-    function getUploadPath(fileName){
+    function getUploadPath(fileName) {
         var dir = location.pathname;
         return dir.slice(0, dir.lastIndexOf("/") + 1) + fileName;
     }
@@ -169,8 +169,8 @@
         var fileList = e.target.files || e.dataTransfer.files;
         var xhr = new XMLHttpRequest();
         var uploadPath = getUploadPath(fileList[0].name);
-        xhr.onreadystatechange = function(e){
-            if(xhr.readyState == 4) {
+        xhr.onreadystatechange = function (e) {
+            if (xhr.readyState == 4) {
                 if (xhr.responseText == "success") {
                     insertContent(uploadPath);
                 }
@@ -185,5 +185,59 @@
         formData.append("body", fileList[0]);
         xhr.send(formData);
     }, false);
+
+    modals.init({backspaceClose: false});
+    document.getElementById("option-btn").addEventListener("click", function () {
+        modals.openModal(null, "#option-modal");
+    });
+    document.getElementById("option-submit-btn").addEventListener("click", function () {
+        var title = document.getElementById("Title").value;
+        var headingNumber = document.getElementById("HeadingNumber").value;
+        var showToc = document.getElementById("Toc").checked;
+
+        if (!title) {
+            alert("Title can not be empty");
+            return;
+        }
+
+        function validHeadingNumber(str) {
+            // allow empty
+            if(!str){
+                return true;
+            }
+            var s = str.split(".");
+            for (var i = 0; i < s.length; i++) {
+                if (s[i] != "a" && s[i] != "i") {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (!validHeadingNumber(headingNumber)) {
+            alert("Heading Number format error, it should like \"i.a'a.i\"");
+            return;
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.code) {
+                    alert("Failed to save option");
+                }
+                else {
+                    alert("Success");
+                    modals.closeModals(null, "#option-modal");
+                }
+            }
+        };
+        xhr.open("POST", location.pathname + "?option");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        if(!headingNumber){
+            headingNumber = "false"
+        }
+        xhr.send((JSON.stringify({"Title": title, "HeadingNumber": headingNumber, "Toc": showToc.toString()})))
+    })
 
 })(window, document);

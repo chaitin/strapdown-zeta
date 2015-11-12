@@ -74,6 +74,9 @@
                         <button class="btn btn-default navbar-btn" id="upload-btn">Attach File</button>
                     </li>
                     <li>
+                        <button class="btn btn-default navbar-btn" data-modal="#option-modal" id="option-btn">Option</button>
+                    </li>
+                    <li>
                         <a href="#" id="preview-toggle">Instant Preview</a>
                     </li>
                     <li>
@@ -89,6 +92,24 @@
     <div class="render-target" style="display:none"></div>
     <xmp version="{{.Version}}" id="editor">{{.Content}}</xmp>
     <div style="display: none" id="upload-area"></div>
+    <div class="option-modal option-modal-medium" data-modal-window id="option-modal">
+        <a class="close" data-modal-close>x</a>
+        <h3>Page Option</h3>
+        <div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" class="form-control" id="Title" value="{{.Title}}">
+            </div>
+            <div class="form-group">
+                <label>Heading Number</label>
+                <input type="text" class="form-control" id="HeadingNumber" value='{{if ne .HeadingNumber "false"}}{{.HeadingNumber}}{{end}}' placeholder="Example: i.a.a.i">
+            </div>
+            <div class="radio">
+                <input type="checkbox" id="Toc" {{if eq .Toc "true"}}checked{{end}}> Show Table Of Content
+            </div>
+            <button class="btn btn-default" id="option-submit-btn">Submit</button>
+        </div>
+    </div>
     <script src="{{.Host}}/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="{{.Host}}/edit.min.js" type="text/javascript" charset="utf-8"></script>
 </body>
