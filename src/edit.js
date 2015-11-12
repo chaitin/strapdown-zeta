@@ -228,6 +228,7 @@
                 }
                 else {
                     alert("Success");
+                    modals.closeModals(null, "#option-modal");
                 }
             }
         };
