@@ -25,6 +25,7 @@ func (this *RequestContext) safelyUpdateConfig(path string) {
 	} else {
 		path = path + wikiConfig.optext
 	}
+	log.Print("[ DEBUG ] Read option, file path " + path)
 	option, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
@@ -72,12 +73,16 @@ func (this *RequestContext) saveOption(option CustomOption) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	var filePath string
+	if !strings.HasSuffix(this.path, ".md") {
+		this.path += ".md"
+	}
 	if len(wikiConfig.optext) == 0 {
 		filePath = this.path + ".option.json"
 	} else {
 		filePath = this.path + wikiConfig.optext
 	}
 	content, err := json.Marshal(option)
+	log.Print("[ DEBUG ] Save option, file path " + filePath)
 	err = ioutil.WriteFile(filePath, content, 0600)
 	return err
 }

@@ -238,7 +238,7 @@ class Test(unittest.TestCase):
     def test_save_option(self):
         data = {"Title": "title", "Toc": "false", "HeadingNumber": "i.a.a.i"}
         # dir does not exists
-        r = requests.post(self.url("test.md") + "/test_dir_not_exists?option", data=json.dumps(data))
+        r = requests.post(self.url("test") + "/test_dir_not_exists?option", data=json.dumps(data))
         self.assertEqual(r.status_code, 400)
         self.assertEqual(json.loads(r.content), {"code": 1})
 
@@ -258,10 +258,11 @@ class Test(unittest.TestCase):
         self.assertEqual(json.loads(r.content), {"code": 1})
 
         # succeeded
-        r = requests.post(self.url("test.md") + "?option", data=json.dumps({"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.i"}))
+        r = requests.post(self.url("test1xxx") + "?option", data=json.dumps({"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.i"}))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers["Content-Type"], "application/json")
         self.assertEqual(json.loads(r.content), {"code": 0})
+        self.assertEqual(json.loads(open(self.cwd + "/test1xxx.md.option.json", "r").read()), {"Title": "test", "Toc": "false", "HeadingNumber": "i.a.a.i", "Theme": "", "Host": ""})
 
     def test_upload_without_ext(self):
         randomFile = '\x00\xff\xf7' + os.urandom(60)
