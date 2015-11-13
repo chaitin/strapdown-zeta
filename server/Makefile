@@ -14,7 +14,7 @@ PYTHON2=$(shell command -v python2 || command -v python)
 all: $(TARGET)
 
 deps:
-	echo "If you fail to build, please set proper HTTP_PROXY, HTTPS_PROXY and retry."
+	@echo "If you fail to build, please set proper HTTP_PROXY, HTTPS_PROXY and retry."
 	go get -u github.com/abbot/go-http-auth
 	go get -d github.com/libgit2/git2go
 	cd src/github.com/libgit2/git2go; \
