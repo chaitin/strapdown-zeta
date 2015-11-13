@@ -2,7 +2,7 @@ export GOPATH := $(shell pwd)
 export PATH := $(GOPATH)/bin:${PATH}
 export GOBIN := $(GOPATH)/bin
 
-.PHONY: all test clean cleanall deps
+.PHONY: all test clean cleanall deps static
 .INTERMEDIATE: bindata.go _static/version
 
 TARGET=strapdown-server
@@ -14,6 +14,7 @@ PYTHON2=$(shell command -v python2 || command -v python)
 all: $(TARGET)
 
 deps:
+	echo "If you fail to build, please set proper HTTP_PROXY, HTTPS_PROXY and retry."
 	go get -u github.com/abbot/go-http-auth
 	go get -d github.com/libgit2/git2go
 	cd src/github.com/libgit2/git2go; \
@@ -26,6 +27,9 @@ deps:
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
 	go build -ldflags="-s" -o $@
+
+static:
+	grunt
 
 bin/go-bindata:
 	go get -u github.com/jteeuwen/go-bindata/...
