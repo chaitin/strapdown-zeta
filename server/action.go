@@ -292,7 +292,7 @@ func (this *RequestContext) Diff(versions []string) error {
 	if err != nil {
 		return err
 	}
-	this.Title = "Diff for file from " + versions[0] + " to " + versions[1]
+	this.Versions = versions
 	return templates["diff"].Execute(w, this)
 }
 
@@ -501,7 +501,7 @@ func getFileDiff(fileName string, diff_versions []string) (*string, error) {
 		hunkcb := func(diffHunk git.DiffHunk) (git.DiffForEachLineCallback, error) {
 			diffResult += fmt.Sprintf("%s", diffHunk.Header)
 			linecb := func(diffLine git.DiffLine) error {
-				diffPrefix := ""
+				diffPrefix := " "
 				switch diffLine.Origin {
 				case git.DiffLineAddition:
 					diffPrefix = "+"

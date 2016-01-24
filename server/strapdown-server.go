@@ -67,6 +67,7 @@ type RequestContext struct {
 	DirEntries    []DirEntry
 	CommitEntries []CommitEntry
 	Version       string
+	Versions      []string
 	Host          string //deleteme
 
 	path       string

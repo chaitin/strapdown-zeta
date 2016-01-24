@@ -1,28 +1,28 @@
 <html>
   <head>
-  <title>{{.Title}}</title>
+  <title>Diff for file from {{index .Versions 0}} to {{index .Versions 1}}</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="{{.Host}}/themes/cerulean.min.css" />
-  <link rel="stylesheet" href="{{.Host}}/themes/bootstrap-responsive.min.css" />
-  <style type="text/css" media="screen">
-    #diff {
-        margin: 56px auto;
-        -webkit-box-sizing: border-box; /* Safari, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-    }
-  </style>
+  <link rel="stylesheet" href="{{.Host}}/strapdown.min.css">
+  <style>.d2h-code-side-line{height: auto; white-space:normal; word-break: break-all;}</style>
+  <script src="{{.Host}}/diff.min.js"></script>
   </head>
   <body>
     <div class="navbar navbar-default navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-          <div id="headline" class="navbar-brand"> {{.Title}} </div>
+          <div id="headline" class="navbar-brand">Diff for file from {{index .Versions 0}} to {{index .Versions 1}}</div>
         </div>
       </div>
     </div>
-    <div id="diff" class="container">
-    <div><pre>{{.Content}}</pre></div>
+    <div class="container-fluid">
+      <xmp id="diff-content">{{.Content}}</xmp>
+      <div id="diff-side-by-side"></div>
     </div>
+    <script>
+    var diffPadding = 'diff --git a/{{index .Versions 0}} b/{{index .Versions 1}}\nindex {{index .Versions 0}}..{{index .Versions 1}} 100644\n--- a/{{index .Versions 0}}\n+++ b/{{index .Versions 1}}\n';
+    var diffJson = Diff2Html.getJsonFromDiff(diffPadding + document.getElementById("diff-content").innerHTML);
+    document.getElementById("diff-side-by-side").innerHTML = Diff2Html.getPrettyHtml(diffJson, {inputFormat: 'json', showFiles: false, matching: 'words', outputFormat: 'side-by-side' });
+    </script>
   </body>
 </html>
