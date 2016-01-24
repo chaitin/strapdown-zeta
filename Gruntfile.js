@@ -30,6 +30,7 @@ module.exports = function (grunt) {
                     'build/edit-src.min.js': ['src/edit.js'],
                     'build/render-src.min.js': ['src/render.js'],
                     'build/modals.min.js': ['src/modals.js'],
+                    'build/diff.min.js': ['src/diff.js']
                 }
             }
         },
