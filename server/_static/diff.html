@@ -14,8 +14,9 @@
         </div>
       </div>
     </div>
-    <xmp id="diff-content">{{.Content}}</xmp>
-    <div id="diff-side-by-side" style="margin: 0 auto;">
+    <div class="container-fluid">
+      <xmp id="diff-content">{{.Content}}</xmp>
+      <div id="diff-side-by-side"></div>
     </div>
     <script>
     var diffPadding = 'diff --git a/{{index .Versions 0}} b/{{index .Versions 1}}\nindex {{index .Versions 0}}..{{index .Versions 1}} 100644\n--- a/{{index .Versions 0}}\n+++ b/{{index .Versions 1}}\n';
