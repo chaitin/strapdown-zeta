@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"encoding/json"
 )
 
 type DirEntry struct {
@@ -489,7 +489,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 
 			if option.HeadingNumber != "false" {
 				s := strings.Split(option.HeadingNumber, ".")
-				for i:=0; i<len(s); i++ {
+				for i := 0; i < len(s); i++ {
 					if s[i] != "a" && s[i] != "i" {
 						w.WriteHeader(http.StatusBadRequest)
 						w.Write([]byte("{\"code\": 1}"))
@@ -583,7 +583,16 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			err = ctx.Update("redirect")
 		}
 	} else if r.Method == "GET" {
-		if fperr == nil { // fp exists
+		if fpmderr == nil { // fpmd exists, just view
+			if fpmdstat.IsDir() { // sadly, fpmd is a directory, show error
+				ctx.statusCode = http.StatusBadRequest
+				http.Error(w, fmt.Sprintf("%s already exists and is a directory, please choose another path\n", fpmd), ctx.statusCode)
+				return
+			} else {
+				ctx.path = fpmd
+				err = ctx.View(param_version)
+			}
+		} else if fperr == nil { // fp exists
 			if fpstat.IsDir() { // fp is a dir
 				if !strings.HasSuffix(fp, "/") { // redirect
 					err = ctx.Redirect(r.URL.Path + "/")
@@ -599,15 +608,6 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			} else { // host static file
 				ctx.path = fp
 				ctx.Static(param_version)
-			}
-		} else if fpmderr == nil { // fpmd exists, just view
-			if fpmdstat.IsDir() { // sadly, fpmd is a directory, show error
-				ctx.statusCode = http.StatusBadRequest
-				http.Error(w, fmt.Sprintf("%s already exists and is a directory, please choose another path\n", fpmd), ctx.statusCode)
-				return
-			} else {
-				ctx.path = fpmd
-				err = ctx.View(param_version)
 			}
 		} else { // both fp and fpmd does not exists
 			ctx.path = fpmd
