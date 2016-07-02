@@ -342,6 +342,42 @@ class Test(unittest.TestCase):
         self.assertEqual(r.status_code, 400)
         self.assertIn(xmp, r.text)
 
+    def test_file_dir_with_same_name(self):
+        text = u"file a content"
+        r = requests.post(self.url("a?edit"), data={
+            "body": text
+        })
+        self.assertIn(text, r.text)
+        self.assertIn("strapdown.min.js", r.text)
+
+        text2 = "does not matter"
+        r = requests.post(self.url("a/b?edit"), data={
+            "body": text2
+        })
+        self.assertIn(text2, r.text)
+        self.assertIn("strapdown.min.js", r.text)
+
+        # should be the file
+        r = requests.get(self.url("a"))
+        self.assertIn(text, r.text)
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+
+        # should be the directory
+        r = requests.get(self.url("a/"))
+        self.assertNotIn(text, r.text)
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+        self.assertIn('Directory Listing', r.text)
+        self.assertIn('b.md', r.text)
+
+        # should be file b
+        r = requests.get(self.url("a/b"))
+        self.assertIn(text2, r.text)
+        self.assertGreaterEqual(r.status_code, 200)
+        self.assertLess(r.status_code, 300)
+
+
 if __name__ == '__main__':
     os.chdir(CWD)
     suite = unittest.TestLoader().loadTestsFromTestCase(Test)
