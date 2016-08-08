@@ -29,11 +29,32 @@
       titleEl = document.getElementsByTagName('title')[0],
       navbarEl = document.getElementsByClassName('navbar')[0];
 
-  if (!markdownEl) {
-    console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdown.ztx.io/ to learn more.');
-    return;
+  var markdown = markdownEl.textContent || markdownEl.innerText;
+
+  if (!markdown || !markdown.trim()) {
+    var outter_md_src = markdownEl.getAttribute("src");
+    if (!outter_md_src) {
+      console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdown.ztx.io/ to learn more.');
+    }
+    
+    markdown = loadOutterMD(outter_md_src);
   }
 
+  /*
+   * load Markdown file in synchronized way
+  */
+  function loadOutterMD(src){
+    var xhr;
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xhr=new XMLHttpRequest();
+    } else {// code for IE6, IE5
+      xhr=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xhr.open('GET', src, false);
+    xhr.send();
+    return xhr.responseText;
+  }
+  
   // Hide body until we're done fiddling with the DOM
   document.body.style.display = 'none';
 
@@ -196,8 +217,8 @@
       });
     }
   }
-  var markdown = markdownEl.textContent || markdownEl.innerText,
-      heading_number = markdownEl.getAttribute("heading_number"),
+  
+  var  heading_number = markdownEl.getAttribute("heading_number"),
       show_toc = markdownEl.getAttribute("toc");
   render(newNode, markdown, theme, heading_number, show_toc);
 
