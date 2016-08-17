@@ -365,7 +365,7 @@ function render(newNode, markdown, theme, heading_number, show_toc){
     if(!window.MathJax){
         var script = document.createElement("script");
         script.type = "text/javascript";
-        script.src  = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG";
+        script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG";
 
         var callback = function () {
           // config options
