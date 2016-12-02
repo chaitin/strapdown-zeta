@@ -16,6 +16,9 @@ all: $(TARGET)
 deps:
 	@echo "If you fail to build, please set proper HTTP_PROXY, HTTPS_PROXY and retry."
 	go get -u github.com/abbot/go-http-auth
+	go get -u golang.org/x/oauth2
+	go get -u golang.org/x/oauth2/google
+	go get -u google.golang.org/api/admin/directory/v1
 	go get -d github.com/libgit2/git2go
 	cd src/github.com/libgit2/git2go; \
 		git checkout next ;\
