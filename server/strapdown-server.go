@@ -330,29 +330,26 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	ctx.gmailaddr = "strapdown@gmail.com"
 	gusr_match := false
 	gemail_match := false
+	b64 := base64.StdEncoding.WithPadding(-1)
 	if len(wikiConfig.googleauth) > 0 {
-		cookies := ctx.req.Cookies()
-		if len(cookies) == Num_Cookies {
-			for _, cookie := range cookies {
-				str_decode, err := base64.StdEncoding.DecodeString(cookie.Value)
-				if err == nil {
-					if cookie.Name == "uid" {
-						ctx.gusername = string(str_decode)
-						gusr_match = true
-					} else if cookie.Name == "email" {
-						ctx.gmailaddr = string(str_decode)
-						gemail_match = true
-					}
-				} else {
-					break
-				}
+		cookie, err := ctx.req.Cookie("uid")
+		if err == nil {
+			bytes, err := b64.DecodeString(cookie.Value)
+			if err == nil {
+				ctx.gusername = string(bytes)
+				gusr_match = true
+			}
+		}
+		cookie, err = ctx.req.Cookie("email")
+		if err == nil {
+			bytes, err := b64.DecodeString(cookie.Value)
+			if err == nil {
+				ctx.gmailaddr = string(bytes)
+				gemail_match = true
 			}
 		}
 		if gusr_match && gemail_match {
 			ctx.gauthStatus = true
-		} else {
-			cookie := http.Cookie{Name: "session", Value: "", Expires: time.Now(), HttpOnly: true}
-			http.SetCookie(w, &cookie)
 		}
 	}
 
@@ -483,7 +480,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	_, doupload := q["upload"]
 
 	// if unlogged-in user's request is not "GET", redirect to google authenticaton page
-	if (r.Method != "GET" || dodelete || doupload) && !ctx.gauthStatus && len(wikiConfig.googleauth) > 0 {
+	if (r.Method != "GET" || doedit || dodelete || doupload) && !ctx.gauthStatus && len(wikiConfig.googleauth) > 0 {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
@@ -752,10 +749,13 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set cookie
-	cookie := http.Cookie{Name: "uid", Value: base64.StdEncoding.EncodeToString([]byte(curUser.Name)), Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
-	http.SetCookie(w, &cookie)
-	cookie2 := &http.Cookie{Name: "email", Value: base64.StdEncoding.EncodeToString([]byte(curUser.Email)), Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
-	w.Header().Add("Set-Cookie", cookie2.String())
+	b64 := base64.StdEncoding.WithPadding(-1)
+	cookie := &http.Cookie{Name: "uid", Value: b64.EncodeToString([]byte(curUser.Name)),
+		Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
+	w.Header().Add("Set-Cookie", cookie.String())
+	cookie = &http.Cookie{Name: "email", Value: b64.EncodeToString([]byte(curUser.Email)),
+		Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
+	w.Header().Add("Set-Cookie", cookie.String())
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
