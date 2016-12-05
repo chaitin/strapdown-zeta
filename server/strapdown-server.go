@@ -2,7 +2,9 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/sha1"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -13,6 +15,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/admin/directory/v1"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -44,10 +47,12 @@ func randString(n int) string {
 }
 
 func encrypt_sig(s1 string, s2 string, s3 string) string {
+	h := sha1.New()
 	b64 := base64.StdEncoding.WithPadding(-1)
 	ss := b64.EncodeToString([]byte(s1)) + "\n" + b64.EncodeToString([]byte(s2)) +
 		"\n" + b64.EncodeToString([]byte(s3))
-	return b64.EncodeToString([]byte(ss))
+	io.WriteString(h, ss)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 type userProfile struct {
