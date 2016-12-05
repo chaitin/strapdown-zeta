@@ -503,18 +503,17 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	if len(wikiConfig.googleauth) > 0 {
 		if !ctx.gauthStatus {
 			if r.Method != "GET" || doedit || dodelete || doupload || (fperr != nil && fpmderr != nil) {
-				cookie := &http.Cookie{Name: "return_addr", Value: r.URL.Path + "?" + r.URL.RawQuery,
-					Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
-				w.Header().Add("Set-Cookie", cookie.String())
-				http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+				return_addr := b64.EncodeToString([]byte(r.URL.Path + "?" + r.URL.RawQuery))
+				url := authConfig.AuthCodeURL(return_addr)
+				http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 				return
 			}
 		} else if encrypt_MD5(ctx.gusername, ctx.gmailaddr, encrypt_key) != ctx.signature {
+			fmt.Println(r.URL.Path)
 			//fmt.Println("encryption not match")
-			cookie := &http.Cookie{Name: "return_addr", Value: r.URL.Path + "?" + r.URL.RawQuery,
-				Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
-			w.Header().Add("Set-Cookie", cookie.String())
-			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+			return_addr := b64.EncodeToString([]byte(r.URL.Path + "?" + r.URL.RawQuery))
+			url := authConfig.AuthCodeURL(return_addr)
+			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 			return
 		}
 	}
@@ -736,18 +735,15 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	url := authConfig.AuthCodeURL(oauthStateString)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-}
-
 func handleCallback(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
-	if state != oauthStateString {
-		fmt.Printf("Invalid oauth state")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
+	/*
+		if state != oauthStateString {
+			fmt.Printf("Invalid oauth state")
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return
+		}
+	*/
 
 	code := r.FormValue("code")
 
@@ -783,15 +779,13 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set cookie
-	cookie, err := r.Cookie("return_addr")
-	return_URL := "/"
-	if err == nil {
-		return_URL = cookie.Value
-		cookie_del := &http.Cookie{Name: "return_addr", Value: "", Expires: time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC), HttpOnly: true}
-		w.Header().Add("Set-Cookie", cookie_del.String())
-	}
 	b64 := base64.StdEncoding.WithPadding(-1)
-	cookie = &http.Cookie{Name: "uid", Value: b64.EncodeToString([]byte(curUser.Name)),
+	return_URL := "/"
+	bytes, err := b64.DecodeString(state)
+	if err == nil {
+		return_URL = string(bytes)
+	}
+	cookie := &http.Cookie{Name: "uid", Value: b64.EncodeToString([]byte(curUser.Name)),
 		Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
 	w.Header().Add("Set-Cookie", cookie.String())
 	cookie = &http.Cookie{Name: "email", Value: b64.EncodeToString([]byte(curUser.Email)),
@@ -873,9 +867,8 @@ func main() {
 		}
 	}
 
-	// login.md and callback.md cannot be created and edited under current authentication mechanism
+	// callback.md cannot be created and edited under current authentication mechanism
 	http.HandleFunc("/", handleFunc)
-	http.HandleFunc("/login", handleLogin)       // redirect to google authentication URL
 	http.HandleFunc("/callback", handleCallback) // check authentication state and whether user profile was retrieved
 
 	// listen on the (multi) addresss
