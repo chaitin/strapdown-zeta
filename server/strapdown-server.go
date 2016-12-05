@@ -423,7 +423,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// forbidden any access of google oauth credential file
-	if fp == wikiConfig.googleauth {
+	if len(wikiConfig.googleauth) > 0 && fp == wikiConfig.googleauth {
 		ctx.statusCode = http.StatusForbidden
 		http.Error(w, "access of authentication file not allowed", ctx.statusCode)
 		return
