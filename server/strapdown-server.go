@@ -1,10 +1,8 @@
 package main
 
 import (
-	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -15,7 +13,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/admin/directory/v1"
 	"html/template"
-	"io"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -46,12 +43,11 @@ func randString(n int) string {
 	return string(bytes)
 }
 
-func encrypt_MD5(s1 string, s2 string, s3 string) string {
-	h := md5.New()
-	io.WriteString(h, s1)
-	io.WriteString(h, s2)
-	io.WriteString(h, s3)
-	return hex.EncodeToString(h.Sum(nil))
+func encrypt_sig(s1 string, s2 string, s3 string) string {
+	b64 := base64.StdEncoding.WithPadding(-1)
+	ss := b64.EncodeToString([]byte(s1)) + "\n" + b64.EncodeToString([]byte(s2)) +
+		"\n" + b64.EncodeToString([]byte(s3))
+	return b64.EncodeToString([]byte(ss))
 }
 
 type userProfile struct {
@@ -508,9 +504,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 				return
 			}
-		} else if encrypt_MD5(ctx.gusername, ctx.gmailaddr, encrypt_key) != ctx.signature {
-			fmt.Println(r.URL.Path)
-			//fmt.Println("encryption not match")
+		} else if encrypt_sig(ctx.gusername, ctx.gmailaddr, encrypt_key) != ctx.signature {
 			return_addr := b64.EncodeToString([]byte(r.URL.Path + "?" + r.URL.RawQuery))
 			url := authConfig.AuthCodeURL(return_addr)
 			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
@@ -737,26 +731,19 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 
 func handleCallback(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
-	/*
-		if state != oauthStateString {
-			fmt.Printf("Invalid oauth state")
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-			return
-		}
-	*/
 
 	code := r.FormValue("code")
 
 	token, err := authConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
-		fmt.Printf("Code exchange failed with '%s'\n", err)
+		log.Printf("Code exchange failed with '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 
 	if err != nil {
-		fmt.Printf("Can't access Google OAuth service: '%s'\n", err)
+		log.Printf("Can't access Google OAuth service: '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -764,16 +751,15 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("Invalid response from Google OAuth: '%s'\n", err)
+		log.Printf("Invalid response from Google OAuth: '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	//fmt.Fprintf(w, "Contents: %s\n", contents)
 
 	var curUser userProfile
 	err = json.Unmarshal(contents, &curUser)
 	if err != nil {
-		fmt.Printf("Can't get user profile: %s", err)
+		log.Printf("Can't get user profile: %s", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -791,7 +777,7 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	cookie = &http.Cookie{Name: "email", Value: b64.EncodeToString([]byte(curUser.Email)),
 		Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
 	w.Header().Add("Set-Cookie", cookie.String())
-	cookie = &http.Cookie{Name: "signature", Value: encrypt_MD5(curUser.Name, curUser.Email, encrypt_key),
+	cookie = &http.Cookie{Name: "signature", Value: encrypt_sig(curUser.Name, curUser.Email, encrypt_key),
 		Expires: time.Now().Add(time.Hour * 100000), HttpOnly: true}
 	w.Header().Add("Set-Cookie", cookie.String())
 	http.Redirect(w, r, return_URL, http.StatusTemporaryRedirect)
