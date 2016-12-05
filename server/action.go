@@ -139,7 +139,7 @@ func (this *RequestContext) Update(action string) error {
 	if wikiConfig.verbose {
 		log.Printf("[ DEBUG ] try write to %s, %d bytes\n", this.path, len(upload_content))
 	}
-	err := saveAndCommit(this.path, upload_content, comment, "anonymous@"+this.ip)
+	err := saveAndCommit(this.path, upload_content, comment, this.gusername+"@"+this.ip, this.gmailaddr)
 	if err != nil {
 		this.statusCode = http.StatusInternalServerError
 		return err
@@ -297,7 +297,7 @@ func (this *RequestContext) Diff(versions []string) error {
 }
 
 //save md file and git commit, for .md
-func saveAndCommit(fp string, content []byte, comment string, author string) error {
+func saveAndCommit(fp string, content []byte, comment string, author string, author_gmail string) error {
 	var err error
 
 	err = os.MkdirAll(path.Dir(fp), 0700)
@@ -344,7 +344,7 @@ func saveAndCommit(fp string, content []byte, comment string, author string) err
 
 	sig := &git.Signature{
 		Name:  author,
-		Email: "strapdown@gmail.com",
+		Email: author_gmail,
 		When:  time.Now(),
 	}
 
