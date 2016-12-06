@@ -1,7 +1,7 @@
 {
   "author": "Artur Adib, zTrix, cbmixx, pandada8",
   "name": "strapdown",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "dependencies": {},
   "devDependencies": {
     "grunt": "^0.4.4",
