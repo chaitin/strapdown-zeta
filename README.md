@@ -226,4 +226,11 @@ All credit goes to the projects below that make up most of Strapdown.js:
  - [zyaboutblank](https://github.com/zyaboutblank)
  - [pandada8](https://github.com/pandada8)
  - [jamesliu96](https://github.com/jamesliu96)
+ - [virusdefender](https://github.com/virusdefender)
+ - [neverland4u](https://github.com/neverland4u)
+ - [jan-zajic](https://github.com/jan-zajic)
+ - [lazee](https://github.com/lazee)
+ - [atifaziz](https://github.com/atifaziz)
+ - [jawi](https://github.com/jawi)
+ - [soyking](https://github.com/soyking)
 
