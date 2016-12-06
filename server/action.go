@@ -452,46 +452,15 @@ func getFileDiff(fileName string, diff_versions []string) (*string, error) {
 	if err != nil || obj1 == nil {
 		return nil, err
 	}
-	// TODO: since git2go did not implement
-	//           git_diff_blob_to_buffer,git_diff_blobs or git_diff_buffers for sigle file diff
-	//           try to use git_diff_tree_to_tree with 2 newly built tree to diff one file
-	bld, err := repo.TreeBuilder()
-	if err != nil || bld == nil {
+
+	// get blobs for `git diff`
+	blob0, err := obj0.AsBlob()
+	if err != nil{
 		return nil, err
 	}
-	err = bld.Insert(fileName, obj0.Id(), 0100755)
-	if err != nil {
-		return nil, err
-	}
-	treeId1, err := bld.Write()
-	if err != nil {
-		return nil, err
-	}
-	// git2go did not implement git_treebuilder_clear,manually remove items
-	err = bld.Remove(fileName)
-	if err != nil {
-		return nil, err
-	}
-	err = bld.Insert(fileName, obj1.Id(), 0100755)
-	if err != nil {
-		return nil, err
-	}
-	treeId2, err := bld.Write()
-	if err != nil {
-		return nil, err
-	}
-	defer bld.Free()
-	tree1, err := repo.LookupTree(treeId1)
-	if err != nil {
-		return nil, err
-	}
-	tree2, err := repo.LookupTree(treeId2)
-	if err != nil {
-		return nil, err
-	}
-	// diff,err := repo.DiffTreeToTree(tree1,tree2,nil)
-	diff, err := repo.DiffTreeToTree(tree1, tree2, nil)
-	if err != nil {
+
+	blob1, err := obj1.AsBlob()
+	if err != nil{
 		return nil, err
 	}
 
@@ -516,7 +485,16 @@ func getFileDiff(fileName string, diff_versions []string) (*string, error) {
 		return hunkcb, nil
 	}
 
-	err = diff.ForEach(filecb, git.DiffDetailLines)
+	// diff two blobs
+	err = git.DiffBlobs(
+		blob0,
+		"",
+		blob1,
+		"",
+		nil,
+		filecb,
+		git.DiffDetailLines,
+	)
 	if err != nil {
 		return nil, err
 	}
