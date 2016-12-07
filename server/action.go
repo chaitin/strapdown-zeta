@@ -563,6 +563,7 @@ func getHistory(fp string, size int) ([]CommitEntry, error) {
 		return nil, err
 	}
 
+	// walk commits descending by time
 	revwalk.Sorting(git.SortTime)
 
 	var filehistory []CommitEntry
@@ -592,18 +593,19 @@ func getHistory(fp string, size int) ([]CommitEntry, error) {
 				filehistory = append(filehistory, buildCommitEntry(commit, entry))
 			} else {
 				if filehistory[filehistoryLen-1].EntryId == entry.Id.String() {
-					// replace the last commit having the same entry id
-					// why ??
+					// earlier commit points to the same file entry
+					// it means that the later one didn't change the file, so replace it
 					filehistory = filehistory[:filehistoryLen-1]
 					filehistory = append(filehistory, buildCommitEntry(commit, entry))
 				} else {
-					// new entry id means last entry id is done
+					// earlier commit points to the new file entry
+					// it means that the later one has changed the file
 					cnt += 1
 					if size > 0 && cnt >= size {
 						return false
 					}
 
-					// new commit with new entry id
+					// add the commit with new file entry
 					filehistory = append(filehistory, buildCommitEntry(commit, entry))
 				}
 			}
