@@ -455,12 +455,12 @@ func getFileDiff(fileName string, diff_versions []string) (*string, error) {
 
 	// get blobs for `git diff`
 	blob0, err := obj0.AsBlob()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	blob1, err := obj1.AsBlob()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -530,6 +530,17 @@ func getCommitFile(repo *git.Repository, commit *git.Commit, fileName string) (*
 	ret := string(blb.Contents())
 	return &ret, nil
 }
+
+func buildCommitEntry(commit *git.Commit, entry *git.TreeEntry) CommitEntry {
+	return CommitEntry{
+		Id:        commit.Id().String(),
+		EntryId:   entry.Id.String(),
+		Message:   commit.Message(),
+		Author:    commit.Author().Name,
+		Timestamp: commit.Author().When,
+	}
+}
+
 func getHistory(fp string, size int) ([]CommitEntry, error) {
 	if len(fp) == 0 {
 		return nil, nil
@@ -552,6 +563,7 @@ func getHistory(fp string, size int) ([]CommitEntry, error) {
 		return nil, err
 	}
 
+	// walk commits descending by time
 	revwalk.Sorting(git.SortTime)
 
 	var filehistory []CommitEntry
@@ -575,13 +587,27 @@ func getHistory(fp string, size int) ([]CommitEntry, error) {
 		}
 
 		if entry != nil && err == nil {
-			if len(filehistory) > 0 && filehistory[len(filehistory)-1].EntryId == entry.Id.String() {
-				filehistory = filehistory[:len(filehistory)-1]
-			}
-			filehistory = append(filehistory, CommitEntry{Id: commit.Id().String(), EntryId: entry.Id.String(), Message: commit.Message(), Author: commit.Author().Name, Timestamp: commit.Author().When})
-			cnt += 1
-			if size > 0 && len(filehistory) >= size {
-				return false
+			filehistoryLen := len(filehistory)
+			if filehistoryLen == 0 {
+				// add entry to empty filehistory
+				filehistory = append(filehistory, buildCommitEntry(commit, entry))
+			} else {
+				if filehistory[filehistoryLen-1].EntryId == entry.Id.String() {
+					// earlier commit points to the same file entry
+					// it means that the later one didn't change the file, so replace it
+					filehistory = filehistory[:filehistoryLen-1]
+					filehistory = append(filehistory, buildCommitEntry(commit, entry))
+				} else {
+					// earlier commit points to the new file entry
+					// it means that the later one has changed the file
+					cnt += 1
+					if size > 0 && cnt >= size {
+						return false
+					}
+
+					// add the commit with new file entry
+					filehistory = append(filehistory, buildCommitEntry(commit, entry))
+				}
 			}
 		}
 		return true
