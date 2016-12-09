@@ -412,7 +412,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// forbidden any access of git related object
-	if strings.HasPrefix(fp, ".git/") || fp == ".git" || fp == ".gitignore" || fp == ".gitmodules" {
+	if strings.HasPrefix(strings.ToLower(fp), ".git/") || strings.ToLower(fp) == ".git" || strings.ToLower(fp) == ".gitignore" || strings.ToLower(fp) == ".gitmodules" {
 		ctx.statusCode = http.StatusForbidden
 		http.Error(w, "access of .git related files/directory not allowed", ctx.statusCode)
 		return
