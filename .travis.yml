@@ -1,8 +1,21 @@
-language: go
-go:
-  - tip
-python:
-  - "2.7"
-install: 
-  - "sudo pip install requests"
-script: make -C server deps all test
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+    - os: osx
+      osx_iamge: xcode8
+
+language: generic
+
+install:
+  - npm install -g grunt-cli
+  - npm install
+  - pip install requests
+  - make -C server deps
+script:
+  - grunt
+  - make -C server all test
+
+after_success:
+  - '[ -n "$TRAVIS_TAG" ] && server/upload_github_release.py'
