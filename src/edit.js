@@ -78,23 +78,40 @@
     var preview_toggle = document.getElementById('preview-toggle');
     addEvent(preview_toggle, 'click', function () {
         if (renderedContainer.style.display == 'none') {
-            markdownEl.style.display = 'none';
-            var renderTarget = document.createElement("div"),
-                markdown = session.getValue();
+            markdownEl.style.width = '50%';
+            editor.resize()
+            var markdown = session.getValue();
+            renderedContainer.innerHTML = ''
+            var renderTarget = document.createElement("div");
             renderTarget.className = 'container';
             renderTarget.id = 'content';
-            renderedContainer.innerHTML = ""
             renderedContainer.appendChild(renderTarget);
             render(renderTarget, markdown, theme, null, false);
+            renderedContainer.style.marginLeft = '50%';
+            renderedContainer.style.width = '50%';
             renderedContainer.style.display = 'block';
-            setInnerText(preview_toggle, "Continue Editing");
+            setInnerText(preview_toggle, "FullScreen Editing");
         } else {
             renderedContainer.style.display = 'none';
-            markdownEl.style.display = 'block';
+            markdownEl.style.width = '';
+            editor.resize()
             setInnerText(preview_toggle, "Instant Preview");
             document.getElementsByTagName('textarea')[0].focus();
         }
     });
+
+    /* add auto preview function here */
+    editor.on('change', function () {
+      if (renderedContainer.style.display !== 'none') {
+        var markdown = session.getValue();
+        renderedContainer.innerHTML = ''
+        var renderTarget = document.createElement("div");
+        renderTarget.className = 'container';
+        renderTarget.id = 'content';
+        renderedContainer.appendChild(renderTarget);
+        render(renderTarget, markdown, theme, null, false);
+      }
+    })
 
     var uploadIframe, fileBody, fileName, uploadPath;
     var uploadBtn = document.getElementById("upload-btn");

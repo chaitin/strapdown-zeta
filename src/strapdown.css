@@ -10,6 +10,7 @@ body {
   padding-bottom: 40px;
   font-size: 15px;
   line-height: 150%;
+  overflow: hidden;
 }
 
 xmp, textarea {
@@ -792,4 +793,3 @@ ins.d2h-change, del.d2h-change {
 .d2h-hide:target ~ .d2h-file-list {
     display:block;
 }
-
