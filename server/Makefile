@@ -14,31 +14,25 @@ PYTHON2=$(shell command -v python2 || command -v python)
 all: $(TARGET)
 
 deps:
-	@echo "If you fail to build, please set proper HTTP_PROXY, HTTPS_PROXY and retry."
 	go get -u github.com/abbot/go-http-auth
-	go get -u golang.org/x/oauth2
+	go get -u github.com/jteeuwen/go-bindata/...
 	go get -u golang.org/x/oauth2/google
 	go get -u google.golang.org/api/admin/directory/v1
-	go get -d github.com/libgit2/git2go
-	cd src/github.com/libgit2/git2go; \
-		git checkout next ;\
-		git submodule update --init;\
-		sed -i '17i\ \ \ \ \ \ -DUSE_SSH=OFF -DCURL=OFF \\' script/build-libgit2-static.sh; \
-		make install;\
-		go install
+	go get -u -d github.com/libgit2/git2go
+	-mkdir src/github.com/libgit2/git2go/vendor/libgit2/build
+	cd src/github.com/libgit2/git2go/vendor/libgit2/build && cmake -DBUILD_CLAR=OFF -DBUILD_SHARED_LIBS=OFF -DUSE_OPENSSL=OFF -DUSE_SSH=OFF -DCURL=OFF .. && cmake --build .
+	go get github.com/libgit2/git2go
 
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
-	go build -ldflags="-s" -o $@
+	go build $(if $(BUILD_STATIC),-ldflags='-extldflags "-static"') -o $@
+	strip $@
 
 static:
 	grunt
 
-bin/go-bindata:
-	go get -u github.com/jteeuwen/go-bindata/...
-
-bindata.go: bin/go-bindata _static/version
-	./bin/go-bindata -nometadata _static/...
+bindata.go: _static/version
+	bin/go-bindata -nometadata _static/...
 
 _static/version:
 ifeq (yes,$(RELEASE))
