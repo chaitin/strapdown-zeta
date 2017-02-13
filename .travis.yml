@@ -2,20 +2,22 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      sudo: false
+      sudo: required
     - os: osx
-      osx_iamge: xcode8
+      osx_image: xcode8
 
-language: generic
+language: node_js
+
+services:
+  - docker
 
 install:
   - npm install -g grunt-cli
   - npm install
-  - pip install requests
-  - make -C server deps
+  - pip install --user requests
+
 script:
-  - grunt
-  - make -C server all test
+  - './build.sh && make -C server test'
 
 after_success:
   - '[ -n "$TRAVIS_TAG" ] && server/upload_github_release.py'
