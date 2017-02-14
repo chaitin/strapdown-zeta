@@ -25,8 +25,7 @@ deps:
 
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
-	go build $(if $(BUILD_STATIC),-ldflags='-extldflags "-static"') -o $@
-	strip $@
+	go build -ldflags='-s -w' $(if $(BUILD_STATIC),-ldflags='-extldflags "-static"') -o $@
 
 static:
 	grunt
