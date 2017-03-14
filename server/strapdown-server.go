@@ -333,9 +333,9 @@ func WalkDir(dirPth, suffix string) (files []string, err error) {
  suffix = strings.ToUpper(suffix) //忽略后缀匹配的大小写
 
  err = filepath.Walk(dirPth, func(filename string, fi os.FileInfo, err error) error { //遍历目录
-  //if err != nil { //忽略错误
-  // return err
-  //}
+  if err != nil {
+  return err
+  }
 
   if fi.IsDir() { // 忽略目录
    return nil
@@ -378,12 +378,11 @@ func UnicodeIndex(str,substr string) int {
   return result
 }
 //字符串匹配
-func searchStr(files []string,key string,suffix string,prefix string)[]byte{
-	var searchs []byte
+func searchStr(files []string,key string,suffix string,prefix string)(searchs []byte,err error){
 	for i:=0;i<len(files);i++{
 		f,err:=os.OpenFile(files[i],os.O_RDONLY,0444)
 		if err!=nil{
-			panic(err)
+			return searchs,err
 		}
 		con,_:=ioutil.ReadAll(f)
 		str:=string(con[:])
@@ -398,7 +397,7 @@ func searchStr(files []string,key string,suffix string,prefix string)[]byte{
 			searchs=BytesCombine(searchs,b)
 		}
 	}
-	return searchs  //写个结构处理这两项
+	return searchs,err  //写个结构处理这两项
 }
 //BytesCombine 多个[]byte数组合并成一个[]byte
 func BytesCombine(pBytes ...[]byte) []byte {
@@ -623,10 +622,25 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	//添加
 	if dosearch {
 			key:=q["search"][0]
+			if key==""{
+			return
+			}
+			var files []string
 			pth:=wikiConfig.root
 			suffix:=".md"             //查找文件类型，注意一定要有.
-			files,_:=WalkDir(pth,suffix)
-			searchs:=searchStr(files,key,suffix,pth)
+			files,err=WalkDir(pth,suffix)
+			if err != nil{
+				ctx.statusCode=http.StatusBadRequest
+				http.Error(w,err.Error(),ctx.statusCode)
+				return
+			}
+			var searchs []byte
+			searchs,err=searchStr(files,key,suffix,pth)
+			if err !=nil{
+				ctx.statusCode=http.StatusBadRequest
+				http.Error(w,err.Error(),ctx.statusCode)
+				return
+			}
 			w.Write(searchs)
 			return
 
