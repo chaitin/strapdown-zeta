@@ -128,11 +128,29 @@
 
 
 //search
+window.onload = function(){
+    var isOut = true;
+    var dom = document.getElementById('MyDiv');
+    var other = document.getElementById('fade');
+    other.onclick = function(){
+        if(isOut){
+            CloseDiv('MyDiv','fade');
+        }
+         isOut = true;
+    }
+    dom.onclick = function(){
+        isOut = false;
+        ShowDiv('MyDiv','fade')
+    }
+}
+
+
 
 var searchdiv0= document.createElement('div');
-	searchdiv0.id="fade"
-	searchdiv0.className="black_overlay"
+searchdiv0.id="fade"
+searchdiv0.className="black_overlay"
 var bo = document.body;
+bo.setAttribute("onkeydown","searchshow(event)");
 bo.insertBefore(searchdiv0,bo.lastChild);
 
 
@@ -140,15 +158,11 @@ var searchdiv1= document.createElement('div');
 	searchdiv1.id="MyDiv"
 	searchdiv1.className="white_content"
 	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
-	searchdiv1.innerHTML+='<div id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+	searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
-bo=document.getElementById("fade")
+bo=document.getElementById("fade");
+bo.setAttribute("onkeydown",'enteresc(event)');
 bo.insertBefore(searchdiv1,bo.lastChild);
-document.getElementById('fade').onkeydown=function(e){
-var keycode=document.all?event.keyCode:e.which;
-if(keycode==13)searchoff();
-if(keycode==27)CloseDiv('MyDiv','fade');
-}
 	//end
 
   //////////////////////////////////////////////////////////////////////
@@ -329,15 +343,13 @@ function searchoff() {
 					else{str="{"+strs[i]+"}"}
 				}
 				var obj=JSON.parse(str);
-				var a=document.createElement("a");
+				var link="javascript:window.location.href='"+obj.Pth+"'"
 				li=document.createElement("li");
 				li.className="searchli";
 				li.id=obj.Pth;
-				a.href=obj.Pth;
-				a.className="searcha";
-				a.innerHTML=escapeHtml(obj.Pipei)+"<br>"+escapeHtml(obj.Pth)+"</br>";
+				li.innerHTML=escapeHtml(obj.Pipei)+"<br>"+escapeHtml(obj.Pth)+"</br>";
 				o.appendChild(li);
-				document.getElementById(obj.Pth).appendChild(a);
+				document.getElementById(obj.Pth).setAttribute('onclick',link)
 
 			}
 
@@ -348,6 +360,16 @@ function searchoff() {
 	xmlhttp.send();
 
 };
+function searchshow(event)
+{
+if (event.ctrlKey==1 && event.keyCode==80)
+{
+ShowDiv('MyDiv','fade')
+}
+}
 
-
+function enteresc(event){
+if(event.keyCode==13)searchoff();
+if(event.keyCode==27)CloseDiv('MyDiv','fade');
+}
 // vim: ai:ts=2:sts=2:sw=2:
