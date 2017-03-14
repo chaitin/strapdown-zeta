@@ -296,6 +296,8 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 function searchoff() {
+	var o=document.getElementById("searchul");
+	o.innerHTML="";
 	var xmlhttp;
 	//var sendtxt;
 	sendtxt="/?search="+document.getElementById("searchtxt").value;
@@ -314,8 +316,6 @@ function searchoff() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			contain=xmlhttp.responseText;
-			var o = document.getElementById("searchul")
-			o.innerHTML=""
 			var strs= new Array();
 			strs=contain.split("}{");
 			var li;
