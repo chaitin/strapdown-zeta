@@ -36,7 +36,7 @@
     if (!outter_md_src) {
       console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdown.ztx.io/ to learn more.');
     }
-    
+
     markdown = loadOutterMD(outter_md_src);
   }
 
@@ -54,7 +54,7 @@
     xhr.send();
     return xhr.responseText;
   }
-  
+
   // Hide body until we're done fiddling with the DOM
   document.body.style.display = 'none';
 
@@ -125,6 +125,32 @@
     }
   };
 
+
+
+//search
+
+var searchdiv0= document.createElement('div');
+	searchdiv0.id="fade"
+	searchdiv0.className="black_overlay"
+var bo = document.body;
+bo.insertBefore(searchdiv0,bo.lastChild);
+
+
+var searchdiv1= document.createElement('div');
+	searchdiv1.id="MyDiv"
+	searchdiv1.className="white_content"
+	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
+	searchdiv1.innerHTML+='<div id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+
+bo=document.getElementById("fade")
+bo.insertBefore(searchdiv1,bo.lastChild);
+document.getElementById('fade').onkeydown=function(e){
+var keycode=document.all?event.keyCode:e.which;
+if(keycode==13)searchoff();
+if(keycode==27)CloseDiv('MyDiv','fade');
+}
+	//end
+
   //////////////////////////////////////////////////////////////////////
   //
   // <body> stuff
@@ -152,6 +178,7 @@
                           '<div class="collapse navbar-collapse">'+
                             '<ul class="nav navbar-nav navbar-right">'+
                               (window.location.pathname != "/" ? '<li class="gohome-link"><a href="/">Go Home</a></li>' : '')+
+		  		'<li class="search-link"><a href="javascript:void(0);" onclick=\'ShowDiv("MyDiv","fade")\'>Search</a></li>'+
                               '<li class="history-link"><a href="?history">History</a></li>'+
                               '<li class="edit-link"><a href="?edit">Edit</a></li>'+
                               '<li class="dropdown">'+
@@ -217,7 +244,7 @@
       });
     }
   }
-  
+
   var  heading_number = markdownEl.getAttribute("heading_number"),
       show_toc = markdownEl.getAttribute("toc");
   render(newNode, markdown, theme, heading_number, show_toc);
@@ -239,5 +266,88 @@
   document.body.style.display = '';
   document.getElementsByTagName('footer')[0].style.display = '';
 })(window, document);
+
+//弹出隐藏层
+function ShowDiv(show_div,bg_div){
+document.getElementById(show_div).style.display='block';
+document.getElementById(bg_div).style.display='block' ;
+var bgdiv = document.getElementById(bg_div);
+bgdiv.style.width = document.body.scrollWidth;
+// bgdiv.style.height = $(document).height();
+$("#"+bg_div).height($(document).height());
+};
+//关闭弹出层
+function CloseDiv(show_div,bg_div)
+{
+document.getElementById(show_div).style.display='none';
+document.getElementById(bg_div).style.display='none';
+document.getElementById("searchul").innerHTML="";
+};
+
+function escapeHtml(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+function searchoff() {
+	var xmlhttp;
+	//var sendtxt;
+	sendtxt="/?search="+document.getElementById("searchtxt").value;
+	if (window.XMLHttpRequest)
+	{
+		//  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+		xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{
+		// IE6, IE5 浏览器执行代码
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	xmlhttp.onreadystatechange=function()
+	{
+		if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			contain=xmlhttp.responseText;
+			var o = document.getElementById("searchul")
+			o.innerHTML=""
+			var strs= new Array();
+			strs=contain.split("}{");
+			var li;
+			for (i=0;i<strs.length ;i++ )
+			{
+				var str=""
+				if (strs.length==1){str=strs[i]}
+				else{
+					if (i==0){str=strs[i]+"}"}
+					else if (i==strs.length-1){str="{"+strs[i]}
+					else{str="{"+strs[i]+"}"}
+				}
+				var obj=JSON.parse(str);
+				var a=document.createElement("a");
+				li=document.createElement("li");
+				li.className="searchli";
+				li.id=obj.Pth;
+				a.href=obj.Pth;
+				a.className="searcha";
+				a.innerHTML=escapeHtml(obj.Pipei)+"<br>"+escapeHtml(obj.Pth)+"</br>";
+				o.appendChild(li);
+				document.getElementById(obj.Pth).appendChild(a);
+
+			}
+
+
+		}
+	}
+	xmlhttp.open("GET",sendtxt,true);
+	xmlhttp.send();
+
+};
+
 
 // vim: ai:ts=2:sts=2:sw=2:
