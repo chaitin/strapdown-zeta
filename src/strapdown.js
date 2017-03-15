@@ -177,6 +177,7 @@ bo.insertBefore(searchdiv1,bo.lastChild);
   // Insert navbar if there's none
   var newNode = document.createElement('div');
   newNode.className = 'navbar navbar-default navbar-fixed-top';
+  newNode.className += markdownEl.getAttribute('search') ? " search" : '';
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
   newNode.className += markdownEl.getAttribute('history') ? " history" : '';
   if (!navbarEl && titleEl) {
