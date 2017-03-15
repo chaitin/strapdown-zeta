@@ -155,10 +155,10 @@ bo.insertBefore(searchdiv0,bo.lastChild);
 
 
 var searchdiv1= document.createElement('div');
-	searchdiv1.id="MyDiv"
-	searchdiv1.className="white_content"
-	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
-	searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+searchdiv1.id="MyDiv"
+searchdiv1.className="white_content"
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
+searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
 bo=document.getElementById("fade");
 bo.setAttribute("onkeydown",'enteresc(event)');
@@ -283,29 +283,29 @@ bo.insertBefore(searchdiv1,bo.lastChild);
 
 //弹出隐藏层
 function ShowDiv(show_div,bg_div){
-document.getElementById(show_div).style.display='block';
-document.getElementById(bg_div).style.display='block' ;
-var bgdiv = document.getElementById(bg_div);
-bgdiv.style.width = document.body.scrollWidth;
-// bgdiv.style.height = $(document).height();
-$("#"+bg_div).height($(document).height());
+	document.getElementById(show_div).style.display='block';
+        document.getElementById(bg_div).style.display='block' ;
+        var bgdiv = document.getElementById(bg_div);
+        bgdiv.style.width = document.body.scrollWidth;
+	// bgdiv.style.height = $(document).height();
+	document.getElementById(bg_div).style.height=document.height;
 };
 //关闭弹出层
-function CloseDiv(show_div,bg_div)
-{
-document.getElementById(show_div).style.display='none';
-document.getElementById(bg_div).style.display='none';
-document.getElementById("searchul").innerHTML="";
+function CloseDiv(show_div,bg_div){
+	document.getElementById(show_div).style.display='none';
+	document.getElementById(bg_div).style.display='none';
+	document.getElementById("searchul").innerHTML="";
+	document.getElementById("searchtxt").value="";
 };
 
 function escapeHtml(text) {
-  var map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
+ 	var map = {
+    		'&': '&amp;',
+    		'<': '&lt;',
+    		'>': '&gt;',
+   	 	'"': '&quot;',
+    		"'": '&#039;'
+  	};
 
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
@@ -331,25 +331,17 @@ function searchoff() {
 		{
 			contain=xmlhttp.responseText;
 			var strs= new Array();
-			strs=contain.split("}{");
+			strs=contain.split("|#,@|");
 			var li;
-			for (i=0;i<strs.length ;i++ )
-			{
-				var str=""
-				if (strs.length==1){str=strs[i]}
-				else{
-					if (i==0){str=strs[i]+"}"}
-					else if (i==strs.length-1){str="{"+strs[i]}
-					else{str="{"+strs[i]+"}"}
-				}
-				var obj=JSON.parse(str);
-				var link="javascript:window.location.href='"+obj.Pth+"'"
+			for (i=0;i<strs.length ;i++ ){
+				var obj=JSON.parse(strs[i]);
+				var link="javascript:window.location.href='"+obj.Path+"'"
 				li=document.createElement("li");
 				li.className="searchli";
-				li.id=obj.Pth;
-				li.innerHTML=escapeHtml(obj.Pipei)+"<br>"+escapeHtml(obj.Pth)+"</br>";
+				li.id=obj.Path;
+				li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
 				o.appendChild(li);
-				document.getElementById(obj.Pth).setAttribute('onclick',link)
+				document.getElementById(obj.Path).setAttribute('onclick',link)
 
 			}
 
@@ -359,17 +351,15 @@ function searchoff() {
 	xmlhttp.open("GET",sendtxt,true);
 	xmlhttp.send();
 
-};
-function searchshow(event)
-{
-if (event.ctrlKey==1 && event.keyCode==80)
-{
-ShowDiv('MyDiv','fade')
 }
+function searchshow(event){
+	if (event.ctrlKey==1 && event.keyCode==80){
+		ShowDiv('MyDiv','fade')
+	}
 }
 
 function enteresc(event){
-if(event.keyCode==13)searchoff();
-if(event.keyCode==27)CloseDiv('MyDiv','fade');
+	if(event.keyCode==13)searchoff();
+	if(event.keyCode==27)CloseDiv('MyDiv','fade');
 }
 // vim: ai:ts=2:sts=2:sw=2:
