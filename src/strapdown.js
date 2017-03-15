@@ -155,10 +155,10 @@ bo.insertBefore(searchdiv0,bo.lastChild);
 
 
 var searchdiv1= document.createElement('div');
-	searchdiv1.id="MyDiv"
-	searchdiv1.className="white_content"
-	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
-	searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+searchdiv1.id="MyDiv"
+searchdiv1.className="white_content"
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
+searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
 bo=document.getElementById("fade");
 bo.setAttribute("onkeydown",'enteresc(event)');
@@ -353,7 +353,7 @@ function searchoff() {
 function searchshow(event){
 	if (event.ctrlKey==1 && event.keyCode==80){
 		ShowDiv('MyDiv','fade');
-		e.preventDefault();
+		event.preventDefault();
         	return false;
 	}
 }
