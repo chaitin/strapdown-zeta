@@ -345,7 +345,7 @@ Make the edit and history button switchable
 .nav>li.edit-link,.nav>li.history-link,.nav>li.search-link{
   display: none !important;
 }
-.edit li.edit-link,.history li.history-link,.nav li.search-link{
+.edit li.edit-link,.history li.history-link,.search li.search-link{
   display: block !important;
 }
 
