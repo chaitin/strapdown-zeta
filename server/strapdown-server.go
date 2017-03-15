@@ -322,6 +322,91 @@ func (this *RequestContext) parseIp() {
 	}
 }
 
+//search结构
+type SearchResult struct {
+	Match string
+	Path  string
+}
+
+//目录遍历文件
+func WalkDir(dirPath, suffix string) (files []string, err error) {
+	suffix = strings.ToUpper(suffix) //忽略后缀匹配的大小写
+
+	err = filepath.Walk(dirPath, func(filename string, fi os.FileInfo, err error) error { //遍历目录
+		if err != nil {
+			return err
+		}
+
+		if fi.IsDir() { // 忽略目录
+			return nil
+		}
+
+		if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) {
+			files = append(files, filename)
+		}
+
+		return nil
+	})
+
+	return files, err
+}
+
+//字符串截取
+func Substr(str string, start, length int) string {
+	rs := []rune(str)
+	rl := len(rs)
+	end := 0
+	if start < 0 {
+		start = 0
+	}
+	if start > rl {
+		start = rl
+	}
+	end = start + length
+	if end > rl {
+		end = rl
+	}
+
+	return string(rs[start:end])
+}
+func UnicodeIndex(str, substr string) int {
+	result := strings.Index(str, substr)
+	if result >= 0 {
+		prefix := []byte(str)[0:result]
+		rs := []rune(string(prefix))
+		result = len(rs)
+	}
+	return result
+}
+
+//字符串匹配
+func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
+	var jsondata []SearchResult
+	for i := 0; i < len(files); i++ {
+		f, err := os.OpenFile(files[i], os.O_RDONLY, 0444)
+		if err != nil {
+			return searchs, err
+		}
+		con, _ := ioutil.ReadAll(f)
+		str := string(con[:])
+		f.Close()
+		if strings.Contains(str, key) {
+			pos := UnicodeIndex(str, key)
+			t := Substr(str, pos-20, 40)
+			searchfile := strings.TrimSuffix(files[i], suffix)
+			searchfile = strings.TrimPrefix(searchfile, prefix)
+			res := SearchResult{t, searchfile}
+			jsondata = append(jsondata, res)
+		}
+	}
+	b, err := json.Marshal(jsondata)
+	if err != nil {
+		return searchs, err
+	}
+	searchs = b
+	return searchs, err
+}
+
 // this handleFunc parse request and parameters, then dispatch the action to action.go
 func handleFunc(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -493,6 +578,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	diff_ary, dodiff := q["diff"]
 	_, dooption := q["option"]
 	_, dodelete := q["delete"]
+	//添加
+	_, dosearch := q["search"]
 
 	edit_ary, doedit := q["edit"]
 	version_ary, doversion := q["version"]
@@ -533,6 +620,32 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			// that is, if the URL is http://wiki/xxx?version it is the same as http://wiki/xxx
 			param_version = ""
 		}
+	}
+	//添加
+	if dosearch {
+		key := q["search"][0]
+		if key == "" {
+			return
+		}
+		var files []string
+		path := wikiConfig.root
+		suffix := ".md" //查找文件类型，注意一定要有.
+		files, err = WalkDir(path, suffix)
+		if err != nil {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), ctx.statusCode)
+			return
+		}
+		var searchs []byte
+		searchs, err = searchStr(files, key, suffix, path)
+		if err != nil {
+			ctx.statusCode = http.StatusBadRequest
+			http.Error(w, err.Error(), ctx.statusCode)
+			return
+		}
+		w.Write(searchs)
+		return
+
 	}
 
 	if dohistory {

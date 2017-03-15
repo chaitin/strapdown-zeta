@@ -342,10 +342,10 @@ For highlight.js syntax highlighting
 Make the edit and history button switchable
 
 */
-.nav>li.edit-link, .nav>li.history-link{
+.nav>li.edit-link,.nav>li.history-link,.nav>li.search-link{
   display: none !important;
 }
-.edit li.edit-link, .history li.history-link{
+.edit li.edit-link,.history li.history-link,.search li.search-link{
   display: block !important;
 }
 
@@ -774,8 +774,6 @@ ins.d2h-change, del.d2h-change {
 .d2h-file-diff .d2h-ins.d2h-change {
     background-color: #ded;
 }
-
-/* CSS only show/hide */
 .d2h-show {
     display: none;
     float:left;
@@ -791,4 +789,80 @@ ins.d2h-change, del.d2h-change {
 }
 .d2h-hide:target ~ .d2h-file-list {
     display:block;
+}
+
+
+
+
+.black_overlay{
+    display: none;
+    background:rgba(189,189,189,0.45);
+    position: absolute;
+    text-align:center;
+    position:fixed;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    z-index:1001;
+    margin: 0 auto;
+}
+.white_content {
+    display: none;
+    background:rgba(189,189,189,0);
+    text-align:center;
+    z-index:1002;
+    width:600px;
+    margin:10% auto;
+}
+.showsearch{
+    width:600px;
+    margin:0 auto;
+}
+
+
+.searchtxt{
+    background:#ffffff;
+    border-style:solid none solid none;
+    width:600px;
+    height:50px;
+    font-size:16px;
+    opacity:1;
+    -moz-opacity:1;
+    filter:alpha(opacity=100);
+    background:url("/_static/search.png");
+    background-position: 5px 3px;
+    padding:0px 0px 0px 45px;
+}
+
+.searchli{
+    font-family:PingFangSC-Regular;
+    font-size:14px;
+    color:#999999;
+    text-decoration:none;
+    width:100%;
+    text-align:left;
+    padding:6px 0 0 45px;
+    list-style:none;
+    height:54px;
+    border-bottom:1px solid #EEE;
+    cursor:pointer;
+}
+
+.searchli:hover{
+    background-color:#666666;
+    color:#ffffff;
+}
+
+.searchul{
+    background:#ffffff;
+    box-shadow:1px 1px 2px 0 inset;
+    box-shadow: 0 10px 30px #AAA;
+    border-radius:0px 0px 5px 5px;
+    width:600px;
+    margin:0px auto;
+    padding:0;
+    opacity:1;
+    -moz-opacity:1;
+    filter:alpha(opacity=100);
 }

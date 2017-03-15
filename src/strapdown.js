@@ -36,7 +36,7 @@
     if (!outter_md_src) {
       console.warn('No embedded Markdown found in this document for Strapdown.js to work on! Visit http://strapdown.ztx.io/ to learn more.');
     }
-    
+
     markdown = loadOutterMD(outter_md_src);
   }
 
@@ -54,7 +54,7 @@
     xhr.send();
     return xhr.responseText;
   }
-  
+
   // Hide body until we're done fiddling with the DOM
   document.body.style.display = 'none';
 
@@ -125,6 +125,46 @@
     }
   };
 
+
+
+//search
+window.onload = function(){
+    var isOut = true;
+    var dom = document.getElementById('MyDiv');
+    var other = document.getElementById('fade');
+    other.onclick = function(){
+        if(isOut){
+            CloseDiv('MyDiv','fade');
+        }
+         isOut = true;
+    }
+    dom.onclick = function(){
+        isOut = false;
+        ShowDiv('MyDiv','fade')
+    }
+}
+
+
+
+var searchdiv0= document.createElement('div');
+searchdiv0.id="fade"
+searchdiv0.className="black_overlay"
+var bo = document.body;
+bo.setAttribute("onkeydown","searchshow(event)");
+bo.insertBefore(searchdiv0,bo.lastChild);
+
+
+var searchdiv1= document.createElement('div');
+searchdiv1.id="MyDiv"
+searchdiv1.className="white_content"
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
+searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+
+bo=document.getElementById("fade");
+bo.setAttribute("onkeydown",'enteresc(event)');
+bo.insertBefore(searchdiv1,bo.lastChild);
+	//end
+
   //////////////////////////////////////////////////////////////////////
   //
   // <body> stuff
@@ -137,6 +177,7 @@
   // Insert navbar if there's none
   var newNode = document.createElement('div');
   newNode.className = 'navbar navbar-default navbar-fixed-top';
+  newNode.className += markdownEl.getAttribute('search') ? " search" : '';
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
   newNode.className += markdownEl.getAttribute('history') ? " history" : '';
   if (!navbarEl && titleEl) {
@@ -152,6 +193,7 @@
                           '<div class="collapse navbar-collapse">'+
                             '<ul class="nav navbar-nav navbar-right">'+
                               (window.location.pathname != "/" ? '<li class="gohome-link"><a href="/">Go Home</a></li>' : '')+
+		  		'<li class="search-link"><a href="javascript:void(0);" onclick=\'ShowDiv("MyDiv","fade")\'>Search</a></li>'+
                               '<li class="history-link"><a href="?history">History</a></li>'+
                               '<li class="edit-link"><a href="?edit">Edit</a></li>'+
                               '<li class="dropdown">'+
@@ -217,7 +259,7 @@
       });
     }
   }
-  
+
   var  heading_number = markdownEl.getAttribute("heading_number"),
       show_toc = markdownEl.getAttribute("toc");
   render(newNode, markdown, theme, heading_number, show_toc);
@@ -240,4 +282,87 @@
   document.getElementsByTagName('footer')[0].style.display = '';
 })(window, document);
 
+//弹出隐藏层
+function ShowDiv(show_div,bg_div){
+	document.getElementById(show_div).style.display='block';
+        document.getElementById(bg_div).style.display='block' ;
+        var bgdiv = document.getElementById(bg_div);
+        bgdiv.style.width = document.body.scrollWidth;
+	// bgdiv.style.height = $(document).height();
+	document.getElementById(bg_div).style.height=document.height;
+	document.getElementById('searchtxt').focus();
+};
+//关闭弹出层
+function CloseDiv(show_div,bg_div){
+	document.getElementById(show_div).style.display='none';
+	document.getElementById(bg_div).style.display='none';
+	document.getElementById("searchul").innerHTML="";
+	document.getElementById("searchtxt").value="";
+};
+
+function escapeHtml(text) {
+ 	var map = {
+    		'&': '&amp;',
+    		'<': '&lt;',
+    		'>': '&gt;',
+   	 	'"': '&quot;',
+    		"'": '&#039;'
+  	};
+
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+function searchoff() {
+	var o=document.getElementById("searchul");
+	o.innerHTML="";
+	var xmlhttp;
+	//var sendtxt;
+	sendtxt="/?search="+document.getElementById("searchtxt").value;
+	if (window.XMLHttpRequest)
+	{
+		//  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+		xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{
+		// IE6, IE5 浏览器执行代码
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	xmlhttp.onreadystatechange=function()
+	{
+		if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			contain=xmlhttp.responseText;
+			if (contain!="null"){			
+				json=JSON.parse(contain);
+				for (i=0;i<json.length ;i++ ){
+					var obj=json[i];
+					var link="javascript:window.location.href='"+obj.Path+"'"
+					li=document.createElement("li");
+					li.className="searchli";
+					li.id=obj.Path;
+					li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
+					o.appendChild(li);
+					document.getElementById(obj.Path).setAttribute('onclick',link)
+				}
+			}
+
+
+		}
+	}
+	xmlhttp.open("GET",sendtxt,true);
+	xmlhttp.send();
+
+}
+function searchshow(event){
+	if (event.ctrlKey==1 && event.keyCode==80){
+		ShowDiv('MyDiv','fade');
+		event.preventDefault();
+        	return false;
+	}
+}
+
+function enteresc(event){
+	if(event.keyCode==13)searchoff();
+	if(event.keyCode==27)CloseDiv('MyDiv','fade');
+}
 // vim: ai:ts=2:sts=2:sw=2:
