@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
@@ -324,7 +323,7 @@ func (this *RequestContext) parseIp() {
 }
 
 //search结构
-type Search struct {
+type SearchResult struct {
 	Match string
 	Path  string
 }
@@ -382,6 +381,7 @@ func UnicodeIndex(str, substr string) int {
 
 //字符串匹配
 func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
+	var jsondata []SearchResult
 	for i := 0; i < len(files); i++ {
 		f, err := os.OpenFile(files[i], os.O_RDONLY, 0444)
 		if err != nil {
@@ -395,23 +395,16 @@ func searchStr(files []string, key string, suffix string, prefix string) (search
 			t := Substr(str, pos-20, 40)
 			searchfile := strings.TrimSuffix(files[i], suffix)
 			searchfile = strings.TrimPrefix(searchfile, prefix)
-			res := Search{t, searchfile}
-			b, _ := json.Marshal(res)
-			sign := []byte("|#,@|")
-			if i == 0 {
-				searchs = BytesCombine(searchs, b)
-			} else {
-				searchs = BytesCombine(searchs, sign, b)
-			}
+			res := SearchResult{t, searchfile}
+			jsondata = append(jsondata, res)
 		}
-
 	}
-	return searchs, err //写个结构处理这两项
-}
-
-//BytesCombine 多个[]byte数组合并成一个[]byte
-func BytesCombine(pBytes ...[]byte) []byte {
-	return bytes.Join(pBytes, []byte(""))
+	b, err := json.Marshal(jsondata)
+	if err != nil {
+		return searchs, err
+	}
+	searchs = b
+	return searchs, err
 }
 
 // this handleFunc parse request and parameters, then dispatch the action to action.go
