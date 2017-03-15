@@ -330,17 +330,18 @@ function searchoff() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			contain=xmlhttp.responseText;
-			json=JSON.parse(contain);
-			for (i=0;i<json.length ;i++ ){
-				var obj=json[i];
-				var link="javascript:window.location.href='"+obj.Path+"'"
-				li=document.createElement("li");
-				li.className="searchli";
-				li.id=obj.Path;
-				li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
-				o.appendChild(li);
-				document.getElementById(obj.Path).setAttribute('onclick',link)
-
+			if (contain!="null"){			
+				json=JSON.parse(contain);
+				for (i=0;i<json.length ;i++ ){
+					var obj=json[i];
+					var link="javascript:window.location.href='"+obj.Path+"'"
+					li=document.createElement("li");
+					li.className="searchli";
+					li.id=obj.Path;
+					li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
+					o.appendChild(li);
+					document.getElementById(obj.Path).setAttribute('onclick',link)
+				}
 			}
 
 
