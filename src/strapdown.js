@@ -289,6 +289,7 @@ function ShowDiv(show_div,bg_div){
         bgdiv.style.width = document.body.scrollWidth;
 	// bgdiv.style.height = $(document).height();
 	document.getElementById(bg_div).style.height=document.height;
+	document.getElementById('searchtxt').focus();
 };
 //关闭弹出层
 function CloseDiv(show_div,bg_div){
