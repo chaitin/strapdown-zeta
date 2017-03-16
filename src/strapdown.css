@@ -870,6 +870,8 @@ ins.d2h-change, del.d2h-change {
     box-shadow: 0 10px 30px #AAA;
     border-radius:0px 0px 5px 5px;
     width:600px;
+    height:600px;
+    overflow:auto;
     margin:0px auto;
     padding:0;
     opacity:1;
