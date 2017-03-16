@@ -848,11 +848,21 @@ ins.d2h-change, del.d2h-change {
     border-bottom:1px solid #EEE;
     cursor:pointer;
 }
-
-.searchli:hover{
+.searchlich{
+    font-family:PingFangSC-Regular;
+    font-size:14px;
     background-color:#666666;
     color:#ffffff;
+    text-decoration:none;
+    width:100%;
+    text-align:left;
+    padding:6px 0 0 45px;
+    list-style:none;
+    height:54px;
+    border-bottom:1px solid #EEE;
+    cursor:pointer;
 }
+
 
 .searchul{
     background:#ffffff;
