@@ -378,6 +378,13 @@ func UnicodeIndex(str, substr string) int {
 	}
 	return result
 }
+func getCurrentDirectory() string {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return strings.Replace(dir, "\\", "/", -1)
+}
 
 //字符串匹配
 func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
@@ -628,7 +635,12 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var files []string
-		path := wikiConfig.root
+		var path string
+		if len(wikiConfig.root) > 0{
+			path = wikiConfig.root
+		}else{
+			path = getCurrentDirectory()
+		}
 		suffix := ".md" //查找文件类型，注意一定要有.
 		files, err = WalkDir(path, suffix)
 		if err != nil {
