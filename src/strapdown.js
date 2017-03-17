@@ -175,6 +175,7 @@ bo.insertBefore(searchdiv1,bo.lastChild);
 
   // Insert navbar if there's none
   var newNode = document.createElement('div');
+  newNode.id='up'
   newNode.className = 'navbar navbar-default navbar-fixed-top';
   newNode.className += markdownEl.getAttribute('search') ? " search" : '';
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
@@ -371,7 +372,8 @@ function mousesearch(dom){
 	}
 }
 function searchshow(event){
-	if (event.ctrlKey==1 && event.keyCode==80){
+	var menu = document.getElementById('up');
+	if (event.ctrlKey==1 && event.keyCode==80 && menu.classList.contains('search')){
 		ShowDiv('MyDiv','fade');
 		event.preventDefault();
 		return false;
