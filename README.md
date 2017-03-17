@@ -233,4 +233,5 @@ All credit goes to the projects below that make up most of Strapdown.js:
  - [atifaziz](https://github.com/atifaziz)
  - [jawi](https://github.com/jawi)
  - [soyking](https://github.com/soyking)
+ - [yywing](http://github.com/yywing)
 
