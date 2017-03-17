@@ -378,7 +378,6 @@ func UnicodeIndex(str, substr string) int {
 	}
 	return result
 }
-
 //字符串匹配
 func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
 	var jsondata []SearchResult
@@ -628,7 +627,12 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var files []string
-		path := wikiConfig.root
+		var path string
+		if len(wikiConfig.root) > 0{
+			path = wikiConfig.root
+		}else{
+			path = string('.')
+		}
 		suffix := ".md" //查找文件类型，注意一定要有.
 		files, err = WalkDir(path, suffix)
 		if err != nil {

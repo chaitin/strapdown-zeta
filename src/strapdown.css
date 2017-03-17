@@ -848,11 +848,21 @@ ins.d2h-change, del.d2h-change {
     border-bottom:1px solid #EEE;
     cursor:pointer;
 }
-
-.searchli:hover{
+.searchlich{
+    font-family:PingFangSC-Regular;
+    font-size:14px;
     background-color:#666666;
     color:#ffffff;
+    text-decoration:none;
+    width:100%;
+    text-align:left;
+    padding:6px 0 0 45px;
+    list-style:none;
+    height:54px;
+    border-bottom:1px solid #EEE;
+    cursor:pointer;
 }
+
 
 .searchul{
     background:#ffffff;
@@ -860,6 +870,9 @@ ins.d2h-change, del.d2h-change {
     box-shadow: 0 10px 30px #AAA;
     border-radius:0px 0px 5px 5px;
     width:600px;
+    max-height:70%;
+    position:fixed;
+    overflow:auto;
     margin:0px auto;
     padding:0;
     opacity:1;

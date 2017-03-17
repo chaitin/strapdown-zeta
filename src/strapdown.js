@@ -157,11 +157,10 @@ bo.insertBefore(searchdiv0,bo.lastChild);
 var searchdiv1= document.createElement('div');
 searchdiv1.id="MyDiv"
 searchdiv1.className="white_content"
-searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text">';
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text" onkeydown="enter(event)">';
 searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
 bo=document.getElementById("fade");
-bo.setAttribute("onkeydown",'enteresc(event)');
 bo.insertBefore(searchdiv1,bo.lastChild);
 	//end
 
@@ -176,6 +175,7 @@ bo.insertBefore(searchdiv1,bo.lastChild);
 
   // Insert navbar if there's none
   var newNode = document.createElement('div');
+  newNode.id='up'
   newNode.className = 'navbar navbar-default navbar-fixed-top';
   newNode.className += markdownEl.getAttribute('search') ? " search" : '';
   newNode.className += markdownEl.getAttribute('edit') ? " edit" : '';
@@ -332,18 +332,27 @@ function searchoff() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			contain=xmlhttp.responseText;
-			if (contain!="null"){			
-				json=JSON.parse(contain);
-				for (i=0;i<json.length ;i++ ){
-					var obj=json[i];
-					var link="javascript:window.location.href='"+obj.Path+"'"
-					li=document.createElement("li");
+			if (contain !="" && contain !="null"){
+			json=JSON.parse(contain)
+			for (i=0;i<json.length ;i++ ){
+				var obj=json[i];
+				var link="javascript:window.location.href='"+obj.Path+"'"
+				li=document.createElement("li");
+				if (i==0){
+					li.className="searchlich";
+				}else{
 					li.className="searchli";
-					li.id=obj.Path;
-					li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
-					o.appendChild(li);
-					document.getElementById(obj.Path).setAttribute('onclick',link)
 				}
+				li.id=i.toString();
+
+				li.innerHTML=escapeHtml(obj.Match)+"<br>"+escapeHtml(obj.Path)+"</br>";
+				o.appendChild(li);
+				document.getElementById(i.toString()).setAttribute('onclick',link);
+				document.getElementById(i.toString()).setAttribute('onmouseenter','mousesearch(this)')
+				if (i==0){
+					document.getElementById(i.toString()).setAttribute('name','searchlich');
+				}
+			}
 			}
 
 
@@ -351,18 +360,85 @@ function searchoff() {
 	}
 	xmlhttp.open("GET",sendtxt,true);
 	xmlhttp.send();
-
+	document.getElementById('searchtxt').blur();
 }
-function searchshow(event){
-	if (event.ctrlKey==1 && event.keyCode==80){
-		ShowDiv('MyDiv','fade');
-		event.preventDefault();
-        	return false;
+function mousesearch(dom){
+	var tar=document.getElementsByName('searchlich')[0];
+	if (tar != this ){
+		tar.setAttribute('class','searchli');
+		tar.setAttribute('name','');
+		dom.setAttribute('class','searchlich');
+		dom.setAttribute('name','searchlich')
 	}
 }
+function searchshow(event){
+	var menu = document.getElementById('up');
+	if (event.ctrlKey==1 && event.keyCode==80 && menu.classList.contains('search')){
+		ShowDiv('MyDiv','fade');
+		event.preventDefault();
+		return false;
+	}
+	if (event.keyCode==27)CloseDiv('MyDiv','fade');
+	if (event.keyCode==38){
+		var searchul=document.getElementById("searchul");
+		var sum=searchul.getElementsByTagName("li").length;
+		var res=document.getElementsByName('searchlich');
+		if (res.length !=0){
+			var index=Number(res[0].id)
+			if (index==0){
+				var next=sum-1;
+				document.getElementById(index.toString()).setAttribute('class','searchli');
+				document.getElementById(index.toString()).setAttribute('name','');
+				document.getElementById(next.toString()).setAttribute('class','searchlich');
+				document.getElementById(next.toString()).setAttribute('name','searchlich');
+			}else{
+				var next=index-1;
+				document.getElementById(index.toString()).setAttribute('class','searchli');
+				document.getElementById(index.toString()).setAttribute('name','');
+				document.getElementById(next.toString()).setAttribute('class','searchlich');
+				document.getElementById(next.toString()).setAttribute('name','searchlich');
+			}
+		}
+		event.preventDefault();
 
-function enteresc(event){
-	if(event.keyCode==13)searchoff();
-	if(event.keyCode==27)CloseDiv('MyDiv','fade');
+	}
+	if (event.keyCode==40){
+		var searchul=document.getElementById("searchul");
+		var sum=searchul.getElementsByTagName("li").length;
+		var res=document.getElementsByName('searchlich');
+		if (res.length !=0 ){
+			var index=Number(res[0].id);
+			if (index==sum-1){
+				var next=0;
+				document.getElementById(index.toString()).setAttribute('class','searchli');
+				document.getElementById(index.toString()).setAttribute('name','');
+				document.getElementById(next.toString()).setAttribute('class','searchlich');
+				document.getElementById(next.toString()).setAttribute('name','searchlich');
+			}else{
+				var next=index+1;
+				document.getElementById(index.toString()).setAttribute('class','searchli');
+				document.getElementById(index.toString()).setAttribute('name','');
+				document.getElementById(next.toString()).setAttribute('class','searchlich');
+				document.getElementById(next.toString()).setAttribute('name','searchlich');
+				}
+		}
+		event.preventDefault();
+
+	}
+	if (event.keyCode==13){
+		var res=document.getElementsByName('searchlich');
+		if (res.length != 0){
+		res[0].click();
+		}
+	}
+
+
+}
+
+function enter(event){
+	if(event.keyCode==13){
+		searchoff();
+		event.stopPropagation();
+	}
 }
 // vim: ai:ts=2:sts=2:sw=2:
