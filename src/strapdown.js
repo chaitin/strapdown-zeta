@@ -155,10 +155,10 @@ bo.insertBefore(searchdiv0,bo.lastChild);
 
 
 var searchdiv1= document.createElement('div');
-	searchdiv1.id="MyDiv"
-	searchdiv1.className="white_content"
-	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text" onkeydown="enter(event)">';
-	searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+searchdiv1.id="MyDiv"
+searchdiv1.className="white_content"
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text" onkeydown="enter(event)">';
+searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
 bo=document.getElementById("fade");
 bo.insertBefore(searchdiv1,bo.lastChild);
@@ -332,7 +332,7 @@ function searchoff() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			contain=xmlhttp.responseText;
-			if (contain !=""){
+			if (contain !="" && contain !="null"){
 			json=JSON.parse(contain)
 			for (i=0;i<json.length ;i++ ){
 				var obj=json[i];
