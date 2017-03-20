@@ -155,10 +155,10 @@ bo.insertBefore(searchdiv0,bo.lastChild);
 
 
 var searchdiv1= document.createElement('div');
-	searchdiv1.id="MyDiv"
-	searchdiv1.className="white_content"
-	searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text" onkeydown="enter(event)">';
-	searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
+searchdiv1.id="MyDiv"
+searchdiv1.className="white_content"
+searchdiv1.innerHTML='<input class="searchtxt" id="searchtxt" type="text" onkeydown="enter(event)">';
+searchdiv1.innerHTML+='<div class="showsearch" id="showsearch" style="text-align:center;"><ul id="searchul" class="searchul"></ul></div>';
 
 bo=document.getElementById("fade");
 bo.insertBefore(searchdiv1,bo.lastChild);
@@ -399,7 +399,7 @@ function searchshow(event){
 				document.getElementById(next.toString()).setAttribute('class','searchlich');
 				document.getElementById(next.toString()).setAttribute('name','searchlich');
 				var sh=next*54
-			if (sh<searchul.scrollTop){
+				if (sh<searchul.scrollTop){
 					searchul.scrollTop=next*54;
 				}
 			}
