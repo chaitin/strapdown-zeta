@@ -312,7 +312,7 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 function searchoff() {
-	var o=document.getElementById("searchul");
+	var o = document.getElementById("searchul");
 	o.innerHTML="";
 	var xmlhttp;
 	//var sendtxt;
@@ -332,11 +332,11 @@ function searchoff() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			contain=xmlhttp.responseText;
-			if (contain !="" && contain !="null"){
+			if (contain != "" && contain != "null"){
 			json=JSON.parse(contain)
 			for (i=0;i<json.length ;i++ ){
-				var obj=json[i];
-				var link="javascript:window.location.href='"+obj.Path+"'"
+				var obj = json[i];
+				var link = "javascript:window.location.href='"+obj.Path+"'"
 				li=document.createElement("li");
 				if (i==0){
 					li.className="searchlich";
@@ -363,7 +363,7 @@ function searchoff() {
 	document.getElementById('searchtxt').blur();
 }
 function mousesearch(dom){
-	var tar=document.getElementsByName('searchlich')[0];
+	var tar = document.getElementsByName('searchlich')[0];
 	if (tar != this ){
 		tar.setAttribute('class','searchli');
 		tar.setAttribute('name','');
@@ -378,40 +378,44 @@ function searchshow(event){
 		event.preventDefault();
 		return false;
 	}
-	if (event.keyCode==27)CloseDiv('MyDiv','fade');
-	if (event.keyCode==38){
-		var searchul=document.getElementById("searchul");
-		var sum=searchul.getElementsByTagName("li").length;
-		var res=document.getElementsByName('searchlich');
-		if (res.length !=0){
-			var index=Number(res[0].id)
-			if (index==0){
+	if (event.keyCode == 27)CloseDiv('MyDiv','fade');
+	if (event.keyCode == 38){
+		var searchul = document.getElementById("searchul");
+		var sum = searchul.getElementsByTagName("li").length;
+		var res = document.getElementsByName('searchlich');
+		if (res.length != 0) {
+			var index = Number(res[0].id)
+			if (index == 0) {
 				var next=sum-1;
 				document.getElementById(index.toString()).setAttribute('class','searchli');
 				document.getElementById(index.toString()).setAttribute('name','');
 				document.getElementById(next.toString()).setAttribute('class','searchlich');
 				document.getElementById(next.toString()).setAttribute('name','searchlich');
 				searchul.scrollTop=searchul.scrollHeight
-			}else{
+			} else {
 				var next=index-1;
 				document.getElementById(index.toString()).setAttribute('class','searchli');
 				document.getElementById(index.toString()).setAttribute('name','');
 				document.getElementById(next.toString()).setAttribute('class','searchlich');
 				document.getElementById(next.toString()).setAttribute('name','searchlich');
-				var sh=next*54
-				if (sh<searchul.scrollTop){
-					searchul.scrollTop=next*54;
+				var lih=document.getElementById(next.toString()).offsetHeight;
+				var sh=next*lih
+				if (sh<searchul.scrollTop) {
+					searchul.scrollTop=next*lih;
+				}
+				if (sh>searchul.scrollTop+searchul.offsetHeight) {
+					searchul.scrollTop=(next+1)*lih-searchul.offsetHeight
 				}
 			}
 		}
 		event.preventDefault();
 
 	}
-	if (event.keyCode==40){
+	if (event.keyCode == 40) {
 		var searchul=document.getElementById("searchul");
 		var sum=searchul.getElementsByTagName("li").length;
 		var res=document.getElementsByName('searchlich');
-		if (res.length !=0 ){
+		if (res.length != 0){
 			var index=Number(res[0].id);
 			if (index==sum-1){
 				var next=0;
@@ -421,15 +425,19 @@ function searchshow(event){
 				document.getElementById(next.toString()).setAttribute('name','searchlich');
 				searchul.scrollTop=0;
 
-			}else{
+			} else {
 				var next=index+1;
 				document.getElementById(index.toString()).setAttribute('class','searchli');
 				document.getElementById(index.toString()).setAttribute('name','');
 				document.getElementById(next.toString()).setAttribute('class','searchlich');
 				document.getElementById(next.toString()).setAttribute('name','searchlich');
-				var sh=54*(next+1);
+				var lih=document.getElementById(next.toString()).offsetHeight;
+				var sh=lih*(next+1);
 				if (sh>searchul.scrollTop+searchul.offsetHeight){
 					searchul.scrollTop=sh-searchul.offsetHeight;
+				}
+				if (sh<searchul.scrollTop) {
+					searchul.scrollTop=next*lih;
 				}
 			}
 
@@ -437,7 +445,7 @@ function searchshow(event){
 		event.preventDefault();
 
 	}
-	if (event.keyCode==13){
+	if (event.keyCode == 13){
 		var res=document.getElementsByName('searchlich');
 		if (res.length != 0){
 		res[0].click();
@@ -448,7 +456,7 @@ function searchshow(event){
 }
 
 function enter(event){
-	if(event.keyCode==13){
+	if(event.keyCode == 13){
 		searchoff();
 		event.stopPropagation();
 	}
