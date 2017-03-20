@@ -436,7 +436,7 @@ function searchshow(event){
 				if (sh>searchul.scrollTop+searchul.offsetHeight){
 					searchul.scrollTop=sh-searchul.offsetHeight;
 				}
-				if (sh<searchul.scrollTop) {
+				if (lih*next<searchul.scrollTop) {
 					searchul.scrollTop=next*lih;
 				}
 			}
