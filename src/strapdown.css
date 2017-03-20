@@ -847,6 +847,9 @@ ins.d2h-change, del.d2h-change {
     height:54px;
     border-bottom:1px solid #EEE;
     cursor:pointer;
+    text-overflow:ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .searchlich{
     font-family:PingFangSC-Regular;
@@ -861,6 +864,9 @@ ins.d2h-change, del.d2h-change {
     height:54px;
     border-bottom:1px solid #EEE;
     cursor:pointer;
+    text-overflow:ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 
