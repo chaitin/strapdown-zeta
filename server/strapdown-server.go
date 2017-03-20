@@ -378,6 +378,13 @@ func UnicodeIndex(str, substr string) int {
 	}
 	return result
 }
+func getCurrentDirectory() string {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return strings.Replace(dir, "\\", "/", -1)
+}
 
 //字符串匹配
 func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
@@ -390,8 +397,8 @@ func searchStr(files []string, key string, suffix string, prefix string) (search
 		con, _ := ioutil.ReadAll(f)
 		str := string(con[:])
 		f.Close()
-		if strings.Contains(str, key) {
-			pos := UnicodeIndex(str, key)
+		if strings.Contains(strings.ToLower(str),strings.ToLower(key)) {
+			pos := UnicodeIndex(strings.ToLower(str),strings.ToLower(key))
 			t := Substr(str, pos-15, 30)
 			searchfile := strings.TrimSuffix(files[i], suffix)
 			searchfile = strings.TrimPrefix(searchfile, prefix)
