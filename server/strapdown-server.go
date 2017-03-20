@@ -378,6 +378,7 @@ func UnicodeIndex(str, substr string) int {
 	}
 	return result
 }
+
 //字符串匹配
 func searchStr(files []string, key string, suffix string, prefix string) (searchs []byte, err error) {
 	var jsondata []SearchResult
@@ -389,8 +390,8 @@ func searchStr(files []string, key string, suffix string, prefix string) (search
 		con, _ := ioutil.ReadAll(f)
 		str := string(con[:])
 		f.Close()
-		if strings.Contains(strings.ToLower(str),strings.ToLower(key)) {
-			pos := UnicodeIndex(strings.ToLower(str),strings.ToLower(key))
+		if strings.Contains(strings.ToLower(str), strings.ToLower(key)) {
+			pos := UnicodeIndex(strings.ToLower(str), strings.ToLower(key))
 			t := Substr(str, pos-15, 30)
 			searchfile := strings.TrimSuffix(files[i], suffix)
 			searchfile = strings.TrimPrefix(searchfile, prefix)
