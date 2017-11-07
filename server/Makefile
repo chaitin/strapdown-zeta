@@ -19,7 +19,8 @@ deps:
 	go get -u golang.org/x/oauth2/google
 	go get -u google.golang.org/api/admin/directory/v1
 	go get -d github.com/libgit2/git2go
-	cd src/github.com/libgit2/git2go/ && git checkout next && git submodule update --init  && make install
+	cd src/github.com/libgit2/git2go/ && git checkout next && git submodule update --init && cd vendor/libgit2 && mkdir -p install/lib && mkdir -p build && cd build && cmake -DBUILD_CLAR=OFF -DBUILD_SHARED_LIBS=OFF -DUSE_OPENSSL=OFF -DUSE_SSH=OFF -DCURL=OFF -DCMAKE_C_FLAGS=-fPIC -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX=../install .. && cmake --build . 
+	cd src/github.com/libgit2/git2go && go install ./...
 
 # PHONY target should not be a dependency
 $(TARGET): bindata.go
