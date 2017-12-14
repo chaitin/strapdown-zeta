@@ -181,6 +181,15 @@ $ mkdir -p /home/wiki
 $ strapdown-server -dir /home/wiki -init -addr 127.0.0.1:8080
 ```
 
+Or,you can run in docker:
+
+```
+$ mkdir -p /home/wiki
+$ docker build . -t wiki
+$ docker run -d -p 8080:8080 -v /home/wiki:/wiki wiki -dir /wiki -init -addr :8080
+
+```
+
 ### Note
 
 The server relies on /etc/mime.types to correctly detect file mime types. So make sure /etc/mime.types exists.
